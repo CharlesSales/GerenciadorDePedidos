@@ -6,12 +6,12 @@ public class Pedidos {
     private Mesa mesaID;
     private Funcionarios funcionarioID;
     private String data;
-    private Tipo status;
+    private String status;
 
     public Pedidos() {
     }
 
-    public Pedidos(int id, Mesa mesaID, Funcionarios funcionarioID, String data, Tipo status) {
+    public Pedidos(int id, Mesa mesaID, Funcionarios funcionarioID, String data, String status) {
         this.id = id;
         this.mesaID = mesaID;
         this.funcionarioID = funcionarioID;
@@ -51,11 +51,11 @@ public class Pedidos {
         this.data = data;
     }
 
-    public Tipo getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(Tipo status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
