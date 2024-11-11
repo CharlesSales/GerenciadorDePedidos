@@ -11,9 +11,8 @@ public class ItensPedidos {
     public ItensPedidos() {
     }
 
-    public ItensPedidos(int id, Pedidos pedidoID, String descricao, int quantidade, double preco) {
-        this.id = id;
-        this.pedidoID = pedidoID;
+    public ItensPedidos(String descricao, int quantidade, double preco) {
+        this.id = id;;
         this.descricao = descricao;
         this.quantidade = quantidade;
         this.preco = preco;
@@ -71,7 +70,7 @@ public class ItensPedidos {
     public String toString() {
         {
             String informacao = "Itens Pedidos: \n";
-            return informacao += String.format("Id: %d PedidoID: %d Descricao: %s quantidade: %d preco:%d", id, pedidoID, descricao, quantidade, preco);
+            return informacao += String.format("Id: %d PedidoID: %d Descricao: %s quantidade: %d preco:%.2f", id, pedidoID, descricao, quantidade, preco);
         }
     }
 }
