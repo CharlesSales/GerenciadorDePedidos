@@ -1,0 +1,35 @@
+import Link from "next/link";
+//import Header from "@/components/Header"; // ajuste o caminho se necessário
+//import Promotions from "@/components/Promotions"; // ajuste o caminho
+import styles from "./page.module.css"; // ou outro CSS
+
+export default function Home() {
+  return (
+    <div className={styles.page}>
+      <main className={styles.main}>
+        <h1>Bem-vindo ao Restaurante!</h1>
+        <p>Escolha uma opção para começar:</p>
+
+        <div className={styles.ctas}>
+          <Link href="/produtos" className={styles.primary}>
+            Cardápio
+          </Link>
+          <Link href="/carrinho" className={styles.primary}>
+            Carrinho
+          </Link>
+          <Link href="/status" className={styles.primary}>
+            Status do Pedido
+          </Link>
+          <Link href="/produtos" className={styles.primary}>
+            Fazer Pedido
+          </Link>
+          
+        </div>
+      </main>
+
+      <footer className={styles.footer}>
+        <p>© 2025 Acarajé da Mari</p>
+      </footer>
+    </div>
+  );
+}
