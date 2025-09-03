@@ -76,8 +76,6 @@ app.get('/funcionario', async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-
-// Rodar servidor
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
