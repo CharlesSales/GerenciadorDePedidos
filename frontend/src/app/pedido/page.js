@@ -28,7 +28,7 @@ export default function ListaPedidos() {
     <div>
       <h1>Lista de Pedidos</h1>
       {pedidos.map((pedido) => (
-        <div key={pedido.id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px", borderRadius: "6px" }}>
+        <div key={pedido.id_pedido} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px", borderRadius: "6px" }}>
           <p><strong>ID:</strong> {pedido.id_pedido}</p>
           <p><strong>Cliente:</strong> {pedido.nome_cliente}</p>
           <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>

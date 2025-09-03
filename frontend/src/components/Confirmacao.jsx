@@ -37,19 +37,34 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
 
   const handleConfirmarPedido = async () => {
     const pedido = { cliente, funcionario, casa, itens: itensParaBackend, total };
+
     try {
       const res = await fetch("http://localhost:3001/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido)
       });
+
+      // Se a resposta não for 2xx
+      if (!res.ok) {
+        const text = await res.text(); // Pega o conteúdo caso não seja JSON
+        console.error("Erro ao enviar pedido:", text);
+        alert("Erro ao enviar pedido. Veja o console para detalhes.");
+        return;
+      }
+
+      // Tenta converter para JSON
       const data = await res.json();
       console.log("Pedido salvo:", data);
       setEnviado(true);
+      alert("Pedido enviado com sucesso!");
+      
     } catch (err) {
       console.error("Erro ao enviar pedido:", err);
+      alert("Erro ao enviar pedido. Veja o console para detalhes.");
     }
   };
+
 
   return (
     <div>
@@ -66,16 +81,18 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             />
           </label>
 
+
           <label>
             Funcionário:
-            <select value={funcionario} onChange={e => setFuncionario(e.target.value)}>
+            <select value={funcionario} onChange={e => setFuncionario(Number(e.target.value))}>
               <option value="">Selecione um funcionário</option>
               {funcionarios.map(f => (
-                <option key={f.id_funcionario} value={f.nome}>
+                <option key={f.id_funcionario} value={f.id_funcionario}>
                   {f.nome}
                 </option>
               ))}
             </select>
+
           </label>
 
 
@@ -91,11 +108,11 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
           <h3>Resumo do pedido:</h3>
           <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
             <ul>
-              {itensParaBackend.map((item, idx) => (
-                <li key={idx}>
-                  {item.nome} - Quantidade: {item.quantidade} - Preço unitário: R$ {item.preco.toFixed(2)} - Total: R$ {(item.preco * item.quantidade).toFixed(2)}
-                </li>
-              ))}
+             {itensParaBackend.map((item, idx) => (
+              <li key={`${item.produto_id}-${idx}`}>
+                {item.nome} - Quantidade: {item.quantidade} - Preço unitário: R$ {item.preco.toFixed(2)} - Total: R$ {(item.preco * item.quantidade).toFixed(2)}
+              </li>
+            ))}
             </ul>
             <h3>Total do pedido: R$ {total.toFixed(2)}</h3>
           </div>
@@ -108,3 +125,6 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     </div>
   );
 }
+
+
+
