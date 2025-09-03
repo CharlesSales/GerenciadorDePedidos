@@ -22,7 +22,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   useEffect(() => {
-    fetch("http://localhost:3001/funcionario")
+    fetch("https://gerenciadordepedidos.onrender.com/funcionario")
       .then(res => res.json())
       .then(data => setFuncionarios(data))
       .catch(err => console.error("Erro ao carregar funcionários:", err));
@@ -39,7 +39,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     const pedido = { cliente, funcionario, casa, itens: itensParaBackend, total };
 
     try {
-      const res = await fetch("http://localhost:3001/pedidos", {
+      const res = await fetch("https://gerenciadordepedidos.onrender.com/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido)

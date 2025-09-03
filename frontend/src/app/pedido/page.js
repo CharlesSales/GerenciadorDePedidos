@@ -5,7 +5,7 @@ export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/pedidos")
+    fetch("https://gerenciadordepedidos.onrender.com/pedidos")
       .then(res => res.json())
       .then(data => setPedidos(data))
       .catch(err => console.error("Erro ao carregar pedidos:", err));
