@@ -8,8 +8,9 @@ export function CarrinhoProvider({ children }) {
 
   const [produtos, setProdutos] = useState([]);
 
+  //https://gerenciadordepedidos.onrender.com/pedidos
   useEffect(() => {
-    fetch("http://localhost:3001/produtos")
+    fetch("https://gerenciadordepedidos.onrender.com/produtos")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
