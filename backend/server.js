@@ -74,8 +74,5 @@ app.get('/funcionario', async (req, res) => {
   res.json(data);
 });
 
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 3001; // fallback só para rodar local
+app.listen(PORT, '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}`));
