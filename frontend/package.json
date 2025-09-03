@@ -1,5 +1,6 @@
 {
-  "name": "sushi-main",
+  "name": "frontend",
+  "author": {"name": "Henrique", "email": "salleshenrique13@gmail.com"},
   "version": "0.1.0",
   "private": true,
   "scripts": {
