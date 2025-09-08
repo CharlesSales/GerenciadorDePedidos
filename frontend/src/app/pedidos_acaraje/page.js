@@ -11,7 +11,7 @@ export default function ListaPedidos() {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_LOCAL}/pedidosAcaraje`)
+    fetch("https://gerenciadordepedidos.onrender.com/pedidosAcaraje")
       .then(res => res.json())
       .then(data => setPedidos(data))
       .catch(err => console.error("Erro ao carregar pedidos:", err));
