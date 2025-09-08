@@ -62,13 +62,13 @@ export default function Header() {
           </li>
           <li
             style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/pedido')}
+            onClick={() => handleOption('/pedidos_restaurante')}
           >
             Pedido
           </li>
           <li
             style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/carrinho_acaraje')}
+            onClick={() => handleOption('/pedidos_acaraje')}
           >
             pedidos de acarajé
           </li>
