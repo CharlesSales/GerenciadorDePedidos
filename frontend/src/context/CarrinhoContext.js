@@ -1,6 +1,5 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
-import dotenv from 'dotenv';
 
 const CarrinhoContext = createContext();
 
@@ -16,7 +15,7 @@ export function CarrinhoProvider({ children }) {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_LOCAL}/produtos`)
+    fetch("https://gerenciadordepedidos.onrender.com/produtos")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
@@ -25,7 +24,7 @@ export function CarrinhoProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_LOCAL}/acaraje`)
+    fetch("https://gerenciadordepedidos.onrender.com/acaraje")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
