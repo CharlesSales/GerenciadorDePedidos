@@ -29,7 +29,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch("{https://gerenciadordepedidos.onrender.com/funcionario")
+    fetch("https://gerenciadordepedidos.onrender.com/funcionario")
       .then(res => res.json())
       .then(data => setFuncionarios(data))
       .catch(err => console.error("Erro ao carregar funcionários:", err));
