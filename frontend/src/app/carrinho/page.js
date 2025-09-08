@@ -36,22 +36,7 @@ export default function CarrinhoPage() {
       </div>
 
       {Object.keys(carrinho).length > 0 && status !== 'confirmed' && (
-/*
-        <button
-        onClick={() => router.push('/carrinho')}
-        style={{
-          marginTop: '30px',
-          padding: '10px 20px',
-          backgroundColor: '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px'
-        }}
-      >
-        Ir para o carrinho
-      </button>
 
-      */
         <button
           onClick={() => router.push('/confirmacao')}
           style={{
