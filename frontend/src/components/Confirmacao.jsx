@@ -16,11 +16,18 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
         produto_id: produto?.id_produto,
         nome: produto?.nome,
         quantidade,
-        preco: Number(produto?.preco || 0)
+        preco: Number(produto?.preco || 0),
+        cozinha: produto?.cozinha
       };
     }
   );
 
+  
+  // Localmente, para desenvolvimento
+  // http://localhost:3001
+
+  // No Render.com, para produção
+  // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
     fetch("https://gerenciadordepedidos.onrender.com/funcionario")
       .then(res => res.json())
@@ -36,35 +43,56 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   const handleConfirmarPedido = async () => {
-    const pedido = { cliente, funcionario, casa, itens: itensParaBackend, total };
+  if (!cliente || !funcionario || !casa || itensParaBackend.length === 0) {
+    alert("Preencha todos os campos e adicione pelo menos um produto.");
+    return;
+  }
 
-    try {
-      const res = await fetch("https://gerenciadordepedidos.onrender.com/pedidos", {
+  // Separar itens por categoria
+  const itensAlmoco = itensParaBackend.filter(item => item.cozinha === "almoço");
+  const itensAcaraje = itensParaBackend.filter(item => item.cozinha === "acaraje");
+
+  // Calcular total de cada grupo
+  const totalAlmoco = itensAlmoco.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+  const totalAcaraje = itensAcaraje.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
+
+  try {
+    // Enviar pedido de almoço/petisco
+    if (itensAlmoco.length > 0) {
+      const resAlmoco = await fetch("https://gerenciadordepedidos.onrender.com/pedidos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pedido)
+        body: JSON.stringify({ cliente, funcionario, casa, itens: itensAlmoco, total: totalAlmoco })
       });
 
-      // Se a resposta não for 2xx
-      if (!res.ok) {
-        const text = await res.text(); // Pega o conteúdo caso não seja JSON
-        console.error("Erro ao enviar pedido:", text);
-        alert("Erro ao enviar pedido. Veja o console para detalhes.");
-        return;
+      if (!resAlmoco.ok) {
+        const text = await resAlmoco.text();
+        throw new Error(`Erro ao enviar pedido de almoço/petisco: ${text}`);
       }
 
-      // Tenta converter para JSON
-      const data = await res.json();
-      console.log("Pedido salvo:", data);
-      setEnviado(true);
-      alert("Pedido enviado com sucesso!");
-      
+      const dataAlmoco = await resAlmoco.json();
+      console.log("Pedido de almoço/petisco enviado:", dataAlmoco);
+    }
+
+    // Enviar pedido de acarajé
+
+    if (itensAcaraje.length > 0) {
+      const resAcaraje = await fetch("https://gerenciadordepedidos.onrender.com/pedidos_acaraje", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total: totalAcaraje })
+      });
+      if (!resAcaraje.ok) throw new Error("Erro ao enviar pedido de acarajé");
+    }
+
+
+        setEnviado(true);
+        alert("Todos os pedidos foram enviados com sucesso!");
     } catch (err) {
-      console.error("Erro ao enviar pedido:", err);
-      alert("Erro ao enviar pedido. Veja o console para detalhes.");
+      console.error(err);
+      alert(`Erro ao enviar pedido: ${err.message}`);
     }
   };
-
 
   return (
     <div>
@@ -122,9 +150,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       )}
 
       {enviado && <p>Pedido enviado com sucesso!</p>}
+      
     </div>
   );
 }
-
-
-

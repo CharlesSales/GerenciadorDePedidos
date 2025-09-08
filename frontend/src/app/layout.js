@@ -1,9 +1,9 @@
-import './globals.css';
-import { CarrinhoProvider } from '../context/CarrinhoContext';
-import Header from '../components/Header'; // 👈 importa o componente de navegação
+import "./globals.css";
+import { CarrinhoProvider } from "../context/CarrinhoContext";
+import Header from "../components/Header"; // 👈 versão cliente do Header
 
 export const metadata = {
-  title: 'Sushi App',
+  title: "Acarajé da Mari",
 };
 
 export default function RootLayout({ children }) {
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-br">
       <body>
         <CarrinhoProvider>
-          <Header /> {/* 👈 insere o menu aqui */}
+          <Header /> {/* controla se mostra ou não */}
           {children}
         </CarrinhoProvider>
       </body>
