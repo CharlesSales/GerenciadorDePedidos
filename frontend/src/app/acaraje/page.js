@@ -1,5 +1,5 @@
 import Link from "next/link";
-import styles from "./page.module.css"; // ou outro CSS
+import styles from "../page.module.css"; // ou outro CSS
 
 export default function Home() {
   return (
@@ -12,11 +12,11 @@ export default function Home() {
         <div className={styles.ctas}>
           
           
-          <Link href="/produtos" className={styles.primary}>
-            FAZER PEDIDO
+          <Link href="/pedidos_restaurante" className={styles.primary}>
+            PEDIDOS DO RESTAURANTE
           </Link>
-          <Link href="/acaraje" className={styles.primary}>
-            ACOMPANHAR PEDIDOS
+          <Link href="/pedidos_acaraje" className={styles.primary}>
+            PEDIDOS DE ACARAJÉ
           </Link>
           
         </div>
