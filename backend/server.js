@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { supabase } from './supabaseClient.js';
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -12,7 +13,7 @@ app.get('/pedidos', async (req, res) => {
   const { data, error } = await supabase
     .from('pedidos')
     .select('*')
-    .order('data_hora', { ascending: true });
+    .order('data_hora', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
@@ -45,14 +46,19 @@ app.post('/pedidos', async (req, res) => {
 
 // Rota para listar pedidos do acarajé
 app.get('/pedidosAcaraje', async (req, res) => {
+
   const { data, error } = await supabase
     .from('pedidos_acaraje')
     .select('*')
-    .order('data_hora', { ascending: true });
+    .order('id_pedido', { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-});
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+
+  
+  });
+
+ 
 
 
 

@@ -15,7 +15,7 @@ export function CarrinhoProvider({ children }) {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch("https://gerenciadordepedidos.onrender.com/produtos")
+    fetch("http://localhost:8080/produtos")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
@@ -24,7 +24,7 @@ export function CarrinhoProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetch("https://gerenciadordepedidos.onrender.com/acaraje")
+    fetch("http://localhost:8080/acaraje")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
@@ -62,7 +62,9 @@ export function CarrinhoProvider({ children }) {
 
   return (
     <CarrinhoContext.Provider value={{ carrinho, produtos, acaraje, handleAdd, handleRemove, handleClear }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
       {children}
+      </div>
     </CarrinhoContext.Provider>
   );
 }
