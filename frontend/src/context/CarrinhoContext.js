@@ -15,7 +15,7 @@ export function CarrinhoProvider({ children }) {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch("http://localhost:8080/produtos")
+    fetch("https://gerenciadordepedidos.onrender.com/produtos")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
@@ -24,7 +24,7 @@ export function CarrinhoProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:8080/acaraje")
+    fetch("https://gerenciadordepedidos.onrender.com/acaraje")
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
