@@ -14,11 +14,39 @@ export default function CarrinhoPage() {
  
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Carrinho</h1>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',  
+      alignItems: 'center',      
+      height: '100vh',           
+      width: '100%',              
+    }}>     
 
-      {Object.keys(carrinho).length === 0 && <p>Carrinho vazio.</p>}
+   {Object.keys(carrinho).length === 0 && (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh', // ocupa toda a tela
+        gap: '20px'       // espaço entre ícone e frase
+      }}>
+        <h1 style={{ fontSize: '200px', margin: 0 }}>🛒</h1>
+        <p style={{ fontSize: '24px', marginBottom: '20px' }}>Carrinho vazio</p>
+      </div>
+    )}
 
+
+      <div style={{
+          width: '1200',
+          marginTop: '30px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '30px',
+          maxHeight: '80vh',
+          overflowY: 'auto'
+      }}>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {produtos
           .filter(produto => carrinho[produto.id_produto])
@@ -34,7 +62,7 @@ export default function CarrinhoPage() {
             />
           ))}
       </div>
-
+      </div>
       {Object.keys(carrinho).length > 0 && status !== 'confirmed' && (
 
         <button
