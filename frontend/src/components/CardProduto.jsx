@@ -17,7 +17,7 @@ export default function CardProduto({ produto, quantidade, onAdd, onRemove, onCl
         style={{ width: '100%', borderRadius: '8px' }}
       />
       <h3>{produto.nome}</h3>
-      <p>R$ {(produto.valor * quantidade).toFixed(2)}</p>
+      <p>R$ {(produto.preco * quantidade).toFixed(2)}</p>
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
         <button onClick={() => onRemove(produto)}>-</button>

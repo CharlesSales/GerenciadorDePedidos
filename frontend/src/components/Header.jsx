@@ -1,123 +1,83 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const menuRef = useRef(null); // referência do menu
+
+  // Fecha o menu ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleToggle = () => setOpen(!open);
 
   const handleOption = (option) => {
     setOpen(false);
-    if (option.startsWith('/')) {
-      router.push(option); // navegação para páginas
+    if (option.startsWith("/")) {
+      router.push(option);
     } else {
-      console.log("Selecionou:", option); // ação interna
+      console.log("Selecionou:", option);
     }
   };
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    
+    <div ref={menuRef} style={{
+      marginBottom: "15px",
+      padding: "10px",
+      borderRadius: "6px",
+      backgroundColor: "#fff",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+      position: "fixed",
+      top: "10px",
+      left: "10px",
+      zIndex: 1000
+    }}>
+      {/* Botão hamburger */}
       <button
         onClick={handleToggle}
         style={{
-          padding: '3px 10px',
-          fontSize: '24px',
-          border: '15',
-          background: 'transparent',
-          cursor: 'pointer'
+          fontSize: "24px",
+          padding: "5px 10px",
+          cursor: "pointer",
+          background: "transparent",
+          border: "none"
         }}
       >
-        ⋮
+        ☰
       </button>
 
       {/* Menu */}
       {open && (
         <ul style={{
-          position: 'absolute',
-          top: 15,       // começa na altura do botão
-          left: '100%', // abre à direita
-          listStyle: 'none',
+          position: "absolute",
+          top: "40px",
+          left: 0,
+          listStyle: "none",
           margin: 0,
-          padding: '10px',
-          background: 'white',
-          border: '1px solid #ccc',
-          borderRadius: '5px',
-          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-          zIndex: 100,
-          minWidth: '150px'
+          padding: "10px",
+          background: "white",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+          minWidth: "150px"
         }}>
-           <li
-            style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/')}
-          >
-            Home
-          </li>
-          <li
-            style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/produtos')}
-          >
-            Produtos
-          </li>
-          <li
-            style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/pedidos_restaurante')}
-          >
-            Pedido
-          </li>
-          <li
-            style={{ padding: '5px 10px', cursor: 'pointer' }}
-            onClick={() => handleOption('/pedidos_acaraje')}
-          >
-            pedidos de acarajé
-          </li>
-
+          <li style={{ padding: "5px 10px", cursor: "pointer" }} onClick={() => handleOption("/")}>Home</li>
+          <li style={{ padding: "5px 10px", cursor: "pointer" }} onClick={() => handleOption("/produtos")}>Produtos</li>
+          <li style={{ padding: "5px 10px", cursor: "pointer" }} onClick={() => handleOption("/carrinho")}>Carrinho</li>
+          <li style={{ padding: "5px 10px", cursor: "pointer" }} onClick={() => handleOption("/acaraje")}>Pedido</li>
+          <li style={{ padding: "5px 10px", cursor: "pointer" }} onClick={() => handleOption("/status")}>Status</li>
         </ul>
       )}
     </div>
   );
 }
-
-
-
-/*
-"use client";
-import Link from "next/link";
-
-export default function Header() {
-  return (
-    <nav style={{ display: "flex", gap: "20px", padding: "20px" }}>
-      <Link href="/">Início</Link>
-      <Link href="/produtos">Produtos</Link>
-      <Link href="/carrinho">Carrinho</Link>
-      <Link href="/pedido">Pedido</Link>
-      <Link href="/status">Status</Link>
-
-    </nav>
-  );
-}
-
-"use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-export default function Header() {
-  const pathname = usePathname();
-  // Se estiver na Home, não mostra o Header  
-  if (pathname === "/"){
-    return null
-  } else{
-    return (
-    <nav style={{ display: "flex", gap: "20px", padding: "20px" }}>
-      <Link href="/">Início</Link>
-      <Link href="/produtos">Produtos</Link>
-      <Link href="/carrinho">Carrinho</Link>
-      <Link href="/pedido">Pedido</Link>
-      <Link href="/status">Status</Link>
-
-    </nav>
-  );
-  }
-}
-*/
