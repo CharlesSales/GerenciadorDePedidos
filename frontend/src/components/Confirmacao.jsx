@@ -77,7 +77,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     // Enviar pedido de acarajé
 
     if (itensAcaraje.length > 0) {
-      const resAcaraje = await fetch("http://localhost:8080/pedidos_acaraje", {
+      const resAcaraje = await fetch("https://gerenciadordepedidos.onrender.com/pedidos_acaraje", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total: totalAcaraje })
