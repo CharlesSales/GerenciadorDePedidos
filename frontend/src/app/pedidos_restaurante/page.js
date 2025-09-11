@@ -33,7 +33,7 @@ export default function ListaPedidos() {
 
   async function handleChangeStatus(id) {
     try {
-      const response = await fetch(`${API_URL}/pedidosRestaurante/${id}`, {
+      const response = await fetch(`${API_URL}/pedidos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' }
       });
