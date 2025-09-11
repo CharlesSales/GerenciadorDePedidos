@@ -11,7 +11,8 @@ export default function ListaPedidos() {
     return hoje.toISOString().slice(0, 10);
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -29,6 +30,26 @@ export default function ListaPedidos() {
     };
     fetchPedidos();
   }, [API_URL]);
+
+  async function handleChangeStatus(id) {
+    try {
+      const response = await fetch(`${API_URL}/pedidosRestaurante/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Erro ao atualizar status:', text);
+        return;
+      }
+      const result = await response.json();
+      setPedidos(prev =>
+        prev.map(p => p.id_pedido === id ? { ...p, pag: result.pedido.pag } : p)
+      );
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+    }
+  }
 
   const formatarData = (dataHora) => {
     if (!dataHora) return "Sem data";
@@ -76,6 +97,7 @@ export default function ListaPedidos() {
             key={pedido.id_pedido}
             pedido={pedido}
             formatarData={formatarData}
+            handleChangeStatus={handleChangeStatus}
           />
         ))
       )}

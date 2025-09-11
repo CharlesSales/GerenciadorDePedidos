@@ -9,13 +9,11 @@ export function CarrinhoProvider({ children }) {
   const [produtos, setProdutos] = useState([]);
   const [acaraje, setAcaraje] = useState([]);
 
-  // Localmente, para desenvolvimento
-  // http://localhost:3001
-
-  // No Render.com, para produção
-  // https://gerenciadordepedidos.onrender.com
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  
   useEffect(() => {
-    fetch("http://localhost:8080/produtos")
+    fetch(`${API_URL}/produtos`)
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
@@ -24,7 +22,7 @@ export function CarrinhoProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:8080/acaraje")
+    fetch(`${API_URL}/acaraje`)
       .then(res => res.json())
       .then(data => {
         console.log(data); // verifique se tem id em cada produto
