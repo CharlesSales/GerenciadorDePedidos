@@ -17,7 +17,7 @@ export default function ListaPedidos() {
   useEffect(() => {
     const fetchPedidos = async () => {
       try {
-        const res = await fetch(`${API_URL}/pedidos`);
+        const res = await fetch(`${API_URL}/pedidosRestaurante`);
         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
         setPedidos(Array.isArray(data) ? data : []);
@@ -33,7 +33,7 @@ export default function ListaPedidos() {
 
   async function handleChangeStatus(id) {
     try {
-      const response = await fetch(`${API_URL}/pedidos/${id}`, {
+      const response = await fetch(`${API_URL}/pedidosRestaurante/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' }
       });
