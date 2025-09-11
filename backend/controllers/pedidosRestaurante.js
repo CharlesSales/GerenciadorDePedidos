@@ -48,7 +48,7 @@ export async function editarPedidos(req, res) {
     }
 
     // Alterna o status
-    const novoStatus = pedidoAtual.pag === 'pago' ? 'não' : 'pago'
+    const novoStatus = pedidoAtual.pag === 'pago' ? 'nao' : 'pago'
 
     // Atualiza o status no Supabase
     const { data, error } = await supabase
