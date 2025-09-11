@@ -29,7 +29,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   // No Render.com, para produção
   // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch("https://gerenciadordepedidos.onrender.com/funcionario")
+    fetch("http://localhost:8080/funcionarios")
       .then(res => res.json())
       .then(data => setFuncionarios(data))
       .catch(err => console.error("Erro ao carregar funcionários:", err));
@@ -59,7 +59,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   try {
     // Enviar pedido de almoço/petisco
     if (itensAlmoco.length > 0) {
-      const resAlmoco = await fetch("https://gerenciadordepedidos.onrender.com/pedidos", {
+      const resAlmoco = await fetch("http://localhost:8080/pedidosRestaurante", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cliente, funcionario, casa, itens: itensAlmoco, total: totalAlmoco })
@@ -77,7 +77,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     // Enviar pedido de acarajé
 
     if (itensAcaraje.length > 0) {
-      const resAcaraje = await fetch("https://gerenciadordepedidos.onrender.com/pedidos_acaraje", {
+      const resAcaraje = await fetch("http://localhost:8080/pedidosAcaraje", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total: totalAcaraje })

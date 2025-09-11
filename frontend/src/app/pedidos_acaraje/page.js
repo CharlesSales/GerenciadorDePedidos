@@ -1,5 +1,6 @@
-'use client';
-import { useEffect, useState } from "react";
+'use client'
+import React, { useState, useEffect } from "react";
+import PedidoCard from "@/components/PedidoCard";
 
 export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
@@ -10,7 +11,7 @@ export default function ListaPedidos() {
     return hoje.toISOString().slice(0, 10);
   });
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -26,14 +27,32 @@ export default function ListaPedidos() {
         setLoading(false);
       }
     };
-
     fetchPedidos();
   }, [API_URL]);
+
+  async function handleChangeStatus(id) {
+    try {
+      const response = await fetch(`${API_URL}/pedidosAcaraje/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Erro ao atualizar status:', text);
+        return;
+      }
+      const result = await response.json();
+      setPedidos(prev =>
+        prev.map(p => p.id_pedido === id ? { ...p, pag: result.pedido.pag } : p)
+      );
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+    }
+  }
 
   const formatarData = (dataHora) => {
     if (!dataHora) return "Sem data";
     const data = new Date(dataHora);
-    if (isNaN(data.getTime())) return "Data inválida";
     return data.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -43,8 +62,7 @@ export default function ListaPedidos() {
     });
   };
 
-  // Filtra pedidos pelo dia selecionado
-  const pedidosFiltrados = pedidos.filter((pedido) => {
+  const pedidosFiltrados = pedidos.filter(pedido => {
     if (!filtroData) return true;
     if (!pedido.data_hora) return false;
     const pedidoData = new Date(pedido.data_hora).toISOString().slice(0, 10);
@@ -57,7 +75,6 @@ export default function ListaPedidos() {
   return (
     <div>
       <h1>Lista de Pedidos</h1>
-
       <div style={{ marginBottom: "20px" }}>
         <label>
           Filtrar por dia:{" "}
@@ -72,32 +89,14 @@ export default function ListaPedidos() {
       {pedidosFiltrados.length === 0 ? (
         <p>Nenhum pedido encontrado.</p>
       ) : (
-        pedidosFiltrados.map((pedido) => {
-          // Define a cor do fundo conforme o status de pagamento
-          const corFundo = pedido.pag === "pago" ? "#d4edda" : "#f8d7da"; // verde claro ou vermelho claro
-          const corTexto = pedido.pag === "pago" ? "#155724" : "#721c24"; // verde escuro ou vermelho escuro
-
-          return (
-            <div
-              key={pedido.id_pedido}
-              style={{
-                border: `1px solid ${corTexto}`,
-                backgroundColor: corFundo,
-                color: corTexto,
-                padding: "10px",
-                marginBottom: "10px",
-                borderRadius: "6px",
-              }}
-            >
-              <p><strong>ID:</strong> {pedido.id_pedido}</p>
-              <p><strong>Cliente:</strong> {pedido.nome_cliente}</p>
-              <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>
-              <p><strong>Casa:</strong> {pedido.casa}</p>
-              <p><strong>Total:</strong> R$ {Number(pedido.total || 0).toFixed(2)}</p>
-              <p><strong>Status de pagamento:</strong> {pedido.pag}</p>
-            </div>
-          );
-        })
+        pedidosFiltrados.map(pedido => (
+          <PedidoCard
+            key={pedido.id_pedido}
+            pedido={pedido}
+            formatarData={formatarData}
+            handleChangeStatus={handleChangeStatus}
+          />
+        ))
       )}
     </div>
   );
