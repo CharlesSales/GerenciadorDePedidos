@@ -23,13 +23,11 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   
-  // Localmente, para desenvolvimento
-  // http://localhost:8080
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
-  // No Render.com, para produção
-  // https://gerenciadordepedidos.onrender.com
   useEffect(() => {
-    fetch("https://gerenciadordepedidos.onrender.com/funcionario")
+    fetch(`${API_URL}/funcionarios`)
       .then(res => res.json())
       .then(data => setFuncionarios(data))
       .catch(err => console.error("Erro ao carregar funcionários:", err));
@@ -59,7 +57,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   try {
     // Enviar pedido de almoço/petisco
     if (itensAlmoco.length > 0) {
-      const resAlmoco = await fetch("https://gerenciadordepedidos.onrender.com/pedidos", {
+      const resAlmoco = await fetch(`${API_URL}/pedidosRestaurante`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cliente, funcionario, casa, itens: itensAlmoco, total: totalAlmoco })
@@ -77,7 +75,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     // Enviar pedido de acarajé
 
     if (itensAcaraje.length > 0) {
-      const resAcaraje = await fetch("https://gerenciadordepedidos.onrender.com/pedidos_acaraje", {
+      const resAcaraje = await fetch(`${API_URL}/pedidosAcaraje`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total: totalAcaraje })
