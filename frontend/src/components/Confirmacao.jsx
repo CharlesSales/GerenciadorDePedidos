@@ -26,7 +26,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     }
   );
 
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {
     fetch(`${API_URL}/funcionarios`)
@@ -46,10 +48,12 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       return;
     }
 
+
     try {
       const itensAlmoco = itensParaBackend.filter(i => i.cozinha === "almoço");
       const itensAcaraje = itensParaBackend.filter(i => i.cozinha === "acaraje");
       const itensTotal = itensParaBackend
+
 
       if (itensAlmoco.length > 0) {
         await fetch(`${API_URL}/pedidosRestaurante`, {
@@ -73,6 +77,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
         })
       
       }
+
 
       setEnviado(true);
     } catch (err) {
@@ -156,8 +161,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       )}
 
       {enviado && (
+
         <div className={styles.page}>
-        <p style={{  top: "300px" , textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
+        <p style={{ textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
           🎉 Pedido enviado com sucesso!
         </p>
         
@@ -182,3 +188,4 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     </div>
   );
 }
+
