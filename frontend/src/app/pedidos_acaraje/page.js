@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from "react";
+import {io} from "socket.io-client"
 import PedidoCard from "@/components/PedidoCard";
 
 export default function ListaPedidos() {
@@ -11,10 +12,23 @@ export default function ListaPedidos() {
     return hoje.toISOString().slice(0, 10);
   });
 
-  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
 
   useEffect(() => {
+    // conecta no socket do backend
+    const socket = io(API_URL);
+
+    // quando o backend emitir novo pedido
+    socket.on("novoPedido_acaraje", (pedido) => {
+    setPedidos(prev => {
+      const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
+      return jaExiste ? prev : [pedido, ...prev];
+    });
+  });
+
+
     const fetchPedidos = async () => {
       try {
         const res = await fetch(`${API_URL}/pedidosAcaraje`);
