@@ -1,5 +1,9 @@
 'use client';
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import styles from "../app/page.module.css"
+import Link from "next/link";
+
 
 export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
@@ -7,6 +11,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [funcionario, setFuncionario] = useState("");
   const [casa, setCasa] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const router = useRouter()
 
   const itensParaBackend = Object.entries(pedidoConfirmado).map(
     ([produtoId, quantidade]) => {
@@ -21,9 +26,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     }
   );
 
-  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {
     fetch(`${API_URL}/funcionarios`)
@@ -43,9 +48,12 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       return;
     }
 
+
     try {
       const itensAlmoco = itensParaBackend.filter(i => i.cozinha === "almoço");
       const itensAcaraje = itensParaBackend.filter(i => i.cozinha === "acaraje");
+      const itensTotal = itensParaBackend
+
 
       if (itensAlmoco.length > 0) {
         await fetch(`${API_URL}/pedidosRestaurante`, {
@@ -61,6 +69,15 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
           body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total })
         });
       }
+      if (itensTotal.length > 0) {
+        await fetch (`${API_URL}/pedidosGeral`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({cliente, funcionario, casa, itens: itensParaBackend, total})
+        })
+      
+      }
+
 
       setEnviado(true);
     } catch (err) {
@@ -144,9 +161,29 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       )}
 
       {enviado && (
-        <p style={{  textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
+
+        <div className={styles.page}>
+        <p style={{ textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
           🎉 Pedido enviado com sucesso!
         </p>
+        
+      <main className={styles.main}>
+      
+
+        <div className={styles.ctas}>
+          <Link href="/acaraje" className={styles.primary}>
+            VER PEDIDOS
+          </Link>
+          <Link href="/" className={styles.primary}>
+            VOLTAR PARA O INICIO
+          </Link>          
+        </div>
+      </main>
+
+      <footer className={styles.footer}>
+        <p>© 2025 Acarajé da Mari</p>
+      </footer>
+    </div>
       )}
     </div>
   );

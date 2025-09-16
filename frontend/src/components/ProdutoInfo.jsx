@@ -1,14 +1,22 @@
 // components/ProdutoInfo.jsx
-export default function ProdutoInfo({ nome, preco, imagem }) {
+export default function ProdutoInfo({ nome, preco, imagem, pequeno }) {
   return (
-    <>
+    <div>
       <img
         src={imagem}
         alt={nome}
-        style={{ width: '100%', borderRadius: '6px' }}
+        style={{
+          width: pequeno ? '100px' : '120px',
+          height: pequeno ? '100px' : '120px',
+          borderRadius: '8px',
+          objectFit: 'cover',
+          margin: '0 auto 6px auto'
+        }}
       />
-      <h2 className="text-lg font-semibold">{nome}</h2>
-      <p className="text-gray-600">R$ {preco.toFixed(2)}</p>
-    </>
+      <h4 style={{ fontSize: pequeno ? '14px' : '16px', margin: '4px 0' }}>{nome}</h4>
+      <p style={{ fontSize: pequeno ? '12px' : '14px', color: '#333', margin: 0 }}>
+        R$ {preco.toFixed(2)}
+      </p>
+    </div>
   );
 }

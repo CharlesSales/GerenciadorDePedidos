@@ -1,162 +1,135 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import ProdutoItem from '@/components/ProdutoItem';
 import { useCarrinho } from '@/context/CarrinhoContext';
 import { useRouter } from 'next/navigation';
 
-function FiltroProdutos({ filtro, setFiltro, coluna, setColuna, onClose }) {
-  const filtroRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filtroRef.current && !filtroRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
-
-  return (
-    <div ref={filtroRef} style={{
-      position: 'fixed',
-      top: '70px',
-      right: '25px',
-      zIndex: 1000,
-      padding: '15px',
-      backgroundColor: 'white',
-      border: '1px solid #ccc',
-      borderRadius: '6px',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-      minWidth: '250px'
-    }}>
-      <h3>Filtrar Produtos</h3>
-      <div style={{ marginBottom: '10px' }}>
-        <label>
-          Coluna:
-          <select 
-            value={coluna} 
-            onChange={e => setColuna(e.target.value)}
-            style={{ marginLeft: '10px' }}
-          >
-            <option value="">Selecione</option>
-            <option value="nome">Nome</option>
-            <option value="descricao">Descrição</option>
-            <option value="categoria">Categoria</option>
-          </select>
-        </label>
-      </div>
-      <input
-        type="text"
-        placeholder="Digite para filtrar"
-        value={filtro}
-        onChange={e => setFiltro(e.target.value)}
-        style={{ width: '100%', padding: '5px' }}
-      />
-    </div>
-  );
-}
-
 export default function Produtos() {
   const { produtos, handleAdd, handleRemove } = useCarrinho();
   const router = useRouter();
-  const [filtro, setFiltro] = useState("");  
-  const [coluna, setColuna] = useState("nome"); 
-  const [openFiltro, setOpenFiltro] = useState(false);
+  const [filtro, setFiltro] = useState("");
+  const [coluna, setColuna] = useState("nome");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 
+  // categorias únicas
+  const categorias = [...new Set(produtos.map(p => p.categoria))];
+
+  // aplica filtros
   const produtosFiltrados = produtos.filter(produto => {
-    if (!filtro || !coluna) return true;
-    return produto[coluna]?.toLowerCase().includes(filtro.toLowerCase());
-  });
-
-  const categorias = {};
-  produtosFiltrados.forEach(produto => {
-    if (!categorias[produto.categoria]) categorias[produto.categoria] = [];
-    categorias[produto.categoria].push(produto);
+    const passaCategoria = categoriaSelecionada ? produto.categoria === categoriaSelecionada : true;
+    const passaBusca = filtro
+      ? produto[coluna]?.toLowerCase().includes(filtro.toLowerCase())
+      : true;
+    return passaCategoria && passaBusca;
   });
 
   return (
-    <div style={{ padding: '30px' }}>
-      {/* Botão de filtro */}
-      <button
-        onClick={() => setOpenFiltro(!openFiltro)}
-        style={{
-          fontSize: '35px',
-          position: 'fixed',
-          top: '10px',
-          right: '30px',
-          zIndex: 1000,
-          padding: '10px 15px',
-          backgroundColor: 'transparent',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          width: '50px',
-          cursor: 'pointer'
-        }}
-      >
-        🔍
-      </button>
-
-      {openFiltro && (
-        <FiltroProdutos
-          filtro={filtro}
-          setFiltro={setFiltro}
-          coluna={coluna}
-          setColuna={setColuna}
-          onClose={() => setOpenFiltro(false)}
-        />
-      )}
-
-      {/* Produtos agrupados por categoria */}
+    <div style={{ paddingTop: '100px' }}>
+      {/* Filtros no centro */}
       <div style={{
-        marginTop: '30px',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#fff',
+        borderBottom: '1px solid #eee',
+        padding: '15px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '30px',
-        maxHeight: '80vh',
-        overflowY: 'auto'
+        alignItems: 'center',
+        gap: '10px',
+        zIndex: 1000
       }}>
-        {Object.keys(categorias).map(categoria => (
-          <div key={categoria}>
-            <h3>{categoria}</h3>
-            <div style={{ 
-                display: 'flex', 
-                gap: '10px', 
-                overflowX: 'auto', 
-                padding: '10px', 
-                border: '1px solid #ccc', 
-                borderRadius: '6px', 
-                backgroundColor: '#f9f9f9' 
-            }}>
-              {categorias[categoria].map(produto => (
-                <ProdutoItem
-                  key={produto.id_produto}
-                  produto={produto}
-                  adicionarAoCarrinho={handleAdd}
-                  removeDoCarrinho={handleRemove}
-                />
-              ))}
-            </div>
-          </div>
+        {/* Input de busca */}
+        <input
+          type="text"
+          placeholder="Buscar produto..."
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+          style={{
+            width: '80%',
+            maxWidth: '400px',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '6px',
+            textAlign: 'center'
+          }}
+        />
+
+        {/* Botões de categoria */}
+        <div style={{
+          display: 'flex',
+          gap: '10px',
+          overflowX: 'auto',
+          width: '100%',
+          justifyContent: 'center'
+        }}>
+          <button
+            onClick={() => setCategoriaSelecionada("")}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: '1px solid #ddd',
+              backgroundColor: categoriaSelecionada === "" ? '#ff4d4d' : '#f9f9f9',
+              color: categoriaSelecionada === "" ? '#fff' : '#000',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Todos
+          </button>
+          {categorias.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setCategoriaSelecionada(cat)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: '1px solid #ddd',
+                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
+                color: categoriaSelecionada === cat ? '#fff' : '#000',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Lista de produtos */}
+      <div style={{
+        padding: '20px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: '20px'
+      }}>
+        {produtosFiltrados.map(produto => (
+          <ProdutoItem
+            key={produto.id_produto}
+            produto={produto}
+            adicionarAoCarrinho={handleAdd}
+            removeDoCarrinho={handleRemove}
+          />
         ))}
       </div>
 
-      {/* Botão do carrinho */}
+      {/* Botão do carrinho fixo */}
       <button
         onClick={() => router.push('/carrinho')}
         style={{
-          fontSize: '35px',
           position: 'fixed',
-          top: '10px',
-          right: '60px',
-          zIndex: 1000,
-          padding: '10px 15px',
-          backgroundColor: 'transparent',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: '#ff4d4d',
           color: 'white',
+          fontSize: '20px',
+          padding: '15px',
+          borderRadius: '50%',
           border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
         }}
       >
         🛒

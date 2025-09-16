@@ -21,16 +21,16 @@ export default function ListaPedidos() {
     const socket = io(API_URL);
 
     // quando o backend emitir novo pedido
-    socket.on("novoPedido", (pedido) => {
+    socket.on("novoPedido_geral", (pedido) => {
     setPedidos(prev => {
       const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
       return jaExiste ? prev : [pedido, ...prev];
     });
   });
-
+    
     const fetchPedidos = async () => {
       try {
-        const res = await fetch(`${API_URL}/pedidosRestaurante`);
+        const res = await fetch(`${API_URL}/pedidosGeral`);
         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
         setPedidos(Array.isArray(data) ? data : []);
@@ -46,7 +46,7 @@ export default function ListaPedidos() {
 
   async function handleChangeStatus(id) {
     try {
-      const response = await fetch(`${API_URL}/pedidosRestaurante/${id}`, {
+      const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' }
       });

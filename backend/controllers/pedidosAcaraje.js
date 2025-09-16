@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient.js"
+import { io } from "../server.js"
 
 // Rota para listar produtos
 export async function listarPedidos(req, res) {
@@ -26,6 +27,13 @@ export async function cadastrarPedidos(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ message: 'funcionario cadastrado com sucesso!', produto: data[0] });
+
+  const novoPedido = data[0]
+
+  // 🚀 avisa todos os clientes conectados
+  io.emit("novoPedido_acaraje", novoPedido)
+
+  res.json({ message: "Pedido salvo!", pedido: novoPedido })
 };
 
 export async function editarPedidos(req, res) {
@@ -60,4 +68,5 @@ export async function editarPedidos(req, res) {
     console.error(err);
     res.status(500).json({ error: 'Erro inesperado' });
   }
+  
 };

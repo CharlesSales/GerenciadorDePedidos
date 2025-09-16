@@ -15,6 +15,9 @@ export default function Home() {
           <Link href="/pedidos_acaraje" className={styles.primary}>
             PEDIDOS DE ACARAJÉ
           </Link>
+          <Link href="/pedidos_geral" className={styles.primary}>
+            PEDIDOS GERAL
+          </Link>
           
         </div>
       </main>
