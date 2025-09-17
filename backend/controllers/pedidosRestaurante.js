@@ -2,13 +2,26 @@ import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
 
 export async function listarPedidos(req, res) {
-  const { data, error } = await supabase
-    .from("pedidos")
-    .select("*")
-    .order("data_hora", { ascending: false })
+  try {
+    const { data, error } = await supabase
+      .from("pedidos_geral")
+      .select("*")
 
-  if (error) return res.status(500).json({ error: error.message })
-  res.json(data)
+    if (error) return res.status(500).json({ error: error.message })
+
+    const pedidosAcaraje = data.map(pedido => {
+      const itens = JSON.parse(pedido.pedidos)
+      const itensAcaraje = itens.filter(item => item.cozinha === "almoço")
+      return {
+        ...pedido,
+        pedidos: itensAcaraje 
+      }
+    }).filter(pedido => pedido.pedidos.length > 0) 
+    res.json(pedidosAcaraje)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" })
+  }
 }
 
 export async function cadastrarPedidos(req, res) {
