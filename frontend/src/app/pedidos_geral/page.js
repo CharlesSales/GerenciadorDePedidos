@@ -13,8 +13,8 @@ export default function ListaPedidos() {
   });
   
   
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {
     // conecta no socket do backend
