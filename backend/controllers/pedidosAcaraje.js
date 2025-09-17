@@ -3,13 +3,27 @@ import { io } from "../server.js"
 
 // Rota para listar produtos
 export async function listarPedidos(req, res) {
-  const { data, error } = await supabase
-    .from('pedidos_acaraje')
-    .select('*')
-    .order('data_hora', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("pedidos_geral")
+      .select("*")
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+    if (error) return res.status(500).json({ error: error.message })
+
+    const pedidosAcaraje = data.map(pedido => {
+      const itens = JSON.parse(pedido.pedidos)
+      const itensAcaraje = itens.filter(item => item.cozinha === "acaraje")
+      return {
+        ...pedido,
+        pedidos: itensAcaraje // substitui pelos itens filtrados
+      }
+    }).filter(pedido => pedido.pedidos.length > 0) // remove pedidos sem acarajé
+
+    res.json(pedidosAcaraje)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" })
+  }
 }
 
 export async function cadastrarPedidos(req, res) {
