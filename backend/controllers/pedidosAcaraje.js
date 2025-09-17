@@ -6,23 +6,30 @@ export async function listarPedidos(req, res) {
   try {
     const { data, error } = await supabase
       .from("pedidos_geral")
-      .select("*")
+      .select("*");
 
-    if (error) return res.status(500).json({ error: error.message })
+    if (error) return res.status(500).json({ error: error.message });
 
-    const pedidosAcaraje = data.map(pedido => {
-      const itens = JSON.parse(pedido.pedidos)
-      const itensAcaraje = itens.filter(item => item.cozinha === "acaraje")
-      return {
-        ...pedido,
-        pedidos: itensAcaraje // substitui pelos itens filtrados
-      }
-    }).filter(pedido => pedido.pedidos.length > 0) // remove pedidos sem acarajé
+    const pedidosAcaraje = data
+      .map((pedido) => {
+        // Se já for objeto/array, não parseia
+        const itens = typeof pedido.pedidos === "string" 
+          ? JSON.parse(pedido.pedidos) 
+          : pedido.pedidos;
 
-    res.json(pedidosAcaraje)
+        const itensAcaraje = itens.filter((item) => item.cozinha === "acaraje"); // ou "almoço"
+
+        return {
+          ...pedido,
+          pedidos: itensAcaraje, // substitui pelos itens filtrados
+        };
+      })
+      .filter((pedido) => pedido.pedidos.length > 0); // remove pedidos sem acarajé
+
+    res.json(pedidosAcaraje);
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" })
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" });
   }
 }
 
