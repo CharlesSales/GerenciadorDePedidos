@@ -6,32 +6,38 @@ export async function listarPedidos(req, res) {
   try {
     const { data, error } = await supabase
       .from("pedidos_geral")
-      .select("*");
+      .select("*")
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: error.message })
 
-    const pedidosAcaraje = data
-      .map((pedido) => {
-        // Se já for objeto/array, não parseia
-        const itens = typeof pedido.pedidos === "string" 
-          ? JSON.parse(pedido.pedidos) 
-          : pedido.pedidos;
+    const pedidosAcaraje = data.map(pedido => {
+      let itens = []
 
-        const itensAcaraje = itens.filter((item) => item.cozinha === "acaraje"); // ou "almoço"
+      try {
+        if (typeof pedido.pedidos === "string" && pedido.pedidos.trim()) {
+          itens = JSON.parse(pedido.pedidos)
+        } else if (Array.isArray(pedido.pedidos)) {
+          itens = pedido.pedidos
+        }
+      } catch (e) {
+        itens = []
+      }
+      if (!Array.isArray(itens)) itens = []
+      const itensAcaraje = itens.filter(item => item && item.cozinha === "acaraje")
 
-        return {
-          ...pedido,
-          pedidos: itensAcaraje, // substitui pelos itens filtrados
-        };
-      })
-      .filter((pedido) => pedido.pedidos.length > 0); // remove pedidos sem acarajé
+      return {
+        ...pedido,
+        pedidos: itensAcaraje
+      }
+    }).filter(pedido => Array.isArray(pedido.pedidos) && pedido.pedidos.length > 0)
 
-    res.json(pedidosAcaraje);
+    res.json(pedidosAcaraje)
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" });
+    console.error(err)
+    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" })
   }
 }
+
 
 export async function cadastrarPedidos(req, res) {
   const { cliente, funcionario, casa, itens, total } = req.body;
