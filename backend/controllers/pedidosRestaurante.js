@@ -40,7 +40,7 @@ export async function listarPedidos(req, res) {
 export async function cadastrarPedidos(req, res) {
   const { cliente, funcionario, casa, itens, total } = req.body
   const { data, error } = await supabase
-    .from("pedidos")
+    .from("pedidos_geral")
     .insert([{
       pedidos: JSON.stringify(itens),
       nome_cliente: cliente,
@@ -68,7 +68,7 @@ export async function editarPedidos(req, res) {
 
   try {
     const { data: pedidoAtual, error: errorSelect } = await supabase
-      .from("pedidos")
+      .from("pedidos_geral")
       .select("pag")
       .eq("id_pedido", id)
       .single()
@@ -80,7 +80,7 @@ export async function editarPedidos(req, res) {
     const novoStatus = pedidoAtual.pag === "pago" ? "nao" : "pago"
 
     const { data, error } = await supabase
-      .from("pedidos")
+      .from("pedidos_geral")
       .update({ pag: novoStatus })
       .eq("id_pedido", id)
       .select()
