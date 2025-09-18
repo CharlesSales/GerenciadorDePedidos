@@ -12,7 +12,7 @@ export async function listarPedidos(req, res) {
     const pedidosAlmoco = data.map(pedido => {
       let itens = [];
       try {
-        if (typeof pedido.pedidos === "string" && pedido.pedidos) {
+        if (typeof pedido.pedidos === "string" && pedido.pedidos.trim()) {
           itens = JSON.parse(pedido.pedidos);
         } else if (Array.isArray(pedido.pedidos)) {
           itens = pedido.pedidos;
@@ -20,14 +20,14 @@ export async function listarPedidos(req, res) {
       } catch (e) {
         itens = [];
       }
-      const itensAlmoco = Array.isArray(itens)
-        ? itens.filter(item => item.cozinha === "almoço")
-        : [];
+      // Garante que itens seja sempre array
+      if (!Array.isArray(itens)) itens = [];
+      const itensAlmoco = itens.filter(item => item && item.cozinha === "almoço");
       return {
         ...pedido,
         pedidos: itensAlmoco
       }
-    }).filter(pedido => pedido.pedidos.length > 0);
+    }).filter(pedido => Array.isArray(pedido.pedidos) && pedido.pedidos.length > 0);
 
     res.json(pedidosAlmoco)
   } catch (err) {
