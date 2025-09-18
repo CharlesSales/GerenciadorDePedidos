@@ -10,7 +10,10 @@ export async function listarPedidos(req, res) {
     if (error) return res.status(500).json({ error: error.message })
 
     const pedidosAcaraje = data.map(pedido => {
-      const itens = JSON.parse(pedido.pedidos)
+      const itens = typeof pedido.pedidos === "string" 
+      ? JSON.parse(pedido.pedidos) 
+      : pedido.pedidos;
+
       const itensAcaraje = itens.filter(item => item.cozinha === "almoço")
       return {
         ...pedido,
