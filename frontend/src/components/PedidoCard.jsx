@@ -8,7 +8,11 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
   const corFundo = pedido.pag === "pago" ? "#d4edda" : "#f8d7da";
   const corTexto = pedido.pag === "pago" ? "#155724" : "#721c24";
 
-  const itens = JSON.parse(pedido.pedidos);
+  const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
+    ? JSON.parse(pedido.pedidos)
+    : Array.isArray(pedido.pedidos)
+      ? pedido.pedidos
+      : []; // fallback
   const nomes = itens.map(i => `${i.nome} (${i.quantidade}x)`).join(", ");
 
   const toggleMenu = () => setOpenMenu(!openMenu);
