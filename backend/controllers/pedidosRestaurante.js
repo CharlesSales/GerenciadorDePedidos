@@ -9,23 +9,33 @@ export async function listarPedidos(req, res) {
 
     if (error) return res.status(500).json({ error: error.message })
 
-    const pedidosAcaraje = data.map(pedido => {
-      const itens = typeof pedido.pedidos === "string" 
-      ? JSON.parse(pedido.pedidos) 
-      : pedido.pedidos;
-
-      const itensAcaraje = itens.filter(item => item.cozinha === "almoço")
+    const pedidosAlmoco = data.map(pedido => {
+      let itens = [];
+      try {
+        if (typeof pedido.pedidos === "string" && pedido.pedidos) {
+          itens = JSON.parse(pedido.pedidos);
+        } else if (Array.isArray(pedido.pedidos)) {
+          itens = pedido.pedidos;
+        }
+      } catch (e) {
+        itens = [];
+      }
+      const itensAlmoco = Array.isArray(itens)
+        ? itens.filter(item => item.cozinha === "almoço")
+        : [];
       return {
         ...pedido,
-        pedidos: itensAcaraje 
+        pedidos: itensAlmoco
       }
-    }).filter(pedido => pedido.pedidos.length > 0) 
-    res.json(pedidosAcaraje)
+    }).filter(pedido => pedido.pedidos.length > 0);
+
+    res.json(pedidosAlmoco)
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: "Erro ao buscar pedidos de acarajé" })
+    res.status(500).json({ error: "Erro ao buscar pedidos de almoço" })
   }
 }
+
 
 export async function cadastrarPedidos(req, res) {
   const { cliente, funcionario, casa, itens, total } = req.body
