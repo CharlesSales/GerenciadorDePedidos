@@ -1,6 +1,7 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
 
+
 export async function listarPedidos(req, res) {
   try {
     const { data, error } = await supabase
@@ -35,6 +36,7 @@ export async function listarPedidos(req, res) {
     res.status(500).json({ error: "Erro ao buscar pedidos de almoço" })
   }
 }
+
 
 
 export async function cadastrarPedidos(req, res) {
@@ -89,6 +91,8 @@ export async function editarPedidos(req, res) {
       console.error(error)
       return res.status(500).json({ error: "Erro ao atualizar status" })
     }
+
+    io.emit("statusAtualizado", { id, novoStatus })
 
     res.json({ message: "Status atualizado com sucesso!", pedido: data[0] })
   } catch (err) {

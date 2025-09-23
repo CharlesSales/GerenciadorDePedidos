@@ -4,7 +4,8 @@ import produtosRoutes from "./routes/produtos.js"
 import funcionariosRoutes from "./routes/funcionarios.js"
 import pedidosRestauranteRoutes from "./routes/pedidosRestaurante.js"
 import pedidosAcarajeRoutes from "./routes/pedidosAcaraje.js"
-import pedidosGeral from "./routes/pedidosGeral.js"
+import pedidosGeralRoutes from "./routes/pedidosGeral.js"
+import userRoutes from "./routes/user.js"
 import { Server } from "socket.io"
 import http from "http"
 
@@ -17,7 +18,8 @@ app.use("/produtos", produtosRoutes)
 app.use("/funcionarios", funcionariosRoutes)
 app.use("/pedidosRestaurante", pedidosRestauranteRoutes)
 app.use("/pedidosAcaraje", pedidosAcarajeRoutes)
-app.use("/pedidosGeral", pedidosGeral)
+app.use("/pedidosGeral", pedidosGeralRoutes)
+app.use("/user", userRoutes)
 
 // cria servidor HTTP a partir do app
 const server = http.createServer(app)

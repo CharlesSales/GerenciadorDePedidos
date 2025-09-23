@@ -90,6 +90,8 @@ export async function editarPedidos(req, res) {
       return res.status(500).json({ error: 'Erro ao atualizar status' });
     }
 
+    io.emit("statusAtualizado", { id, novoStatus })
+
     res.json({ message: 'Status atualizado com sucesso!', pedido: data[0] });
   } catch (err) {
     console.error(err);

@@ -43,48 +43,28 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   const handleConfirmarPedido = async () => {
-    if (!cliente || !funcionario || !casa || itensParaBackend.length === 0) {
-      alert("Preencha todos os campos e adicione pelo menos um produto.");
-      return;
+  if (!cliente || !funcionario || !casa || itensParaBackend.length === 0) {
+    alert("Preencha todos os campos e adicione pelo menos um produto.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/pedidosGeral`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cliente, funcionario, casa, itens: itensParaBackend, total })
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao enviar pedido");
     }
 
-
-    try {
-      const itensAlmoco = itensParaBackend.filter(i => i.cozinha === "almoço");
-      const itensAcaraje = itensParaBackend.filter(i => i.cozinha === "acaraje");
-      const itensTotal = itensParaBackend
-
-
-      if (itensAlmoco.length > 0) {
-        await fetch(`${API_URL}/pedidosRestaurante`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cliente, funcionario, casa, itens: itensAlmoco, total })
-        });
-      }
-      if (itensAcaraje.length > 0) {
-        await fetch(`${API_URL}/pedidosAcaraje`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cliente, funcionario, casa, itens: itensAcaraje, total })
-        });
-      }
-      if (itensTotal.length > 0) {
-        await fetch (`${API_URL}/pedidosGeral`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({cliente, funcionario, casa, itens: itensParaBackend, total})
-        })
-      
-      }
-
-
-      setEnviado(true);
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao enviar pedido");
-    }
-  };
+    setEnviado(true);
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao enviar pedido");
+  }
+};
 
   return (
     <div style={{ maxWidth: "600px", margin: "30px auto", fontFamily: "Arial, sans-serif" }}>
