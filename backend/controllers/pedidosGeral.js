@@ -1,6 +1,5 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
-import fetch from "node-fetch"; // ou axios
 
 export async function listarPedidos(req, res) {
   const { data, error } = await supabase
