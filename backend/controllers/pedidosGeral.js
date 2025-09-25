@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
-import fetch from "node-fetch"; // ou axios
+import fetch from "node-fetch";
 
 export async function listarPedidos(req, res) {
   const { data, error } = await supabase
@@ -13,48 +13,69 @@ export async function listarPedidos(req, res) {
 }
 
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total } = req.body;
-  const { data, error } = await supabase
-    .from("pedidos_geral")
-    .insert([{
-      pedidos: JSON.stringify(itens),
-      nome_cliente: cliente,
-      funcionario,
-      casa,
-      total
-    }])
-    .select();
+  const { cliente, funcionario, casa, itens, total, obs } = req.body;
 
-  if (error) return res.status(500).json({ error: error.message });
-  const novoPedido = data[0];
+  try {
+    const { data, error } = await supabase
+      .from("pedidos_geral")
+      .insert([{
+        pedidos: JSON.stringify(itens),
+        nome_cliente: cliente,
+        funcionario,
+        casa,
+        detalhe: obs,
+        total
+      }])
+      .select();
 
-  // 🚀 Notifica todos os clientes conectados via Socket.IO
-  io.emit("novoPedido_geral", novoPedido);
+    if (error) throw error;
 
-  // 🔔 Notificação push via Expo para admins
-  const { data: admins } = await supabase
-    .from("usuarios")
-    .select("expo_token")
-    .not("expo_token", "is", null); // pega todos que têm token
+    const novoPedido = data[0];
 
-  const messages = admins.map(a => ({
-    to: a.expo_token,
-    sound: "default",
-    title: "Novo pedido!",
-    body: `Pedido de ${cliente} no valor de R$ ${total}`,
-    data: { pedidoId: novoPedido.id_pedido }
-  }));
+    // Emite Socket.IO, mas captura erro
+    try {
+      io.emit("novoPedido_geral", novoPedido);
+    } catch (err) {
+      console.error("Falha no Socket.IO:", err.message);
+    }
 
-  if (messages.length > 0) {
-    await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(messages)
-    });
+    // Notificação push – captura erro sem quebrar
+    try {
+      const { data: admins } = await supabase
+        .from("usuarios")
+        .select("expo_token")
+        .not("expo_token", "is", null);
+
+      const messages = admins.map(a => ({
+        to: a.expo_token,
+        sound: "default",
+        title: "Novo pedido!",
+        body: `Pedido de ${cliente} no valor de R$ ${total}`,
+        data: { pedidoId: novoPedido.id_pedido }
+      }));
+
+      if (messages.length > 0) {
+        await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(messages)
+        });
+      }
+    } catch (err) {
+      console.error("Falha na notificação push:", err.message);
+    }
+
+    // Retorna JSON ao frontend
+    return res.status(200).json({ message: "Pedido salvo com sucesso!", pedido: novoPedido });
+
+  } catch (err) {
+    console.error("Erro ao cadastrar pedido:", err.message);
+    return res.status(500).json({ error: "Erro interno ao cadastrar pedido" });
   }
-
-  res.json({ message: "Pedido salvo e notificação enviada!", pedido: novoPedido });
 }
+
+
+
 export async function editarPedidos(req, res) {
   const { id } = req.params
 

@@ -15,19 +15,25 @@ export default function ListaPedidos() {
   //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
-
   useEffect(() => {
     // conecta no socket do backend
     const socket = io(API_URL);
 
     // quando o backend emitir novo pedido
-    socket.on("novoPedido_acaraje", (pedido) => {
-    setPedidos(prev => {
-      const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
-      return jaExiste ? prev : [pedido, ...prev];
+    socket.on("novoPedido", (pedido) => {
+      setPedidos(prev => {
+        const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
+        return jaExiste ? prev : [pedido, ...prev];
+      });
     });
-  });
 
+    socket.on("statusAtualizado", ({ id, novoStatus }) => {
+      setPedidos(prev =>
+        prev.map(p => 
+        p.id_pedido === Number(id) ? { ...p, pag: novoStatus } : p
+        )
+      );
+    });
 
     const fetchPedidos = async () => {
       try {

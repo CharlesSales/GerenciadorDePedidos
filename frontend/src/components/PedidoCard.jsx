@@ -76,6 +76,7 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
       <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>
       <p><strong>Casa:</strong> {pedido.casa}</p>
       <p><strong>Pedido:</strong> {nomes}</p>
+      <p><strong>Detalhe:</strong> {pedido.detalhe}</p>
       <p><strong>Total:</strong> R$ {Number(pedido.total || 0).toFixed(2)}</p>
       <p><strong>Status de pagamento:</strong> {pedido.pag}</p>
     </div>

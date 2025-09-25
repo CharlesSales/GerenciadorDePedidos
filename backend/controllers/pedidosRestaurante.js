@@ -7,6 +7,7 @@ export async function listarPedidos(req, res) {
     const { data, error } = await supabase
       .from("pedidos_geral")
       .select("*")
+      .order("data_hora", { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })
 
