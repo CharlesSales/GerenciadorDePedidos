@@ -12,7 +12,6 @@ export default function ListaPedidos() {
     return hoje.toISOString().slice(0, 10);
   });
   
-  
   //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
@@ -22,11 +21,19 @@ export default function ListaPedidos() {
 
     // quando o backend emitir novo pedido
     socket.on("novoPedido", (pedido) => {
-    setPedidos(prev => {
-      const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
-      return jaExiste ? prev : [pedido, ...prev];
+      setPedidos(prev => {
+        const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
+        return jaExiste ? prev : [pedido, ...prev];
+      });
     });
-  });
+
+    socket.on("statusAtualizado", ({ id, novoStatus }) => {
+      setPedidos(prev =>
+        prev.map(p => 
+          p.id_pedido === Number(id) ? { ...p, pag: novoStatus } : p
+        )
+      );
+    });
 
     const fetchPedidos = async () => {
       try {

@@ -10,6 +10,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [funcionarios, setFuncionarios] = useState([]);
   const [funcionario, setFuncionario] = useState("");
   const [casa, setCasa] = useState("");
+  const [obs, setObs] = useState("")
   const [enviado, setEnviado] = useState(false);
   const router = useRouter()
 
@@ -52,19 +53,35 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     const response = await fetch(`${API_URL}/pedidosGeral`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cliente, funcionario, casa, itens: itensParaBackend, total })
+      body: JSON.stringify({ cliente, funcionario, casa, itens: itensParaBackend, obs, total })
     });
 
-    if (!response.ok) {
-      throw new Error("Erro ao enviar pedido");
+    // Lê o corpo como texto primeiro
+    const text = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(text); // tenta transformar em JSON
+    } catch {
+      console.error("Resposta não é JSON:", text);
+      alert("Erro ao enviar pedido: resposta inesperada do servidor");
+      return;
     }
 
+    if (!response.ok) {
+      alert(`Erro ao enviar pedido: ${data.error || data.message}`);
+      return;
+    }
+
+    console.log("Pedido enviado com sucesso:", data);
     setEnviado(true);
+
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao enviar pedido:", err);
     alert("Erro ao enviar pedido");
   }
 };
+
 
   return (
     <div style={{ maxWidth: "600px", margin: "30px auto", fontFamily: "Arial, sans-serif" }}>
@@ -104,6 +121,16 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               type="text"
               value={casa}
               onChange={e => setCasa(e.target.value)}
+              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+            />
+          </label>
+
+          <label style={{ display: "block", marginBottom: "20px" }}>
+            <span>🏠 Detalhe do pedido:</span>
+            <input
+              type="text"
+              value={obs}
+              onChange={e => setObs(e.target.value)}
               style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
             />
           </label>

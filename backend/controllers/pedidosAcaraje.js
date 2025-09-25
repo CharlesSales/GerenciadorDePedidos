@@ -7,6 +7,7 @@ export async function listarPedidos(req, res) {
     const { data, error } = await supabase
       .from("pedidos_geral")
       .select("*")
+      .order("data_hora", { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })
 
@@ -68,7 +69,7 @@ export async function editarPedidos(req, res) {
 
   try {
     const { data: pedidoAtual, error: errorSelect } = await supabase
-      .from('pedidos_acaraje')
+      .from('pedidos_geral')
       .select('pag')
       .eq('id_pedido', id)
       .single();
@@ -80,7 +81,7 @@ export async function editarPedidos(req, res) {
     const novoStatus = pedidoAtual.pag === 'pago' ? 'não' : 'pago';
 
     const { data, error } = await supabase
-      .from('pedidos_acaraje')
+      .from('pedidos_geral')
       .update({ pag: novoStatus })
       .eq('id_pedido', id)
       .select();
