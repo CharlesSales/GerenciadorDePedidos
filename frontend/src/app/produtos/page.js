@@ -12,7 +12,7 @@ export default function Produtos() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 
   // categorias únicas
-  const categorias = [...new Set(produtos.map(p => p.categoria))];
+  const categorias = [...new Set(produtos.map(p => p.categoria.categoria_nome))];
 
   // aplica filtros
   const produtosFiltrados = produtos.filter(produto => {
