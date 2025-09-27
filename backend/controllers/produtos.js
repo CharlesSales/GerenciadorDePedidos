@@ -1,24 +1,29 @@
 import { supabase } from "../supabaseClient.js"
 
-
-
 // Rota para listar produtos
 export async function listarProdutos(req, res) {
   try {
     const { descricao, nome, cozinha } = req.query;
 
     const getImagemUrl = (nomeArquivo) => {
-    const { data } = supabase
-      .storage
-      .from('imagens')       // nome do bucket
-      .getPublicUrl(nomeArquivo);
+      const { data } = supabase
+        .storage
+        .from('imagens')       // nome do bucket
+        .getPublicUrl(nomeArquivo);
 
-    return data.publicUrl;    // retorna a URL pública
-  };
-  
+      return data.publicUrl;    // retorna a URL pública
+    };
+
     let query = supabase
       .from('produtos')
-      .select('*')
+      .select(`
+        id_produto,
+        nome,
+        descricao,
+        preco,
+        imagem,
+        categoria(categoria_nome)
+      `)
       .order('nome', { ascending: true });
 
     if (descricao) query = query.ilike('descricao', `%${descricao}%`);
@@ -36,9 +41,9 @@ export async function listarProdutos(req, res) {
 
     res.json(produtosComImagem);
   } catch (err) {
-  console.error("Erro completo:", err)
-  res.status(500).json({ error: err.message || 'Erro inesperado' })
-}
+    console.error("Erro completo:", err)
+    res.status(500).json({ error: err.message || 'Erro inesperado' })
+  }
 };
 
 

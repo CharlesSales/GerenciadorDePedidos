@@ -72,6 +72,7 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
       )}
 
       <p><strong>ID:</strong> {pedido.id_pedido}</p>
+      <p><strong>Funcionario:</strong> {pedido.funcionario}</p>
       <p><strong>Cliente:</strong> {pedido.nome_cliente}</p>
       <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>
       <p><strong>Casa:</strong> {pedido.casa}</p>
