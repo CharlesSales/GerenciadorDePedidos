@@ -12,9 +12,9 @@ export default function ListaPedidos() {
     return hoje.toISOString().slice(0, 10);
   });
   
-  
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
+  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_URL = "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {     
     // conecta no socket do backend
