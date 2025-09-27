@@ -16,7 +16,7 @@ export default function Produtos() {
 
   // aplica filtros
   const produtosFiltrados = produtos.filter(produto => {
-    const passaCategoria = categoriaSelecionada ? produto.categoria === categoriaSelecionada : true;
+    const passaCategoria = categoriaSelecionada ? produto.categoria.categoria_nome === categoriaSelecionada : true;
     const passaBusca = filtro
       ? produto[coluna]?.toLowerCase().includes(filtro.toLowerCase())
       : true;
