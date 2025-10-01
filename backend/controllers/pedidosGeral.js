@@ -12,6 +12,7 @@ export async function listarPedidos(req, res) {
   res.json(data)
 }
 
+
 export async function cadastrarPedidos(req, res) {
   const { cliente, funcionario, casa, itens, total, obs } = req.body;
 

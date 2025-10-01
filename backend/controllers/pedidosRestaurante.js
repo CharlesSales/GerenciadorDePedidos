@@ -24,10 +24,17 @@ export async function listarPedidos(req, res) {
       }
       // Garante que itens seja sempre array
       if (!Array.isArray(itens)) itens = [];
-      const itensAlmoco = itens.filter(item => item && item.cozinha === "almoço");
+      const itensAlmoco = itens.filter(item => item && item.cozinha === "restaurante");
+      
+     const totalAlmoco = itensAlmoco.reduce((acc, item) => {
+        return acc + (item.preco * item.quantidade);
+      }, 0);
+      
       return {
         ...pedido,
-        pedidos: itensAlmoco
+        pedidos: itensAlmoco,
+        total: totalAlmoco,
+        total_original: pedido.total
       }
     }).filter(pedido => Array.isArray(pedido.pedidos) && pedido.pedidos.length > 0);
 
