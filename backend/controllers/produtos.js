@@ -22,6 +22,7 @@ export async function listarProdutos(req, res) {
         descricao,
         preco,
         imagem,
+        cozinha,
         categoria(categoria_nome)
       `)
       .order('nome', { ascending: true });
@@ -45,9 +46,6 @@ export async function listarProdutos(req, res) {
     res.status(500).json({ error: err.message || 'Erro inesperado' })
   }
 };
-
-
-
 
 // Rota para cadastrar produtos
 export async function cadastrarProdutos(req, res) {
