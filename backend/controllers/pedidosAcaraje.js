@@ -25,9 +25,15 @@ export async function listarPedidos(req, res) {
       // Garante que itens seja sempre array
       if (!Array.isArray(itens)) itens = [];
       const itensAcaraje = itens.filter(item => item && item.cozinha === "acaraje");
+
+      const totalAcaraje = itensAcaraje.reduce((acc, item) => {
+        return acc + (item.preco * item.quantidade);
+      }, 0);
       return {
-        ...pedido,
-        pedidos: itensAcaraje
+          ...pedido,
+        pedidos: itensAcaraje,
+        total: totalAcaraje, // Substitui o total original pelo total de acarajé
+        total_original: pedido.total // Mantém o total original se precisar
       }
     }).filter(pedido => Array.isArray(pedido.pedidos) && pedido.pedidos.length > 0);
 
