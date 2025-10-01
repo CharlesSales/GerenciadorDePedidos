@@ -24,7 +24,7 @@ export async function listarPedidos(req, res) {
       }
       // Garante que itens seja sempre array
       if (!Array.isArray(itens)) itens = [];
-      const itensAlmoco = itens.filter(item => item && item.cozinha === "restaurante");
+      const itensAlmoco = itens.filter(item => item && item.cozinha === "almoço");
       
      const totalAlmoco = itensAlmoco.reduce((acc, item) => {
         return acc + (item.preco * item.quantidade);
