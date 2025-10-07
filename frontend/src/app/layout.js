@@ -1,19 +1,31 @@
+'use client';
 import "./globals.css";
+import { AuthProvider } from "../context/AuthContext";
 import { CarrinhoProvider } from "../context/CarrinhoContext";
-import Header from "../components/Header"; // 👈 versão cliente do Header
+import { RestauranteProvider } from "../context/RestauranteContext";
+import Header from "../components/Header";
 
-export const metadata = {
-  title: "Acarajé da Mari",
+// ✅ METADATA MOVIDA PARA COMPONENTE CLIENTE
+const AppMetadata = () => {
+  if (typeof document !== 'undefined') {
+    document.title = "Acarajé da Mari";
+  }
+  return null;
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-br">
       <body>
-        <CarrinhoProvider>
-          <Header /> {/* controla se mostra ou não */}
-          {children}
-        </CarrinhoProvider>
+        <AppMetadata />
+        <AuthProvider>
+          <RestauranteProvider>
+            <CarrinhoProvider>
+              <Header />
+              {children}
+            </CarrinhoProvider>
+          </RestauranteProvider>
+        </AuthProvider>
       </body>
     </html>
   );

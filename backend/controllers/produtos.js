@@ -1,19 +1,42 @@
 import { supabase } from "../supabaseClient.js"
+import jwt from 'jsonwebtoken'
 
-// Rota para listar produtos
+// ✅ LISTAR PRODUTOS (COM FILTRO POR RESTAURANTE SE AUTENTICADO)
 export async function listarProdutos(req, res) {
   try {
-    const { descricao, nome, cozinha } = req.query;
+    console.log('📦 Listando produtos...');
 
-    const getImagemUrl = (nomeArquivo) => {
-      const { data } = supabase
-        .storage
-        .from('imagens')       // nome do bucket
-        .getPublicUrl(nomeArquivo);
+    // ✅ VERIFICAR SE TEM TOKEN
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    let restauranteId = null;
 
-      return data.publicUrl;    // retorna a URL pública
-    };
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        if (decoded.tipo === 'funcionario') {
+          // ✅ FUNCIONÁRIO: BUSCAR RESTAURANTE
+          const { data: funcionario } = await supabase
+            .from('funcionario')
+            .select('restaurante')
+            .eq('id_funcionario', decoded.id)
+            .single();
+          
+          restauranteId = funcionario?.restaurante;
+        } else if (decoded.tipo === 'restaurante') {
+          // ✅ RESTAURANTE: USAR PRÓPRIO ID
+          restauranteId = decoded.id;
+        }
 
+        console.log('🏪 Filtrar produtos do restaurante:', restauranteId);
+      } catch (tokenError) {
+        console.log('⚠️ Token inválido, listando todos os produtos');
+      }
+    } else {
+      console.log('📦 Sem token, listando todos os produtos');
+    }
+
+    // ✅ BUSCAR PRODUTOS
     let query = supabase
       .from('produtos')
       .select(`
@@ -23,49 +46,79 @@ export async function listarProdutos(req, res) {
         preco,
         imagem,
         cozinha,
+        estoque,
+        restaurante,
         categoria(categoria_nome)
       `)
       .order('nome', { ascending: true });
 
-    if (descricao) query = query.ilike('descricao', `%${descricao}%`);
-    if (nome) query = query.ilike('nome', `%${nome}%`);
-    if (cozinha) query = query.ilike('cozinha', `%${cozinha}%`);
+    // ✅ FILTRAR POR RESTAURANTE SE IDENTIFICADO
+    if (restauranteId) {
+      query = query.eq('restaurante', restauranteId);
+    }
 
-    const { data, error } = await query;
-    if (error) return res.status(500).json({ error: error.message });
+    const { data: produtos, error } = await query;
 
-    // Adiciona a URL da imagem
-    const produtosComImagem = data.map(produto => ({
+    if (error) {
+      console.error('❌ Erro ao buscar produtos:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log(`✅ ${produtos?.length || 0} produtos encontrados para restaurante ${restauranteId || 'todos'}`);
+
+    // ✅ ADICIONAR URL DA IMAGEM SE NECESSÁRIO
+    const produtosComImagem = produtos?.map(produto => ({
       ...produto,
-      imagem_url: produto.imagem ? getImagemUrl(produto.imagem) : null
-    }));
+      imagem_url: produto.imagem ? `http://localhost:8080/uploads/${produto.imagem}` : null
+    })) || [];
 
     res.json(produtosComImagem);
+
   } catch (err) {
-    console.error("Erro completo:", err)
-    res.status(500).json({ error: err.message || 'Erro inesperado' })
+    console.error("❌ Erro:", err);
+    res.status(500).json({ error: err.message });
   }
-};
+}
 
-// Rota para cadastrar produtos
-export async function cadastrarProdutos(req, res) {
-  // função para obter a URL pública da imagem
-  const { nome, preco, categoria } = req.body;
-  const { data, error } = await supabase
-    .from('produtos')
-    .insert([{ nome, preco, categoria }]);
+// ✅ BUSCAR PRODUTO POR ID
+export async function buscarProdutoPorId(req, res) {
+  try {
+    const { id } = req.params;
+    console.log('🔍 Buscando produto ID:', id);
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ message: 'Produto cadastrado com sucesso!', produto: data[0] });
-};
+    const { data: produto, error } = await supabase
+      .from('produtos')
+      .select(`
+        id_produto,
+        nome,
+        descricao,
+        preco,
+        imagem,
+        cozinha,
+        estoque,
+        restaurante,
+        categoria(categoria_nome)
+      `)
+      .eq('id_produto', id)
+      .single();
 
+    if (error || !produto) {
+      console.log('❌ Produto não encontrado');
+      return res.status(404).json({ error: 'Produto não encontrado' });
+    }
 
+    console.log('✅ Produto encontrado:', produto.nome);
 
+    // ✅ ADICIONAR URL DA IMAGEM
+    const produtoComImagem = {
+      ...produto,
+      imagem_url: produto.imagem ? `http://localhost:8080/uploads/${produto.imagem}` : null
+    };
 
+    res.json(produtoComImagem);
 
-export async function atualizarStatus(req, res) {
-  const { id } = req.params;
-  const { pag } = req.body;
-  await pool.query("UPDATE pedidos SET pag = $1 WHERE id_pedido = $2", [pag, id]);
-  res.json({ message: "Status atualizado!" });
+  } catch (err) {
+    console.error("❌ Erro:", err);
+    res.status(500).json({ error: err.message });
+  }
 }
