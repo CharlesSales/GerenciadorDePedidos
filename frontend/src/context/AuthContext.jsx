@@ -30,13 +30,15 @@ export function AuthProvider({ children }) {
     }
   }, [isHydrated]);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
   const login = async (usuario, senha, tipo) => {
     try {
       console.log('🔐 Fazendo login:', { tipo, usuario });
       
       const url = tipo === 'funcionario' 
-        ? 'http://localhost:8080/auth/funcionario'
-        : 'http://localhost:8080/auth/restaurante';
+        ? `${API_URL}/auth/funcionario`
+        : `${API_URL}/auth/restaurante`;
 
       const response = await fetch(url, {
         method: 'POST',

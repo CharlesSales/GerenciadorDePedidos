@@ -1,6 +1,10 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
+import dotenv from "dotenv"
+import bcrypt from "bcrypt"
 
+
+dotenv.config()
 // Rota para listar funcionarios (filtrada por restaurante do usuário logado)
 export async function listarFuncionarios(req, res) {
   try {
@@ -28,9 +32,19 @@ export async function listarFuncionarios(req, res) {
 
     const { data, error } = await supabase
       .from('funcionario')
-      .select('*')
-      .eq('restaurante_id', restauranteId)
-      .order('nome', { ascending: true });  
+      .select(`
+        id_funcionario,
+        nome,
+        usuario,
+        cargo,
+        restaurante (
+          id_restaurante,
+          nome_restaurante
+        )
+      `)
+      .eq('restaurante', restauranteId)
+      .order('nome', { ascending: true });
+ 
 
     if (error) return res.status(500).json({ error: error.message });
     
@@ -41,6 +55,72 @@ export async function listarFuncionarios(req, res) {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
+
+export async function criarFuncionario(req, res) {
+
+
+  const { nome, cargo, restaurante, usuario, senha, confirmarSenha } = req.body;
+
+  if(!nome) {
+        return res.status(422).json({ msg: 'O nome é obrigatorio!'});
+    }
+
+    if(!cargo) {
+        return res.status(422).json({ msg: 'O cargo é obrigatorio!'});
+    }
+
+    if(!restaurante) {
+        return res.status(422).json({ msg: 'O restarante é obrigatoria!'});
+    }
+    if(!usuario) {
+        return res.status(422).json({ msg: 'O usuario é obrigatoria!'});
+    }
+    if(!senha) {
+        return res.status(422).json({ msg: 'A senha é obrigatoria!'});
+    }
+
+    if(senha !== confirmarSenha) {
+        return res.status(422).json({ msg: 'As senhas nao conferem!'});
+    }
+
+    try {
+    // ✅ VERIFICAR SE USUÁRIO JÁ EXISTE (SUPABASE CORRETO)
+    const { data: userExists, error: checkError } = await supabase
+      .from('funcionario')  // Verificar se é 'funcionario' ou 'funcionarios'
+      .select('usuario')
+      .eq('usuario', usuario)
+      .maybeSingle();  // Usa maybeSingle() para não dar erro se não encontrar
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = "não encontrado" é OK, outros erros não
+      console.error('Erro ao verificar usuário:', checkError);
+      return res.status(500).json({ msg: 'Erro ao verificar usuário existente' });
+    }
+
+    if (userExists) {
+      return res.status(422).json({ msg: 'Já existe um usuário com esse nome!' });
+    }
+    if(userExists){
+        return res.status(422).json({ msg: 'Ja existe um usuario com esse nome!'});
+    }
+
+    const salt = await bcrypt.genSalt(12)
+    const passwordHash = await bcrypt.hash(senha, salt)
+
+
+  const { data, error, } = await supabase
+  .from('funcionario')
+  .insert([{ nome, cargo, restaurante, usuario, senha: passwordHash }])
+
+  if (error) return res.status(500).json({ error: error.message});
+  res.json({ message: 'Funcionario cadastrado com sucesso'})
+
+}  catch (err) {
+    console.error('Erro interno:', err);
+    res.status(500).json({ msg: 'Erro interno do servidor' });
+  }
+}
+
 
 export async function cadastrarFuncionario(req, res) {
   const { id, nome } = req.body;

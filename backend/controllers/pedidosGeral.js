@@ -142,8 +142,6 @@ export async function cadastrarPedidos(req, res) {
 }
 
 
-
-
 export async function editarPedidos(req, res) {
   const { id } = req.params
 
@@ -180,3 +178,58 @@ export async function editarPedidos(req, res) {
   }
 }
 
+export const atualizarStatusPedido = async (req, res) => {
+  const { id } = req.params;
+  const { status_id } = req.body;
+
+  try {
+    // Verifica se o status existe
+    const { data: statusExiste, error: statusError } = await supabase
+      .from('status')
+      .select('id')
+      .eq('id', status_id)
+      .single();
+
+    if (statusError || !statusExiste) {
+      return res.status(400).json({ error: 'Status inválido.' });
+    }
+
+    // Atualiza o status do pedido
+    const { data, error } = await supabase
+      .from('pedidos')
+      .update({ status_id })
+      .eq('id', id)
+      .select(`
+        id,
+        cliente_id,
+        status_pedidos (nome)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    res.status(200).json({
+      message: 'Status do pedido atualizado com sucesso!',
+      pedido: data,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao atualizar o status do pedido.' });
+  }
+};
+
+// Listar todos os status disponíveis
+export const listarStatusPedidos = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('status')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar status de pedidos.' });
+  }
+};

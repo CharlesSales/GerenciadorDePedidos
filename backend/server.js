@@ -35,6 +35,7 @@ app.use("/pedidosGeral", pedidosGeralRoutes)
 app.use("/auth", authRoutes)
 app.use("/user", userRoutes)
 
+
 // cria servidor HTTP a partir do app
 const server = http.createServer(app)
 

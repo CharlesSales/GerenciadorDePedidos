@@ -9,12 +9,21 @@ export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
+  const [statusPedidos, setStatusPedidos] = useState([]);
   const [filtroData, setFiltroData] = useState(() => {
     const hoje = new Date();
     return hoje.toISOString().slice(0, 10);
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
+  const statusOrdem = [
+    { id: 1, status_pedido: 'Pedido feito' },
+    { id: 2, status_pedido: 'preparando' },
+    { id: 3, status_pedido: 'pronto' },
+    { id: 4, status_pedido: 'a caminho' },
+    { id: 5, status_pedido: 'entregue' },
+  ];
 
   useEffect(() => {
     if (authLoading || !user || !token) return;
@@ -64,8 +73,28 @@ export default function ListaPedidos() {
 
   
 
+useEffect(() => {
+  if (!token) return;
 
-  async function handleChangeStatus(id) {
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch(`${API_URL}/statusPedidos`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Falha ao buscar status');
+      const data = await res.json();
+      setStatusPedidos(data); // [{id: 1, status_pedido: 'feito'}, ...]
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchStatus();
+}, [token]);
+
+
+
+  async function handleChangepaymentstatus(id) {
     try {
       const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
         method: 'PUT',
@@ -88,6 +117,49 @@ export default function ListaPedidos() {
       console.error('Erro inesperado:', err);
     }
   }
+
+  async function handleChangeStatus(id, statusAtual) {
+  try {
+    // encontra índice do status atual
+    const indiceAtual = statusOrdem.findIndex(s => s.status_pedido === statusAtual);
+    // define próximo status ou mantém último
+    const proximoStatus = indiceAtual < statusOrdem.length - 1
+      ? statusOrdem[indiceAtual + 1]
+      : statusOrdem[indiceAtual];
+
+    // envia apenas o id do status
+    const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ status_id: proximoStatus.id }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Erro ao atualizar status:', text);
+      return;
+    }
+
+    const result = await response.json();
+
+    // atualiza localmente
+    setPedidos(prev =>
+      prev.map(p =>
+        p.id_pedido === id ? { ...p, status: proximoStatus.status_pedido } : p
+      )
+    );
+
+  } catch (err) {
+    console.error('Erro inesperado:', err);
+  }
+}
+
+
+
+
 
   const formatarData = (dataHora) => {
     if (!dataHora) return "Sem data";
@@ -138,6 +210,7 @@ export default function ListaPedidos() {
                 key={pedido.id_pedido}
                 pedido={pedido}
                 formatarData={formatarData}
+                handleChangepaymentstatus={handleChangepaymentstatus}
                 handleChangeStatus={handleChangeStatus}
               />
             ))}
@@ -150,6 +223,7 @@ export default function ListaPedidos() {
                 key={pedido.id_pedido}
                 pedido={pedido}
                 formatarData={formatarData}
+                handleChangepaymentstatus={handleChangepaymentstatus}
                 handleChangeStatus={handleChangeStatus}
               />
             ))}

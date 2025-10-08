@@ -48,7 +48,7 @@ export default function Header() {
     { label: "Home", path: "/" },
     { label: "Produtos", path: "/produtos" },
     { label: "Carrinho", path: "/carrinho" },
-    { label: "Pedido", path: "/acaraje" },
+    { label: "Pedido", path: "/pedidos_geral" },
     { label: "Sair", action: handleLogout },
   ];
 

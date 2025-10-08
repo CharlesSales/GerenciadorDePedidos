@@ -1,6 +1,7 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
 
+
 // ✅ LOGIN DE FUNCIONÁRIO
 export async function loginFuncionario(req, res) {
   try {
@@ -16,7 +17,6 @@ export async function loginFuncionario(req, res) {
     }
 
     // ✅ BUSCAR FUNCIONÁRIO
-    // Buscar funcionário
     const { data: funcionario, error: funcError } = await supabase
     .from('funcionario')
     .select('*')
@@ -28,6 +28,12 @@ export async function loginFuncionario(req, res) {
     return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
     }
 
+     console.log('👤 Funcionário encontrado:', {
+      id: funcionario.id_funcionario,
+      nome: funcionario.nome,
+      restaurante: funcionario.restaurante 
+    });
+
     // Buscar restaurante
     const { data: restaurante, error: restError } = await supabase
     .from('restaurante')
@@ -38,8 +44,6 @@ export async function loginFuncionario(req, res) {
     if (restError) {
     console.log('⚠️ Restaurante não encontrado para o funcionário');
     }
-
-
 
     // ✅ BUSCAR CARGO
     let cargoInfo = null;
@@ -73,14 +77,21 @@ export async function loginFuncionario(req, res) {
 
     console.log('✅ Funcionário logado:', userData.dados.nome, 'Restaurante:', funcionario.restaurante);
 
+
+     const tokenPayload = { 
+      id: funcionario.id_funcionario, 
+      tipo: 'funcionario',
+      isAdmin: isAdmin,
+      restaurante: funcionario.restaurante,        // ✅ MANTER PARA COMPATIBILIDADE
+      restaurante_id: funcionario.restaurante      // ✅ ADICIONAR ESTE CAMPO
+    };
+
+    console.log('🔐 Payload do token:', tokenPayload);
+
+
     // ✅ GERAR TOKEN JWT
     const token = jwt.sign(
-      { 
-        id: funcionario.id_funcionario, 
-        tipo: 'funcionario',
-        isAdmin: isAdmin,
-        restaurante: funcionario.restaurante
-      },
+      tokenPayload,
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );

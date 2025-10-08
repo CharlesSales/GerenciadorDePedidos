@@ -23,7 +23,7 @@ export default function HomePage() {
     } else if (user.tipo === 'funcionario') {
       router.push('/produtos');
     } else {
-      router.push('/login');
+      router.push('/admin');
     }
   }, [user, loading, router]);
 

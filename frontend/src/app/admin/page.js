@@ -18,22 +18,6 @@ export default function AdminPage() {
     return null; // ou um placeholder simples
   }
 
-   const handleLogout = () => {
-    console.log('🚪 Fazendo logout...');
-    try {
-      logout();
-      router.push('/login');
-    } catch (error) {
-      console.error('❌ Erro no logout:', error);
-      // Forçar logout manual se necessário
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
-    }
-  };
-
   // ✅ LOADING CONSISTENTE
   if (loading) {
     return (
@@ -201,7 +185,7 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/acaraje')}
+        onClick={() => router.push('/gestaoFuncionarios')}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >

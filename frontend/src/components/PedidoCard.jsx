@@ -1,8 +1,11 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef  } from "react";
+import { useAuth } from "@/context/AuthContext";
 
-export default function PedidoCard({ pedido, formatarData, handleChangeStatus }) {
-  const [openMenu, setOpenMenu] = useState(false);
+export default function PedidoCard({ pedido, formatarData, handleChangeStatus, handleChangepaymentstatus }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const token = useAuth()
 
   const corFundo = pedido.pag === "pago" ? "#d4edda" : "#f8d7da";
   const corTexto = pedido.pag === "pago" ? "#155724" : "#721c24";
@@ -14,6 +17,7 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
       : [];
   const nomes = itens.map(i => `${i.nome} (${i.quantidade}x)`).join(", ");
 
+
    useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -24,11 +28,13 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const toggleMenu = () => setOpen(!open);
 
-  const toggleMenu = () => setOpenMenu(!openMenu);
+
 
   return (
     <div
+      ref={menuRef}
       style={{
         position: "relative",
         border: `1px solid ${corTexto}`,
@@ -58,7 +64,7 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
         ☰
       </button>
 
-      {openMenu && (
+      {open && (
         <ul
           style={{
             position: "absolute",
@@ -77,10 +83,17 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
         >
           <li
             style={{ padding: "5px 10px", cursor: "pointer" }}
-            onClick={() => handleChangeStatus(pedido.id_pedido)}
+            onClick={() => handleChangepaymentstatus(pedido.id_pedido)}
           >
             Alterar status
           </li>
+          <li
+            style={{ padding: "5px 10px", cursor: "pointer" }}
+            onClick={() => handleChangeStatus(pedido.id_pedido, pedido.status)}
+          >
+            Avançar Status
+          </li>
+
         </ul>
       )}
 
@@ -91,6 +104,7 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
       <p><strong>Casa:</strong> {pedido.casa}</p>
       <p><strong>Pedido:</strong> {nomes}</p>
       <p><strong>Detalhe:</strong> {pedido.detalhe}</p>
+      <p><strong>Status:</strong> {pedido.status}</p>
       <p><strong>Total:</strong> R$ {Number(pedido.total || 0).toFixed(2)}</p>
       <p><strong>Status de pagamento:</strong> {pedido.pag}</p>
     </div>

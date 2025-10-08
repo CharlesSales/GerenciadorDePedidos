@@ -14,7 +14,7 @@ export default function HomePage() {
         router.replace('/login');
       } else {
         // ✅ SE AUTENTICADO, IR PARA DASHBOARD
-        router.replace('/acaraje');
+        router.replace('/admin');
       }
     }
   }, [isAuthenticated, loading, router]);
