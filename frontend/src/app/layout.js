@@ -1,30 +1,26 @@
-'use client';
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { CarrinhoProvider } from "../context/CarrinhoContext";
 import { RestauranteProvider } from "../context/RestauranteContext";
 import Header from "../components/Header";
 
-// ✅ METADATA MOVIDA PARA COMPONENTE CLIENTE
-const AppMetadata = () => {
-  if (typeof document !== 'undefined') {
-    document.title = "Acarajé da Mari";
-  }
-  return null;
+export const metadata = {
+  title: "Acarajé da Mari",
+  description: "Sistema de pedidos e gestão do restaurante Acarajé da Mari",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-BR">
       <body>
-        <AppMetadata />
+        {/* Componente cliente */}
         <AuthProvider>
-          <RestauranteProvider>
-            <CarrinhoProvider>
+          <CarrinhoProvider>
+            <RestauranteProvider>
               <Header />
               {children}
-            </CarrinhoProvider>
-          </RestauranteProvider>
+            </RestauranteProvider>
+          </CarrinhoProvider>
         </AuthProvider>
       </body>
     </html>

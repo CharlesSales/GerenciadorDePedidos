@@ -16,20 +16,30 @@ export async function loginFuncionario(req, res) {
     }
 
     // ✅ BUSCAR FUNCIONÁRIO
-    const { data: funcionario, error } = await supabase
-      .from('funcionario')
-      .select('*')
-      .eq('usuario', usuario)
-      .eq('senha', senha)
-      .single();
+    // Buscar funcionário
+    const { data: funcionario, error: funcError } = await supabase
+    .from('funcionario')
+    .select('*')
+    .eq('usuario', usuario)
+    .eq('senha', senha)
+    .single();
 
-    if (error || !funcionario) {
-      console.log('❌ Funcionário não encontrado');
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Usuário ou senha inválidos' 
-      });
+    if (funcError || !funcionario) {
+    return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
     }
+
+    // Buscar restaurante
+    const { data: restaurante, error: restError } = await supabase
+    .from('restaurante')
+    .select('*')
+    .eq('id_restaurante', funcionario.restaurante)
+    .single();
+
+    if (restError) {
+    console.log('⚠️ Restaurante não encontrado para o funcionário');
+    }
+
+
 
     // ✅ BUSCAR CARGO
     let cargoInfo = null;
@@ -47,18 +57,19 @@ export async function loginFuncionario(req, res) {
                    cargoInfo?.id === 1;
 
     // ✅ DADOS DO USUÁRIO
-    const userData = {
-      id: funcionario.id_funcionario,
-      tipo: 'funcionario',
-      isAdmin: isAdmin,
-      dados: {
-        id_funcionario: funcionario.id_funcionario,
-        nome: funcionario.nome,
-        usuario: funcionario.usuario,
-        cargo: cargoInfo?.nome_cargo,
-        restaurante: funcionario.restaurante
+      const userData = {
+        id: funcionario.id_funcionario,
+        tipo: 'funcionario',
+        isAdmin: funcionario.cargo === 1, // exemplo
+        dados: {
+            id_funcionario: funcionario.id_funcionario,
+            nome: funcionario.nome,
+            usuario: funcionario.usuario,
+            cargo: funcionario.cargo,
+            restaurante: restaurante || null
       }
     };
+
 
     console.log('✅ Funcionário logado:', userData.dados.nome, 'Restaurante:', funcionario.restaurante);
 

@@ -1,6 +1,5 @@
-// components/PedidoCard.jsx
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function PedidoCard({ pedido, formatarData, handleChangeStatus }) {
   const [openMenu, setOpenMenu] = useState(false);
@@ -12,8 +11,19 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
     ? JSON.parse(pedido.pedidos)
     : Array.isArray(pedido.pedidos)
       ? pedido.pedidos
-      : []; // fallback
+      : [];
   const nomes = itens.map(i => `${i.nome} (${i.quantidade}x)`).join(", ");
+
+   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
 
   const toggleMenu = () => setOpenMenu(!openMenu);
 
@@ -27,9 +37,12 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus })
         padding: "10px",
         marginBottom: "10px",
         borderRadius: "6px",
+        width: "95%",        // ocupa 80% da largura da coluna
+        marginLeft: "25px",  // centraliza horizontalmente
+        marginRight: "25px"  // centraliza horizontalmente
       }}
     >
-      {/* Botão do menu no canto superior direito */}
+      {/* Botão do menu */}
       <button
         onClick={toggleMenu}
         style={{

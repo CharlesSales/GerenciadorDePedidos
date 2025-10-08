@@ -1,68 +1,61 @@
 'use client';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function AdminPage() {
-  const { user, logout, isAuthenticated, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
 
+  // ✅ GARANTIR HIDRATAÇÃO
   useEffect(() => {
-    console.log('🔍 ADMIN PAGE - Estado:', {
-      loading,
-      isAuthenticated,
-      user: user ? {
-        tipo: user.tipo,
-        isAdmin: user.isAdmin,
-        nome: user.dados?.nome || user.nome
-      } : null
-    });
+    setIsHydrated(true);
+  }, []);
 
-    // ✅ AGUARDAR O LOADING TERMINAR
-    if (!loading) {
-      // ✅ SE NÃO ESTIVER AUTENTICADO, REDIRECIONAR PARA LOGIN
-      if (!isAuthenticated || !user) {
-        console.log('❌ Não autenticado, redirecionando para login');
-        router.push('/login');
-        return;
+  // ✅ NÃO RENDERIZAR ATÉ ESTAR HIDRATADO
+  if (!isHydrated) {
+    return null; // ou um placeholder simples
+  }
+
+   const handleLogout = () => {
+    console.log('🚪 Fazendo logout...');
+    try {
+      logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('❌ Erro no logout:', error);
+      // Forçar logout manual se necessário
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
       }
-
-      // ✅ VERIFICAR SE TEM PERMISSÃO DE ADMIN
-      const temPermissaoAdmin = 
-        user.tipo === 'restaurante' || 
-        user.isAdmin === true ||
-        user.dados?.isAdmin === true;
-
-      if (!temPermissaoAdmin) {
-        console.log('❌ Sem permissão de admin, redirecionando para funcionário');
-        router.push('/funcionario');
-        return;
-      }
-
-      console.log('✅ Usuário tem permissão de admin');
     }
-  }, [user, router, isAuthenticated, loading]);
+  };
 
-  // ✅ MOSTRAR LOADING ENQUANTO VERIFICA AUTENTICAÇÃO
+  // ✅ LOADING CONSISTENTE
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
-        flexDirection: 'column' 
+        flexDirection: 'column'
       }}>
-        <div style={{ 
-          width: '50px', 
-          height: '50px', 
+        <div style={{
+          width: '50px',
+          height: '50px',
           border: '5px solid #f3f3f3',
-          borderTop: '5px solid #3498db',
+          borderTop: '5px solid #007bff',
           borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
-          marginBottom: '20px'
+          animation: 'spin 1s linear infinite'
         }}></div>
-        <p>Verificando permissões...</p>
+        <p style={{ marginTop: '20px', fontSize: '18px', color: '#666' }}>
+          Carregando...
+        </p>
+        
         <style jsx>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -73,228 +66,271 @@ export default function AdminPage() {
     );
   }
 
-  // ✅ SE NÃO ESTIVER AUTENTICADO, NÃO RENDERIZAR CONTEÚDO
-  if (!isAuthenticated || !user) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        <p>Redirecionando para login...</p>
-      </div>
-    );
+  // ✅ VERIFICAR AUTENTICAÇÃO
+  if (!user) {
+    router.push('/login');
+    return null;
   }
 
-  // ✅ VERIFICAR PERMISSÃO NOVAMENTE ANTES DE RENDERIZAR
-  const temPermissaoAdmin = 
-    user.tipo === 'restaurante' || 
-    user.isAdmin === true ||
-    user.dados?.isAdmin === true;
-
-  if (!temPermissaoAdmin) {
+  // ✅ VERIFICAR PERMISSÃO
+  if (!user.isAdmin && user.tipo !== 'restaurante') {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
-        <p>Redirecionando...</p>
-      </div>
-    );
-  }
-
-  // ✅ FUNÇÃO DE LOGOUT COM CONFIRMAÇÃO
-  const handleLogout = () => {
-    if (confirm('Tem certeza que deseja sair?')) {
-      logout();
-    }
-  };
-
-  // ✅ OBTER NOME DO USUÁRIO CORRETAMENTE
-  const nomeUsuario = user.dados?.nome || user.nome || 'Administrador';
-
-  return (
-    <div style={{ padding: '20px', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <header style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: '30px',
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '20px'
+      }}>
+        <h1 style={{ fontSize: '48px', margin: 0 }}>🚫</h1>
+        <h2 style={{ color: '#dc3545', margin: 0 }}>Acesso Negado</h2>
+        <p style={{ color: '#666', textAlign: 'center' }}>
+          Você não tem permissão para acessar esta área.
+        </p>
+        <button
+          onClick={() => router.push('/funcionario')}
+          style={{
+            backgroundColor: '#007bff',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          Voltar ao Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  // ✅ DASHBOARD ADMIN
+  return (
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f8f9fa',
+      padding: '20px'
+    }}>
+      {/* ✅ HEADER */}
+      <div style={{
         backgroundColor: 'white',
+        borderRadius: '8px',
         padding: '20px',
-        borderRadius: '10px',
+        marginBottom: '20px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <div>
-          <h1 style={{ margin: '0', color: '#333' }}>🏪 Painel Administrativo</h1>
-          <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>
-            Área restrita para administradores
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontWeight: 'bold', color: '#333' }}>
-              Olá, {nomeUsuario}!
-            </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              {user.isAdmin ? '👑 Administrador' : '🏪 Restaurante'}
-            </div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h1 style={{ margin: 0, color: '#333' }}>
+              🏪 Dashboard Administrativo
+            </h1>
+            <p style={{ margin: '8px 0 0 0', color: '#666' }}>
+              Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
+            </p>
           </div>
-          <button 
-            onClick={handleLogout}
-            style={{ 
-              padding: '10px 20px',
-              backgroundColor: '#ff4d4d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              transition: 'background-color 0.3s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#ff3333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#ff4d4d'}
-          >
-            🚪 Sair
-          </button>
         </div>
-      </header>
+      </div>
 
-      <div style={{ 
-        display: 'grid', 
+      {/* ✅ MENU DE OPÇÕES */}
+      <div style={{
+        display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '20px'
       }}>
-        {/* ✅ CARD PRODUTOS */}
-        <div 
-          onClick={() => router.push('/produtos')}
-          style={{
-            padding: '30px',
-            border: 'none',
-            borderRadius: '15px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.3s, box-shadow 0.3s'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-5px)';
-            e.target.style.boxShadow = '0 8px 15px rgba(0,0,0,0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-          }}
+        
+        {/* ✅ GESTÃO DE PRODUTOS */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/produtos')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
-          <div style={{ fontSize: '60px', marginBottom: '15px' }}>🍽️</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Produtos</h3>
-          <p style={{ margin: '0', color: '#666' }}>Gerenciar cardápio e preços</p>
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            📦
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Gestão de Produtos
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Visualizar e gerenciar produtos do restaurante
+          </p>
         </div>
 
-        {/* ✅ CARD PEDIDOS */}
-        <div 
-          onClick={() => router.push('/pedidos_geral')}
-          style={{
-            padding: '30px',
-            border: 'none',
-            borderRadius: '15px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.3s, box-shadow 0.3s'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-5px)';
-            e.target.style.boxShadow = '0 8px 15px rgba(0,0,0,0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-          }}
+        {/* ✅ PEDIDOS */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/pedidos_geral')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
-          <div style={{ fontSize: '60px', marginBottom: '15px' }}>📋</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Pedidos</h3>
-          <p style={{ margin: '0', color: '#666' }}>Visualizar e gerenciar pedidos</p>
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            📋
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Gerenciar Pedidos
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Visualizar e atualizar status dos pedidos
+          </p>
         </div>
 
-        {/* ✅ CARD FUNCIONÁRIOS */}
-        <div 
-          onClick={() => router.push('/funcionarios')}
-          style={{
-            padding: '30px',
-            border: 'none',
-            borderRadius: '15px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.3s, box-shadow 0.3s'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-5px)';
-            e.target.style.boxShadow = '0 8px 15px rgba(0,0,0,0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-          }}
+        {/* ✅ FUNCIONÁRIOS */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/acaraje')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
-          <div style={{ fontSize: '60px', marginBottom: '15px' }}>👥</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Funcionários</h3>
-          <p style={{ margin: '0', color: '#666' }}>Gerenciar equipe e cargos</p>
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            👥
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Funcionários
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Gerenciar equipe e permissões
+          </p>
         </div>
 
-        {/* ✅ CARD RELATÓRIOS */}
-        <div 
-          onClick={() => router.push('/relatorios')}
-          style={{
-            padding: '30px',
-            border: 'none',
-            borderRadius: '15px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.3s, box-shadow 0.3s'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-5px)';
-            e.target.style.boxShadow = '0 8px 15px rgba(0,0,0,0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-          }}
+        {/* ✅ RELATÓRIOS */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/acaraje')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
-          <div style={{ fontSize: '60px', marginBottom: '15px' }}>📊</div>
-          <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Relatórios</h3>
-          <p style={{ margin: '0', color: '#666' }}>Análises e estatísticas</p>
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            📊
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Relatórios
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Análises de vendas e performance
+          </p>
         </div>
+
+        {/* ✅ CONFIGURAÇÕES */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/acaraje')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            ⚙️
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Configurações
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Ajustes do sistema e restaurante
+          </p>
+        </div>
+
+        {/* ✅ CARDÁPIO PÚBLICO */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/produtos')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            🍽️
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Cardápio
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Visualizar como os produtos
+          </p>
+        </div>
+
       </div>
 
-      {/* ✅ DEBUG INFO */}
-      <div style={{ 
-        marginTop: '30px', 
-        padding: '15px', 
-        backgroundColor: '#f0f0f0', 
-        borderRadius: '10px',
-        fontSize: '12px'
+      {/* ✅ INFORMAÇÕES DO USUÁRIO */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        padding: '20px',
+        marginTop: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <strong>🔧 Debug Info:</strong>
-        <pre style={{ margin: '10px 0', overflow: 'auto' }}>
-          {JSON.stringify({
-            isAuthenticated,
-            tipo: user?.tipo,
-            isAdmin: user?.isAdmin,
-            nome: nomeUsuario,
-            temPermissao: temPermissaoAdmin
-          }, null, 2)}
-        </pre>
+        <h3 style={{ margin: '0 0 16px 0', color: '#333' }}>
+          ℹ️ Informações da Sessão
+        </h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div>
+            <strong>Tipo de Usuário:</strong><br/>
+            <span style={{ color: '#666' }}>
+              {user.tipo === 'restaurante' ? '👑 Dono do Restaurante' : '👨‍💼 Funcionário Admin'}
+            </span>
+          </div>
+          
+          <div>
+            <strong>Nome:</strong><br/>
+            <span style={{ color: '#666' }}>
+              {user.dados?.nome || user.dados?.nome_restaurante}
+            </span>
+          </div>
+          
+          {user.dados?.cargo && (
+            <div>
+              <strong>Cargo:</strong><br/>
+              <span style={{ color: '#666' }}>ID: {user.dados.cargo}</span>
+            </div>
+          )}
+          
+        <div>
+          <strong>Restaurante:</strong><br/>
+          <span style={{ color: '#666' }}>
+            {user.dados?.restaurante?.nome_restaurante || 'N/A'}
+          </span>
+        </div>
+        </div>
       </div>
     </div>
   );

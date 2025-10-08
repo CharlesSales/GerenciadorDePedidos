@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -101,40 +100,6 @@ export default function LoginPage() {
     }
   };
 
-  const loginTeste = (tipo) => {
-    // ✅ CREDENCIAIS QUE REALMENTE FUNCIONAM
-    if (tipo === 'funcionario_admin') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'admin', senha: '123', cpf: '' });
-    } else if (tipo === 'restaurante') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'acarajedamari', senha: '1234', cpf: '' });
-    } else if (tipo === 'cliente') {
-      setLoginMode('cpf');
-      setFormData({ usuario: '', senha: '1234', cpf: '12345678901' });
-    }
-    // ✅ OUTROS FUNCIONÁRIOS (SE EXISTIREM NO BANCO)
-    else if (tipo === 'henrique') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Henrique', senha: '1234', cpf: '' });
-    } else if (tipo === 'vinicius') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Vinicius', senha: '1234', cpf: '' });
-    } else if (tipo === 'luciano') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Luciano', senha: '1234', cpf: '' });
-    } else if (tipo === 'juan') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Juan', senha: '1234', cpf: '' });
-    } else if (tipo === 'keivisson') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Keivisson', senha: '1234', cpf: '' });
-    } else if (tipo === 'luciana') {
-      setLoginMode('usuario');
-      setFormData({ usuario: 'Luciana', senha: '1234', cpf: '' });
-    }
-  };
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -153,9 +118,9 @@ export default function LoginPage() {
         maxWidth: '420px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🍽️</div>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>🖥️</div>
           <h1 style={{ margin: 0, color: '#dc3545', fontSize: '28px' }}>
-            Acarajé da Mari
+            Sales Manager
           </h1>
           <p style={{ color: '#6c757d', margin: '8px 0 0 0' }}>
             Sistema de Pedidos
@@ -295,73 +260,6 @@ export default function LoginPage() {
             {isLoading ? '⏳ Entrando...' : '🚀 Entrar'}
           </button>
         </form>
-
-        <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '20px', marginTop: '20px' }}>
-          <p style={{ textAlign: 'center', color: '#6c757d', fontSize: '12px', marginBottom: '12px' }}>
-            🧪 Acesso rápido para testes:
-          </p>
-          
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => loginTeste('funcionario_admin')}
-              style={{
-                flex: 1, padding: '8px', backgroundColor: '#dc3545', color: 'white',
-                border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              👨‍💼 Admin (admin/123)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => loginTeste('restaurante')}
-              style={{
-                flex: 1, padding: '8px', backgroundColor: '#28a745', color: 'white',
-                border: 'none', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              👑 Dono (acarajedamari/1234)
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-            <button
-              type="button"
-              onClick={() => loginTeste('henrique')}
-              style={{
-                flex: 1, padding: '6px', backgroundColor: '#007bff', color: 'white',
-                border: 'none', borderRadius: '4px', fontSize: '10px', cursor: 'pointer'
-              }}
-            >
-              Henrique
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => loginTeste('vinicius')}
-              style={{
-                flex: 1, padding: '6px', backgroundColor: '#007bff', color: 'white',
-                border: 'none', borderRadius: '4px', fontSize: '10px', cursor: 'pointer'
-              }}
-            >
-              Vinicius
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => loginTeste('luciano')}
-              style={{
-                flex: 1, padding: '6px', backgroundColor: '#007bff', color: 'white',
-                border: 'none', borderRadius: '4px', fontSize: '10px', cursor: 'pointer'
-              }}
-            >
-              Luciano
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

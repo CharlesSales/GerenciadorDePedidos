@@ -48,7 +48,7 @@ export async function listarPedidos(req, res) {
 
 
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total } = req.body
+  const { cliente, funcionario, casa, itens, total, restaurante } = req.body
   const { data, error } = await supabase
     .from("pedidos_geral")
     .insert([{
@@ -56,7 +56,8 @@ export async function cadastrarPedidos(req, res) {
       nome_cliente: cliente,
       funcionario,
       casa,
-      total
+      total,
+      restaurante
     }])
     .select()
 

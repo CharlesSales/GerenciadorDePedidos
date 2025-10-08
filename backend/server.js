@@ -6,6 +6,7 @@ import funcionariosRoutes from "./routes/funcionarios.js"
 import pedidosRestauranteRoutes from "./routes/pedidosRestaurante.js"
 import pedidosAcarajeRoutes from "./routes/pedidosAcaraje.js"
 import pedidosGeralRoutes from "./routes/pedidosGeral.js"
+import pedidosRoutes from './routes/pedidos.js'
 import userRoutes from "./routes/user.js"
 import authRoutes from "./routes/auth.js"
 import { Server } from "socket.io"
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 // rotas
 app.use("/produtos", produtosRoutes)
 app.use("/funcionarios", funcionariosRoutes)
+app.use("/pedidos", pedidosRoutes) 
 app.use("/pedidosRestaurante", pedidosRestauranteRoutes)
 app.use("/pedidosAcaraje", pedidosAcarajeRoutes)
 app.use("/pedidosGeral", pedidosGeralRoutes)

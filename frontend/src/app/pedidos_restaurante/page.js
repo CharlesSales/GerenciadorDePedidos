@@ -75,7 +75,7 @@ export default function ListaPedidos() {
     if (!dataHora) return "Sem data";
     const data = new Date(dataHora);
     if (isNaN(data.getTime())) return "Data inválida";
-    return data.toLocaleString("pt-BR", {
+    return data.toLocaleString("pt-br", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

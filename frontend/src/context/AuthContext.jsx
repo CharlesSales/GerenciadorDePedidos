@@ -8,28 +8,35 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false); // ✅ ESTADO DE HIDRATAÇÃO
+
+  // ✅ VERIFICAR SE ESTÁ NO CLIENTE
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
-    // ✅ VERIFICAR TOKEN SALVO NO LOCALSTORAGE
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+    // ✅ VERIFICAR TOKEN SALVO APENAS NO CLIENTE
+    if (isHydrated) {
+      const savedToken = localStorage.getItem('token');
+      const savedUser = localStorage.getItem('user');
+      
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      }
+      
+      setLoading(false);
     }
-    
-    setLoading(false);
-  }, []);
+  }, [isHydrated]);
 
   const login = async (usuario, senha, tipo) => {
     try {
       console.log('🔐 Fazendo login:', { tipo, usuario });
       
-      // ✅ URL CORRETA BASEADA NO TIPO
       const url = tipo === 'funcionario' 
-        ? 'http://localhost:8080/auth/funcionario'  // ✅ CORREÇÃO
-        : 'http://localhost:8080/auth/restaurante'; // ✅ CORREÇÃO
+        ? 'http://localhost:8080/auth/funcionario'
+        : 'http://localhost:8080/auth/restaurante';
 
       const response = await fetch(url, {
         method: 'POST',
@@ -44,11 +51,14 @@ export function AuthProvider({ children }) {
       if (data.success) {
         console.log('✅ Login bem-sucedido:', data.user.dados.nome);
         
-        // ✅ SALVAR NO STATE E LOCALSTORAGE
         setUser(data.user);
         setToken(data.token);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // ✅ SALVAR APENAS NO CLIENTE
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
         
         return { success: true, user: data.user };
       } else {
@@ -65,11 +75,31 @@ export function AuthProvider({ children }) {
     console.log('🚪 Fazendo logout...');
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    
+    // ✅ REMOVER APENAS NO CLIENTE
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   };
 
   const isAuthenticated = !!user && !!token;
+
+  // ✅ NÃO RENDERIZAR ATÉ ESTAR HIDRATADO
+  if (!isHydrated) {
+    return (
+      <AuthContext.Provider value={{
+        user: null,
+        token: null,
+        loading: true,
+        login: async () => ({ success: false, error: 'Carregando...' }),
+        logout: () => {},
+        isAuthenticated: false
+      }}>
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{

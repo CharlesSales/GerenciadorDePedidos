@@ -66,10 +66,12 @@ export async function listarProdutos(req, res) {
 
     console.log(`✅ ${produtos?.length || 0} produtos encontrados para restaurante ${restauranteId || 'todos'}`);
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
     // ✅ ADICIONAR URL DA IMAGEM SE NECESSÁRIO
     const produtosComImagem = produtos?.map(produto => ({
       ...produto,
-      imagem_url: produto.imagem ? `http://localhost:8080/uploads/${produto.imagem}` : null
+      imagem_url: produto.imagem ? `${API_URL}/uploads/${produto.imagem}` : null
     })) || [];
 
     res.json(produtosComImagem);
@@ -112,7 +114,7 @@ export async function buscarProdutoPorId(req, res) {
     // ✅ ADICIONAR URL DA IMAGEM
     const produtoComImagem = {
       ...produto,
-      imagem_url: produto.imagem ? `http://localhost:8080/uploads/${produto.imagem}` : null
+      imagem_url: produto.imagem ? `${API_URL}/uploads/${produto.imagem}` : null
     };
 
     res.json(produtoComImagem);

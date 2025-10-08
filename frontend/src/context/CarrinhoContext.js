@@ -8,7 +8,13 @@ export function CarrinhoProvider({ children }) {
   const [produtos, setProdutos] = useState([]);
   const [carrinho, setCarrinho] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false); // ✅ ESTADO DE HIDRATAÇÃO
   const { user, token, isAuthenticated } = useAuth();
+
+  // ✅ VERIFICAR SE ESTÁ NO CLIENTE
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const carregarProdutos = async () => {
     try {
@@ -18,12 +24,10 @@ export function CarrinhoProvider({ children }) {
 
       setLoading(true);
 
-      // ✅ PREPARAR HEADERS
       const headers = {
         'Content-Type': 'application/json'
       };
 
-      // ✅ SE ESTIVER AUTENTICADO, ADICIONAR TOKEN
       if (token && isAuthenticated) {
         headers['Authorization'] = `Bearer ${token}`;
         console.log('🔐 Carregando produtos filtrados por restaurante...');
@@ -31,12 +35,13 @@ export function CarrinhoProvider({ children }) {
         console.log('📦 Carregando todos os produtos (sem filtro)...');
       }
 
-      const response = await fetch(`http://localhost:8080/produtos`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
+      const response = await fetch(`${API_URL}/produtos`, {
         method: 'GET',
         headers: headers
       });
 
-      // ✅ VERIFICAR SE A RESPOSTA É VÁLIDA
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
@@ -44,27 +49,19 @@ export function CarrinhoProvider({ children }) {
       const data = await response.json();
       console.log('📦 Resposta da API:', data);
 
-      // ✅ VERIFICAR DIFERENTES FORMATOS DE RESPOSTA
       if (Array.isArray(data)) {
-        // ✅ RESPOSTA DIRETA COM ARRAY DE PRODUTOS
         console.log('✅ Produtos carregados (array direto):', data.length);
         setProdutos(data);
       } else if (data && data.success && Array.isArray(data.produtos)) {
-        // ✅ RESPOSTA COM OBJETO SUCCESS
         console.log('✅ Produtos carregados (objeto success):', data.produtos.length);
         console.log('🏪 Restaurante ID:', data.restaurante_id);
         setProdutos(data.produtos);
       } else if (data && Array.isArray(data.data)) {
-        // ✅ RESPOSTA COM PROPRIEDADE DATA
         console.log('✅ Produtos carregados (data property):', data.data.length);
         setProdutos(data.data);
       } else {
-        // ✅ FORMATO INESPERADO
         console.warn('⚠️ Formato de resposta inesperado:', data);
-        console.warn('⚠️ Tipo da resposta:', typeof data);
-        console.warn('⚠️ É array?', Array.isArray(data));
         
-        // ✅ TENTAR EXTRAIR PRODUTOS DE QUALQUER JEITO
         if (data && typeof data === 'object') {
           const possiveisProdutos = data.produtos || data.data || data.items || [];
           if (Array.isArray(possiveisProdutos)) {
@@ -81,13 +78,11 @@ export function CarrinhoProvider({ children }) {
 
     } catch (error) {
       console.error('❌ Erro detalhado na requisição:', error);
-      console.error('❌ Stack trace:', error.stack);
       
-      // ✅ TENTAR FALLBACK SEM TOKEN
       if (token) {
         console.log('🔄 Tentando novamente sem token...');
         try {
-          const fallbackResponse = await fetch(`http://localhost:8080/produtos`, {
+          const fallbackResponse = await fetch(`${API_URL}/produtos`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
@@ -119,25 +114,40 @@ export function CarrinhoProvider({ children }) {
     }
   };
 
-  // ✅ CARREGAR PRODUTOS QUANDO USUÁRIO ESTIVER AUTENTICADO OU MUDAR
+  // ✅ CARREGAR PRODUTOS APENAS NO CLIENTE
   useEffect(() => {
-    carregarProdutos();
-  }, [isAuthenticated, token]);
+    if (isHydrated) {
+      carregarProdutos();
+    }
+  }, [isAuthenticated, token, isHydrated]);
 
   const adicionarAoCarrinho = (produto) => {
-    console.log('➕ Adicionando ao carrinho:', produto.nome);
+    console.log('🛒 === ADICIONANDO AO CARRINHO ===');
+    console.log('🛒 Produto recebido:', produto);
+    console.log('🛒 Carrinho atual antes:', carrinho);
+    
     setCarrinho(prevCarrinho => {
+      console.log('🛒 Carrinho anterior (dentro do setState):', prevCarrinho);
+      
       const itemExistente = prevCarrinho.find(item => item.id_produto === produto.id_produto);
+      console.log('🛒 Item já existe?', !!itemExistente);
+      
+      let novoCarrinho;
       
       if (itemExistente) {
-        return prevCarrinho.map(item =>
+        novoCarrinho = prevCarrinho.map(item =>
           item.id_produto === produto.id_produto
             ? { ...item, quantidade: item.quantidade + 1 }
             : item
         );
+        console.log('🛒 Incrementando quantidade do item existente');
       } else {
-        return [...prevCarrinho, { ...produto, quantidade: 1 }];
+        novoCarrinho = [...prevCarrinho, { ...produto, quantidade: 1 }];
+        console.log('🛒 Adicionando novo item ao carrinho');
       }
+      
+      console.log('🛒 Novo carrinho:', novoCarrinho);
+      return novoCarrinho;
     });
   };
 
@@ -172,6 +182,28 @@ export function CarrinhoProvider({ children }) {
     }, 0);
   };
 
+  // ✅ NÃO RENDERIZAR ATÉ ESTAR HIDRATADO
+  if (!isHydrated) {
+    return (
+      <CarrinhoContext.Provider value={{
+        produtos: [],
+        carrinho: [],
+        loading: true,
+        adicionarAoCarrinho: () => {},
+        removerDoCarrinho: () => {},
+        alterarQuantidade: () => {},
+        limparCarrinho: () => {},
+        calcularTotal: () => 0,
+        carregarProdutos: () => {},
+        handleAdd: () => {},
+        handleRemove: () => {},
+        handleClear: () => {}
+      }}>
+        {children}
+      </CarrinhoContext.Provider>
+    );
+  }
+
   return (
     <CarrinhoContext.Provider value={{
       produtos,
@@ -182,7 +214,10 @@ export function CarrinhoProvider({ children }) {
       alterarQuantidade,
       limparCarrinho,
       calcularTotal,
-      carregarProdutos
+      carregarProdutos,
+      handleAdd: adicionarAoCarrinho,
+      handleRemove: removerDoCarrinho,
+      handleClear: limparCarrinho
     }}>
       {children}
     </CarrinhoContext.Provider>

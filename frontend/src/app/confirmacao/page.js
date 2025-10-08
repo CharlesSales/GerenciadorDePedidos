@@ -5,5 +5,7 @@ import Confirmacao from '@/components/Confirmacao';
 export default function Page() {
   const { carrinho, produtos } = useCarrinho();
 
-  return <Confirmacao pedidoConfirmado={carrinho} produtos={produtos} />;
+  const produtosArray = Array.isArray(produtos) ? produtos : [produtos];
+
+  return <Confirmacao pedidoConfirmado={carrinho} produtos={produtosArray} />;
 }

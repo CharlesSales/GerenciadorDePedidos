@@ -1,7 +1,69 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
 import fetch from "node-fetch";
+import jwt from "jsonwebtoken";
 
+export async function listarPedidos(req, res) {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    let restauranteId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tipo === "funcionario") {
+          // Funcionario: pegar id do restaurante dele
+          const { data: funcionario } = await supabase
+            .from("funcionario")
+            .select("restaurante")
+            .eq("id_funcionario", decoded.id)
+            .single();
+
+          restauranteId = funcionario?.restaurante;
+        } else if (decoded.tipo === "restaurante") {
+          // Restaurante: usar próprio id
+          restauranteId = decoded.id;
+        }
+      } catch (err) {
+        console.error("Token inválido:", err.message);
+        return res.status(401).json({ error: "Token inválido" });
+      }
+    } else {
+      return res.status(401).json({ error: "Token é obrigatório" });
+    }
+
+    // Buscar pedidos apenas do restaurante logado
+    const { data: pedidos, error } = await supabase
+      .from("pedidos_geral")
+      .select("*")
+      .eq("restaurante", restauranteId)
+      .order("data_hora", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao buscar pedidos:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json(pedidos);
+  } catch (err) {
+    console.error("Erro inesperado:", err);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+export const listarPedidosPorRestaurante = async (id_restaurante) => {
+  try {
+    // Se estiver usando Sequelize, Mongoose ou algum ORM
+    const pedidos = await Pedido.find({ restaurante_id: id_restaurante });
+    return pedidos;
+  } catch (err) {
+    throw new Error("Erro ao listar pedidos do restaurante: " + err.message);
+  }
+};
+
+
+/*
 export async function listarPedidos(req, res) {
   const { data, error } = await supabase
     .from("pedidos_geral")
@@ -12,9 +74,13 @@ export async function listarPedidos(req, res) {
   res.json(data)
 }
 
-
+*/
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total, obs } = req.body;
+  const { cliente, funcionario, casa, itens, total, obs, restauranteid } = req.body;
+
+  if (!restauranteid) {
+    return res.status(400).json({ error: "ID do restaurante é obrigatório" });
+  }
 
   try {
     const { data, error } = await supabase
@@ -25,7 +91,8 @@ export async function cadastrarPedidos(req, res) {
         funcionario,
         casa,
         detalhe: obs,
-        total
+        total,
+        restaurante: restauranteid // ✅ adiciona o id do restaurante
       }])
       .select();
 
@@ -33,14 +100,14 @@ export async function cadastrarPedidos(req, res) {
 
     const novoPedido = data[0];
 
-    // Emite Socket.IO, mas captura erro
+    // Emite Socket.IO
     try {
       io.emit("novoPedido_geral", novoPedido);
     } catch (err) {
       console.error("Falha no Socket.IO:", err.message);
     }
 
-    // Notificação push – captura erro sem quebrar
+    // Notificação push
     try {
       const { data: admins } = await supabase
         .from("usuarios")
@@ -66,7 +133,6 @@ export async function cadastrarPedidos(req, res) {
       console.error("Falha na notificação push:", err.message);
     }
 
-    // Retorna JSON ao frontend
     return res.status(200).json({ message: "Pedido salvo com sucesso!", pedido: novoPedido });
 
   } catch (err) {
@@ -74,6 +140,7 @@ export async function cadastrarPedidos(req, res) {
     return res.status(500).json({ error: "Erro interno ao cadastrar pedido" });
   }
 }
+
 
 
 
