@@ -26,7 +26,6 @@ export default function ListaPedidos() {
 
   useEffect(() => {
     if (authLoading || !user || !token) return;
-
     const socket = io(API_URL, { auth: { token } });
 
     socket.on("novoPedido_geral", (pedido) => {

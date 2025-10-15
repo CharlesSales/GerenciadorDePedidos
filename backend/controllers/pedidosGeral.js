@@ -9,6 +9,9 @@ export async function listarPedidos(req, res) {
     let restauranteId = null;
 
     if (token) {
+      
+    console.log('Token \n', token)
+
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -36,14 +39,7 @@ export async function listarPedidos(req, res) {
     // Buscar pedidos apenas do restaurante logado
     const { data: pedidos, error } = await supabase
       .from("pedidos_geral")
-      .select(
-        "id_pedido", 
-        "pedidos", 
-        "nome_cliente",
-        "data_hora",
-        "detalhe",
-        "status",
-        "total"
+      .select("*"
       )
       .eq("restaurante", restauranteId)
       .order("data_hora", { ascending: false });
@@ -127,16 +123,28 @@ export async function cadastrarPedidos(req, res) {
 
     // Notificação push
     try {
-      const { data: admins } = await supabase
-        .from("usuarios")
-        .select("expo_token")
+      // Busca funcionários da cozinha, exceto quem fez o pedido
+      const { data: cozinheiros } = await supabase
+        .from("funcionario")
+        .select("expo_token, id_funcionario")
+        .eq("cargo", "cozinha")
         .not("expo_token", "is", null);
 
-      const messages = admins.map(a => ({
-        to: a.expo_token,
+      // Filtra para não notificar quem fez o pedido
+      const tokens = cozinheiros
+        .filter(f => f.id_funcionario !== novoPedido.funcionario)
+        .map(f => f.expo_token);
+
+      
+      const pedidosMsg = pedidosPendentes.map(p =>
+        `#${p.cliente}: ${p.produto} x${p.qtd}${p.observacao ? " (" + p.observacao + ")" : ""}`
+      ).join("\n");  
+      
+      const messages = tokens.map(token => ({
+        to: token,
         sound: "default",
         title: "Novo pedido!",
-        body: `Pedido de ${cliente} no valor de R$ ${total}`,
+        body: pedidosMsg || "Nenhum pedido pendente.",
         data: { pedidoId: novoPedido.id_pedido }
       }));
 
@@ -158,7 +166,6 @@ export async function cadastrarPedidos(req, res) {
     return res.status(500).json({ error: "Erro interno ao cadastrar pedido" });
   }
 }
-
 
 export async function editarPedidos(req, res) {
   const { id } = req.params
