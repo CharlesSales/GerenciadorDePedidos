@@ -9,8 +9,6 @@ export async function listarPedidos(req, res) {
     let restauranteId = null;
 
     if (token) {
-      
-    console.log('Token \n', token)
 
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -39,19 +37,10 @@ export async function listarPedidos(req, res) {
     // Buscar pedidos apenas do restaurante logado
     const { data: pedidos, error } = await supabase
       .from("pedidos_geral")
-      .select("*"
-      )
+      .select("*")
       .eq("restaurante", restauranteId)
       .order("data_hora", { ascending: false });
 
-//       id_pedido
-// total
-// data_hora
-// casa
-// pag
-// detalhe
-// restaurante
-// status
 
 
     if (error) {
@@ -106,7 +95,7 @@ export async function cadastrarPedidos(req, res) {
         casa,
         detalhe: obs,
         total,
-        restaurante: restauranteid // ✅ adiciona o id do restaurante
+        restaurante: restauranteid
       }])
       .select();
 
@@ -121,25 +110,33 @@ export async function cadastrarPedidos(req, res) {
       console.error("Falha no Socket.IO:", err.message);
     }
 
-    // Notificação push
+    // Notificação push para todos funcionários do restaurante, exceto quem fez o pedido
     try {
-      // Busca funcionários da cozinha, exceto quem fez o pedido
-      const { data: cozinheiros } = await supabase
+      // Busca todos funcionários do restaurante com expo_token
+      const { data: funcionariosRestaurante } = await supabase
         .from("funcionario")
         .select("expo_token, id_funcionario")
-        .eq("cargo", "cozinha")
+        .eq("restaurante", restauranteid)
         .not("expo_token", "is", null);
 
       // Filtra para não notificar quem fez o pedido
-      const tokens = cozinheiros
-        .filter(f => f.id_funcionario !== novoPedido.funcionario)
-        .map(f => f.expo_token);
+    const tokens = (funcionariosRestaurante ?? [])
+    .filter(f => f.id_funcionario !== novoPedido.funcionario)
+    .map(f => f.expo_token);
 
-      
-      const pedidosMsg = pedidosPendentes.map(p =>
-        `#${p.cliente}: ${p.produto} x${p.qtd}${p.observacao ? " (" + p.observacao + ")" : ""}`
-      ).join("\n");  
-      
+      // Busca todos pedidos pendentes do restaurante
+      const { data: pedidosPendentes } = await supabase
+        .from("pedidos_geral")
+        .select("nome_cliente, pedidos, detalhe")
+        .eq("restaurante", restauranteid)
+        .eq("status", "pendente")
+        .order("data_hora", { ascending: true });
+
+      // Monta mensagem com lista de pedidos
+      const pedidosMsg = pedidosPendentes?.map(p =>
+        `#${p.nome_cliente}: ${p.pedidos} ${p.detalhe ? " (" + p.detalhe + ")" : ""}`
+      ).join("\n");
+
       const messages = tokens.map(token => ({
         to: token,
         sound: "default",

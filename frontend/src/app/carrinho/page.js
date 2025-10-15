@@ -275,7 +275,13 @@ export default function CarrinhoPage() {
               </button>
 
               <button
-                onClick={() => router.push('/confirmacao')}
+                onClick={() =>{
+                  try {
+                    router.push('/confirmacao')
+                  } catch (error) {
+                    console.log('❌ Erro ao finalizar pedido:', error)
+                  }
+                }}
                 style={{
                   backgroundColor: '#28a745',
                   color: 'white',
@@ -286,7 +292,7 @@ export default function CarrinhoPage() {
                   cursor: 'pointer'
                 }}
               >
-                Finalizar Pedido
+                 Finalizar Pedido
               </button>
             </div>
           </div>

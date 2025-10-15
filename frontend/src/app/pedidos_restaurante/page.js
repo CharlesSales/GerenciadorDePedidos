@@ -2,10 +2,12 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import PedidoCard from "@/components/PedidoCard";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user, token, loading: authLoading } = useAuth();
   const [erro, setErro] = useState(null);
   const [filtroData, setFiltroData] = useState(() => {
     const hoje = new Date();
@@ -16,8 +18,9 @@ export default function ListaPedidos() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   useEffect(() => {
+    if (authLoading || !user || !token) return;
     // conecta no socket do backend
-    const socket = io(API_URL);
+   const socket = io(API_URL, { auth: { token } });
 
     // quando o backend emitir novo pedido
     socket.on("novoPedido", (pedido) => {
@@ -37,7 +40,12 @@ export default function ListaPedidos() {
 
     const fetchPedidos = async () => {
       try {
-        const res = await fetch(`${API_URL}/pedidosRestaurante`);
+        const res = await fetch(`${API_URL}/pedidosRestaurante`, {
+           headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
         setPedidos(Array.isArray(data) ? data : []);
@@ -51,12 +59,16 @@ export default function ListaPedidos() {
     fetchPedidos();
   }, [API_URL]);
 
-  async function handleChangeStatus(id) {
+   async function handleChangepaymentstatus(id) {
     try {
-      const response = await fetch(`${API_URL}/pedidosRestaurante/${id}`, {
+      const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
+
       if (!response.ok) {
         const text = await response.text();
         console.error('Erro ao atualizar status:', text);
@@ -95,32 +107,50 @@ export default function ListaPedidos() {
   if (erro) return <p style={{ color: "red" }}>{erro}</p>;
 
   return (
-    <div>
-      <h1>Lista de Pedidos</h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <label>
-          Filtrar por dia:{" "}
-          <input
-            type="date"
-            value={filtroData}
-            onChange={(e) => setFiltroData(e.target.value)}
-          />
-        </label>
-      </div>
-
-      {pedidosFiltrados.length === 0 ? (
-        <p>Nenhum pedido encontrado.</p>
-      ) : (
-        pedidosFiltrados.map(pedido => (
-          <PedidoCard
-            key={pedido.id_pedido}
-            pedido={pedido}
-            formatarData={formatarData}
-            handleChangeStatus={handleChangeStatus}
-          />
-        ))
-      )}
-    </div>
-  );
-}
+     <div>
+          <h1>Pedidos de {user.dados.restaurante.nome_restaurante}</h1>
+    
+          <div style={{ marginBottom: "20px" }}>
+            <label>
+              Filtrar por dia:{" "}
+              <input
+                type="date"
+                value={filtroData}
+                onChange={(e) => setFiltroData(e.target.value)}
+              />
+            </label>
+          </div>
+    
+          {pedidosFiltrados.length === 0 ? (
+            <p>Nenhum pedido encontrado.</p>
+          ) : (
+            <div style={{ display: "flex", justifyContent: "center", gap: "1px" }}>
+              {/* Coluna esquerda */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {pedidosFiltrados.filter((_, index) => index % 2 === 0).map(pedido => (
+                  <PedidoCard
+                    key={pedido.id_pedido}
+                    pedido={pedido}
+                    formatarData={formatarData}
+                    handleChangepaymentstatus={handleChangepaymentstatus}
+                  />
+                ))}
+              </div>
+    
+              {/* Coluna direita */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {pedidosFiltrados.filter((_, index) => index % 2 !== 0).map(pedido => (
+                  <PedidoCard
+                    key={pedido.id_pedido}
+                    pedido={pedido}
+                    formatarData={formatarData}
+                    handleChangepaymentstatus={handleChangepaymentstatus}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+    

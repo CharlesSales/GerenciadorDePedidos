@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from "../context/AuthContext";
 import styles from "../app/page.module.css"
 import Link from "next/link";
+import { useCarrinho } from '@/context/CarrinhoContext'
 
 export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
@@ -14,10 +15,16 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const { user, token } = useAuth(); // usuario logado
   const router = useRouter();
 
+  const { limparCarrinho } = useCarrinho();
+
   // Se o usuário logado for funcionário, já marcamos ele
   const funcionarioId = user?.tipo === 'funcionario' ? user.dados?.id_funcionario : null;
   const restauranteId = user?.dados?.restaurante?.id_restaurante || null;
 
+  useEffect(() => {
+    if (enviado) limparCarrinho();
+  }, [enviado]);
+  
   // Preparar itens para backend
   const itensParaBackend = pedidoConfirmado.map(item => {
     const produto = produtos.find(p => p.id_produto === item.id_produto);

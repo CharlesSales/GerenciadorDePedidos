@@ -1,19 +1,41 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
-
+import jwt from "jsonwebtoken";
 
 export async function listarPedidos(req, res) {
   try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    let restauranteId = null;
+
+    if (token) {
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tipo === "funcionario") {
+          // Funcionario: pegar id do restaurante dele
+          const { data: funcionario } = await supabase
+            .from("funcionario")
+            .select("restaurante")
+            .eq("id_funcionario", decoded.id)
+            .single();
+
+          restauranteId = funcionario?.restaurante;
+        } else if (decoded.tipo === "restaurante") {
+          // Restaurante: usar próprio id
+          restauranteId = decoded.id;
+        }
+      } catch (err) {
+        console.error("Token inválido:", err.message);
+        return res.status(401).json({ error: "Token inválido" });
+      }
+    } else {
+      return res.status(401).json({ error: "Token é obrigatório" });
+    }    
+    
     const { data, error } = await supabase
       .from("pedidos_geral")
-      .select(
-        "id_pedido", 
-        "pedidos", 
-        "nome_cliente",
-        "data_hora",
-        "detalhe",
-        "status",
-        "total")
+      .select("*")
       .order("data_hora", { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })
@@ -31,7 +53,7 @@ export async function listarPedidos(req, res) {
       }
       // Garante que itens seja sempre array
       if (!Array.isArray(itens)) itens = [];
-      const itensAlmoco = itens.filter(item => item && item.cozinha === "restaurante");
+      const itensAlmoco = itens.filter(item => item && item.cozinha === "almoço");
       
      const totalAlmoco = itensAlmoco.reduce((acc, item) => {
         return acc + (item.preco * item.quantidade);

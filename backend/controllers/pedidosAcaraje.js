@@ -1,9 +1,38 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"
+import jwt from "jsonwebtoken";
 
 // Rota para listar produtos
 export async function listarPedidos(req, res) {
   try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    let restauranteId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tipo === "funcionario") {
+          // Funcionario: pegar id do restaurante dele
+          const { data: funcionario } = await supabase
+            .from("funcionario")
+            .select("restaurante")
+            .eq("id_funcionario", decoded.id)
+            .single();
+
+          restauranteId = funcionario?.restaurante;
+        } else if (decoded.tipo === "restaurante") {
+          // Restaurante: usar próprio id
+          restauranteId = decoded.id;
+        }
+      } catch (err) {
+        console.error("Token inválido:", err.message);
+        return res.status(401).json({ error: "Token inválido" });
+      }
+    } else {
+      return res.status(401).json({ error: "Token é obrigatório" });
+    }
+
     const { data, error } = await supabase
       .from("pedidos_geral")
       .select("*")
@@ -60,6 +89,7 @@ export async function cadastrarPedidos(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ message: 'funcionario cadastrado com sucesso!', produto: data[0] });
+  
 
   const novoPedido = data[0]
 
