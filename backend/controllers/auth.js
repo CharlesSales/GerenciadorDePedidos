@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 
 // ✅ LOGIN DE FUNCIONÁRIO

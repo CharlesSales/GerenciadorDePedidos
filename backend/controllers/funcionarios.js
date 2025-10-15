@@ -1,7 +1,7 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
 import dotenv from "dotenv"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 
 dotenv.config()
