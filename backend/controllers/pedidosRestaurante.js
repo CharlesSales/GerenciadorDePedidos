@@ -6,7 +6,14 @@ export async function listarPedidos(req, res) {
   try {
     const { data, error } = await supabase
       .from("pedidos_geral")
-      .select("*")
+      .select(
+        "id_pedido", 
+        "pedidos", 
+        "nome_cliente",
+        "data_hora",
+        "detalhe",
+        "status",
+        "total")
       .order("data_hora", { ascending: false })
 
     if (error) return res.status(500).json({ error: error.message })

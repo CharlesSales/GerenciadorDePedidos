@@ -100,6 +100,11 @@ export default function LoginPage() {
     }
   };
 
+   const handleCadastro = () => {
+    console.log('📝 Navegando para cadastro...');
+    router.push('/cadastrarRestaurante');
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -259,7 +264,31 @@ export default function LoginPage() {
           >
             {isLoading ? '⏳ Entrando...' : '🚀 Entrar'}
           </button>
+
         </form>
+         <button
+                type="button"
+                onClick={handleCadastro}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  backgroundColor: loginMode === 'usuario' ? '#dc3545' : '#e9ecef',
+                  color: loginMode === 'usuario' ? 'white' : '#6c757d',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '15px'
+                }}
+              onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#218838';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#28a745';
+                }}
+              >
+              📝 Cadastrar Restaurante
+              </button>
       </div>
     </div>
   );

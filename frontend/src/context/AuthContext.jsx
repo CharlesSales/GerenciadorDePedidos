@@ -77,6 +77,7 @@ export function AuthProvider({ children }) {
     console.log('🚪 Fazendo logout...');
     setUser(null);
     setToken(null);
+    console.log('Erro porra')
     
     // ✅ REMOVER APENAS NO CLIENTE
     if (typeof window !== 'undefined') {

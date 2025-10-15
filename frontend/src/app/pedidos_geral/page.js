@@ -9,7 +9,6 @@ export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-  const [statusPedidos, setStatusPedidos] = useState([]);
   const [filtroData, setFiltroData] = useState(() => {
     const hoje = new Date();
     return hoje.toISOString().slice(0, 10);
@@ -70,29 +69,6 @@ export default function ListaPedidos() {
 
     return () => socket.disconnect();
   }, [API_URL, user, token, authLoading]);
-
-  
-
-useEffect(() => {
-  if (!token) return;
-
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch(`${API_URL}/statusPedidos`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Falha ao buscar status');
-      const data = await res.json();
-      setStatusPedidos(data); // [{id: 1, status_pedido: 'feito'}, ...]
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchStatus();
-}, [token]);
-
-
 
   async function handleChangepaymentstatus(id) {
     try {

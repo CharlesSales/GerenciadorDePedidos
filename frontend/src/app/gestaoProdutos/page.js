@@ -111,7 +111,7 @@ export default function AdminPage() {
         }}>
           <div>
             <h1 style={{ margin: 0, color: '#333' }}>
-              🏪 Dashboard Administrativo
+              Gerenciar Produtos    
             </h1>
             <p style={{ margin: '8px 0 0 0', color: '#666' }}>
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
@@ -136,7 +136,7 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/gestaoProdutos')}
+        onClick={() => router.push('/cadastrarProdutos')}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
@@ -144,10 +144,10 @@ export default function AdminPage() {
             📦
           </div>
           <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gestão de Produtos
+            Cadastrar Produtos
           </h3>
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar e gerenciar produtos do restaurante
+            Cadastrar produtos no restaurante
           </p>
         </div>
 
@@ -160,7 +160,7 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/pedidos_geral')}
+        onClick={() => router.push('/atualizarProdutos')}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
@@ -168,110 +168,32 @@ export default function AdminPage() {
             📋
           </div>
           <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gerenciar Pedidos
+            Atualizar produtos
           </h3>
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
             Visualizar e atualizar status dos pedidos
           </p>
         </div>
-
-        {/* ✅ FUNCIONÁRIOS */}
-        <div style={{
-          backgroundColor: 'white',
+        
+        <button
+        onClick={() => router.push('/admin')}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: '#6c757d',
+          color: 'white',
+          fontSize: '16px',
+          padding: '12px 16px',
           borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          border: 'none',
           cursor: 'pointer',
-          transition: 'transform 0.2s ease'
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          zIndex: 1000
         }}
-        onClick={() => router.push('/gestaoFuncionarios')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            👥
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Funcionários
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Gerenciar equipe e permissões
-          </p>
+        > ← Voltar</button>
         </div>
-
-        {/* ✅ RELATÓRIOS */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-        onClick={() => router.push('/relatorios')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            📊
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Relatórios
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Análises de vendas e performance
-          </p>
-        </div>
-
-        {/* ✅ CONFIGURAÇÕES */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-        onClick={() => router.push('/acaraje')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            ⚙️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Configurações
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Ajustes do sistema e restaurante
-          </p>
-        </div>
-
-        {/* ✅ CARDÁPIO PÚBLICO */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-        onClick={() => router.push('/produtos')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            🍽️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Cardápio
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar como os produtos
-          </p>
-        </div>
-
-      </div>
+      
 
       {/* ✅ INFORMAÇÕES DO USUÁRIO */}
       <div style={{

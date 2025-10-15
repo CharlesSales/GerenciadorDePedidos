@@ -19,7 +19,7 @@ services:
     build: ./backend
     environment:
       DATABASE_USER: postgres
-      DATABASE_PASSWORD: senha123
+      DATABASE_PASSWORD: rick2003@
       DATABASE_DB: GerenciadorDePedidos
       DATABASE_PORT: 5432
     depends_on:

@@ -1,10 +1,23 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
 
+// ✅ OTIMIZAÇÃO: Cache simples em memória
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 // ✅ LISTAR PRODUTOS (COM FILTRO POR RESTAURANTE SE AUTENTICADO)
 export async function listarProdutos(req, res) {
   try {
     console.log('📦 Listando produtos...');
+
+    const cacheKey = 'produtos_list';
+    const cached = cache.get(cacheKey);
+
+     // Verificar cache
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      console.log('📦 Produtos servidos do cache');
+      return res.json(cached.data);
+    }
 
     // ✅ VERIFICAR SE TEM TOKEN
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -50,7 +63,7 @@ export async function listarProdutos(req, res) {
         restaurante,
         categoria(categoria_nome)
       `)
-      .order('nome', { ascending: true });
+      .order('id_produto', { ascending: true });
 
     // ✅ FILTRAR POR RESTAURANTE SE IDENTIFICADO
     if (restauranteId) {
@@ -111,6 +124,8 @@ export async function buscarProdutoPorId(req, res) {
 
     console.log('✅ Produto encontrado:', produto.nome);
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
     // ✅ ADICIONAR URL DA IMAGEM
     const produtoComImagem = {
       ...produto,
@@ -122,5 +137,149 @@ export async function buscarProdutoPorId(req, res) {
   } catch (err) {
     console.error("❌ Erro:", err);
     res.status(500).json({ error: err.message });
+  }
+}
+
+// cadastrarProdutos
+export async function cadastrarProdutos(req, res) {
+  console.log("Arquivo recebido:", req.file);
+
+  try {
+    console.log("Arquivo recebido:", req.file);
+
+    const { nome, descricao, preco, estoque, cozinha, categoria, restaurante } = req.body;
+    const file = req.file; // imagem enviada pelo cliente
+  
+  if(!nome) {
+        return res.status(422).json({ msg: 'O nome é obrigatorio!'});
+    }
+
+    if(!descricao) {
+        return res.status(422).json({ msg: 'O descricao é obrigatorio!'});
+    }
+
+    if(!preco) {
+        return res.status(422).json({ msg: 'O preco é obrigatoria!'});
+    }
+    if(!estoque) {
+        return res.status(422).json({ msg: 'O estoque é obrigatoria!'});
+    }
+    if(!estoque) {
+        return res.status(422).json({ msg: 'O cozinha é obrigatoria!'});
+    }
+    if(!cozinha) {
+        return res.status(422).json({ msg: 'O categoria é obrigatoria!'});
+    }
+    if(!categoria) {
+        return res.status(422).json({ msg: 'O categoria é obrigatoria!'});
+    }
+    if(!restaurante) {
+        return res.status(422).json({ msg: 'O restaurante é obrigatoria!'});
+    }
+
+    // ✅ VERIFICAR SE USUÁRIO JÁ EXISTE (SUPABASE CORRETO)
+    const { data: exists, error: checkError } = await supabase
+      .from('produtos') 
+      .select('nome')
+      .eq('nome', nome)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = "não encontrado" é OK, outros erros não
+      console.error('Erro ao verificar usuário:', checkError);
+      return res.status(500).json({ msg: 'Erro ao verificar usuário existente' });
+    }
+
+    if (exists) {
+        return res.status(422).json({ msg: 'Já existe um usuário com esse nome!' });
+    }
+
+    // Envia imagem para o Supabase Storage
+    const fileName = `${Date.now()}-${file.originalname}`; 
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("imagens")
+      .upload(fileName, file.buffer, { contentType: file.mimetype });
+    // remover arquivo temporário depois
+  
+
+
+
+    if (uploadError) {
+      console.error("Erro ao fazer upload da imagem:", uploadError);
+      return res.status(500).json({ msg: "Erro ao fazer upload da imagem" });
+    }
+
+    // 🔗 Pega a URL pública
+    const { data: publicUrlData } = supabase.storage
+      .from("imagens")
+      .getPublicUrl(fileName);
+
+    const imageUrl = publicUrlData.publicUrl;
+
+
+    const { data, error } = await supabase
+    .from('produtos')
+    .insert([
+      { nome, descricao, preco, estoque, cozinha, categoria, restaurante, imagem: imageUrl } // sem id_produto
+    ])
+    .select(); // optional: retorna o registro inserido
+
+
+    cache.delete('produtos_list');
+    console.log('🗑️ Cache de produtos limpo');
+
+  if (error) return res.status(500).json({ error: error.message});
+  res.json({ message: 'Restaurante cadastrado com sucesso'})
+
+}  catch (err) {
+    console.error('Erro interno:', err);
+    res.status(500).json({ msg: 'Erro interno do servidor' });
+  }
+}
+
+
+
+
+// atualizarrodutos
+export async function editarprodutos(req, res) {
+  const { id } = req.params;
+  const { campo, novoValor } = req.body;
+
+
+  const colunasPermitidas = ['nome', 'descricao', 'preco', 'imagem', 'cozinha', 'estoque', 'restaurante', 'categoria'];
+
+  if (!colunasPermitidas.includes(campo)) {
+    return res.status(400).json({ error: "Campo inválido para atualização" });
+  }
+
+  console.log("📩 Dados recebidos no editarFuncionario:", req.params, req.body);
+
+  try {
+    const { data: produtoAtual, error: errorSelect } = await supabase
+      .from("produtos")
+      .select("id_produto")
+      .eq("id_produto", id)
+      .single();
+
+    if (errorSelect || !produtoAtual) {
+      return res.status(404).json({ error: "Produto não encontrado" });
+    }
+produto
+    const { data, error } = await supabase
+      .from("produtos")
+      .update({ [campo]: novoValor })
+      .eq("id_produto", id)
+      .select();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Erro ao atualizar produtos" });
+    }
+
+   
+    res.json({ message: "Funcionário atualizado com sucesso!", produtos: data[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro inesperado ao atualizar funcionário" });
   }
 }

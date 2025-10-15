@@ -1,15 +1,29 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext"; // <--- usa seu contexto de autenticação
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const router = useRouter();
-  const { user } = useAuth(); // usuário logado com cargo
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
 
-  // Fecha o menu ao clicar fora
+  const paginasComHeader = [
+    '/', '/produtos', '/carrinho', '/pedidos_geral',
+    '/funcionario', '/atualizarFuncionarios','/admin',
+     '/cadastrarFuncionario'
+  ];
+
+  const paginasSemHeader = [
+    '/login', '/register', '/unauthorized', 
+    '/cadastrarRestaurante', '/gestaoFuncionarios', '/gestaoProdutos'];
+
+  const deveExibirHeader = 
+    !paginasSemHeader.some(r => pathname.startsWith(r)) &&
+    paginasComHeader.some(r => pathname === r || pathname.startsWith(r));
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -22,28 +36,18 @@ export default function Header() {
 
   const handleToggle = () => setOpen(!open);
 
-  const handleOption = (path) => {
-    setOpen(false);
-    router.push(path);
-  };
-
   const handleLogout = () => {
-    console.log('🚪 Fazendo logout...');
     try {
       logout();
       router.push('/login');
     } catch (error) {
-      console.error('❌ Erro no logout:', error);
-      // Forçar logout manual se necessário
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
-      }
+      console.error('Erro no logout:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
     }
   };
 
-  // 🔹 Define as rotas de acordo com o cargo
   const menuItems = [
     { label: "Home", path: "/" },
     { label: "Produtos", path: "/produtos" },
@@ -56,25 +60,27 @@ export default function Header() {
     { label: "Dashboard", path: "/admin/dashboard" },
     { label: "Funcionários", path: "/admin/funcionarios" },
     { label: "Pedidos", path: "/admin/pedidos" },
-    { label: "Sair", path: "/logout" },
+    { label: "Sair", action: handleLogout },
   ];
 
   const menuGarcom = [
     { label: "Pedidos", path: "/garcom/pedidos" },
     { label: "Entregas", path: "/garcom/entregas" },
-    { label: "Sair", path: "/logout" },
+    { label: "Sair", action: handleLogout },
   ];
 
   const menuCozinha = [
     { label: "Fila de Pedidos", path: "/cozinha" },
-    { label: "Sair", path: "/logout" },
+    { label: "Sair", action: handleLogout },
   ];
 
-  // 🔹 Escolhe o menu com base no cargo
   let menu = menuItems;
   if (user?.cargo === "Administrador") menu = menuAdmin;
   else if (user?.cargo === "garcom") menu = menuGarcom;
   else if (user?.cargo === "cozinha") menu = menuCozinha;
+
+  // ✅ Mover a verificação para dentro do retorno
+  if (!deveExibirHeader) return null;
 
   return (
     <div
@@ -87,11 +93,10 @@ export default function Header() {
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
         position: "fixed",
         top: "40px",
-        right: "35px",
+        right: "30px",
         zIndex: 1000,
       }}
     >
-      {/* Botão hamburger */}
       <button
         onClick={handleToggle}
         style={{
@@ -105,13 +110,12 @@ export default function Header() {
         ☰
       </button>
 
-      {/* Menu */}
       {open && (
         <ul
           style={{
             position: "absolute",
             top: "10px",
-            right: '10px',
+            right: "10px",
             listStyle: "none",
             margin: 0,
             padding: "10px",
@@ -132,8 +136,8 @@ export default function Header() {
               }}
               onClick={() => {
                 setOpen(false);
-                if (item.action) item.action(); // executa ação (logout)
-                else if (item.path) router.push(item.path); // navega
+                if (item.action) item.action();
+                else if (item.path) router.push(item.path);
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f5f5")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}

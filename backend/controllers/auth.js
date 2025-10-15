@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient.js"
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
 
 // ✅ LOGIN DE FUNCIONÁRIO
@@ -16,19 +17,23 @@ export async function loginFuncionario(req, res) {
       });
     }
 
-    // ✅ BUSCAR FUNCIONÁRIO
     const { data: funcionario, error: funcError } = await supabase
-    .from('funcionario')
-    .select('*')
-    .eq('usuario', usuario)
-    .eq('senha', senha)
-    .single();
+      .from('funcionario')
+      .select('*')
+      .eq('usuario', usuario)
+      .single();
 
     if (funcError || !funcionario) {
-    return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
+      return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
     }
 
-     console.log('👤 Funcionário encontrado:', {
+    // ✅ Comparar senha usando bcrypt
+    const passwordMatch = await bcrypt.compare(senha, funcionario.senha);
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
+    }
+
+    console.log('👤 Funcionário encontrado:', {
       id: funcionario.id_funcionario,
       nome: funcionario.nome,
       restaurante: funcionario.restaurante 

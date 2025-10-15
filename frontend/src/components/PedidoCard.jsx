@@ -4,21 +4,25 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function PedidoCard({ pedido, formatarData, handleChangeStatus, handleChangepaymentstatus }) {
   const [open, setOpen] = useState(false);
+  const [pago, setPago] = useState(pedido.pag === "pago"); // estado local da cor
   const menuRef = useRef(null);
   const token = useAuth()
 
-  const corFundo = pedido.pag === "pago" ? "#d4edda" : "#f8d7da";
-  const corTexto = pedido.pag === "pago" ? "#155724" : "#721c24";
+  const corFundo = pedido.pag === pago ? "#d4edda" : "#f8d7da";
+  const corTexto = pedido.pag === pago ? "#155724" : "#721c24";
 
   const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
     ? JSON.parse(pedido.pedidos)
     : Array.isArray(pedido.pedidos)
       ? pedido.pedidos
       : [];
-  const nomes = itens.map(i => `${i.nome} (${i.quantidade}x)`).join(", ");
+
+  const nomes = itens.map(i => `\n${i.nome} (${i.quantidade}x)`).join("");
 
 
-   useEffect(() => {
+  const detalhe_cliente = `${pedido.nome_cliente} - ${pedido.casa}`
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpen(false);
@@ -30,6 +34,12 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus, h
 
   const toggleMenu = () => setOpen(!open);
 
+  const handleClickAlterarStatus = async (id) => {
+    // executa a função que vem das props
+    await handleChangepaymentstatus(id);
+    // alterna a cor do card (como se alterasse o status de pagamento)
+    setPago(prev => !prev);
+  };
 
 
   return (
@@ -93,20 +103,19 @@ export default function PedidoCard({ pedido, formatarData, handleChangeStatus, h
           >
             Avançar Status
           </li>
-
         </ul>
       )}
 
-      <p><strong>ID:</strong> {pedido.id_pedido}</p>
-      <p><strong>Funcionario:</strong> {pedido.funcionario}</p>
-      <p><strong>Cliente:</strong> {pedido.nome_cliente}</p>
+      <p><strong>Numero do pedido:</strong> {pedido.id_pedido}</p>
+      <p style={{ whiteSpace: 'pre-line' }}><strong>Pedido:</strong> {nomes}</p>
+      {/* <p><strong>Funcionario:</strong> {pedido.funcionario}</p> */}
+      <p><strong>Cliente:</strong> {detalhe_cliente}</p>
       <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>
-      <p><strong>Casa:</strong> {pedido.casa}</p>
-      <p><strong>Pedido:</strong> {nomes}</p>
+      {/* <p><strong>Casa:</strong> {pedido.casa}</p> */}
       <p><strong>Detalhe:</strong> {pedido.detalhe}</p>
       <p><strong>Status:</strong> {pedido.status}</p>
       <p><strong>Total:</strong> R$ {Number(pedido.total || 0).toFixed(2)}</p>
-      <p><strong>Status de pagamento:</strong> {pedido.pag}</p>
+      {/* <p><strong>Status de pagamento:</strong> {pedido.pag}</p> */}
     </div>
   );
 }

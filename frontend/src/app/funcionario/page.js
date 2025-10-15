@@ -135,6 +135,22 @@ export default function FuncionarioPage() {
           <h3>Pedidos</h3>
           <p>Visualizar pedidos</p>
         </div>
+        {/* ✅ CONFIGURAÇÕES */}
+        <div
+          onClick={() => router.push('/pedidos_geral')}
+          style={{
+            padding: '20px',
+            border: '1px solid #ddd',
+            borderRadius: '10px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            backgroundColor: '#f9f9f9'
+          }}
+        >
+          <div style={{ fontSize: '48px', marginBottom: '10px' }}>⚙️</div>
+          <h3>Configurações</h3>
+          <p>Ajustes do sistema e restaurante</p>
+        </div>
       </div>
     </div>
     </div>

@@ -36,9 +36,27 @@ export async function listarPedidos(req, res) {
     // Buscar pedidos apenas do restaurante logado
     const { data: pedidos, error } = await supabase
       .from("pedidos_geral")
-      .select("*")
+      .select(
+        "id_pedido", 
+        "pedidos", 
+        "nome_cliente",
+        "data_hora",
+        "detalhe",
+        "status",
+        "total"
+      )
       .eq("restaurante", restauranteId)
       .order("data_hora", { ascending: false });
+
+//       id_pedido
+// total
+// data_hora
+// casa
+// pag
+// detalhe
+// restaurante
+// status
+
 
     if (error) {
       console.error("Erro ao buscar pedidos:", error);

@@ -18,7 +18,7 @@ export default function AcarajePage() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh' // ocupa toda a altura da tela
+        height: '80vh' // ocupa toda a altura da tela
       }}>
         <h1 style={{ color: '#333' }}>
           Pagina em construção
@@ -26,7 +26,7 @@ export default function AcarajePage() {
       </div>
 
           <div style={{
-          backgroundColor: 'white',
+          backgroundColor: 'rgba(18, 174, 101, 0.24)',
           borderRadius: '8px',
           padding: 'px',
           boxShadow: '0 2px 4px rgba(0,0,0,0.1)',

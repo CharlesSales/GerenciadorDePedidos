@@ -5,8 +5,8 @@ import { RestauranteProvider } from "../context/RestauranteContext";
 import Header from "../components/Header";
 
 export const metadata = {
-  title: "Acarajé da Mari",
-  description: "Sistema de pedidos e gestão do restaurante Acarajé da Mari",
+  title: "Sales Manager",
+  description: "Sistema de pedidos e gestão de restaurante",
 };
 
 export default function RootLayout({ children }) {

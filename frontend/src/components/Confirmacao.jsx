@@ -174,7 +174,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             </div>
           </main>
           <footer className={styles.footer}>
-            <p>© 2025 Acarajé da Mari</p>
+            <p>© 2025 Sales Manager</p>
           </footer>
         </div>
       )}

@@ -39,7 +39,7 @@ export default function HomePage() {
         gap: '20px'
       }}>
         <div style={{ fontSize: '48px' }}>🍽️</div>
-        <div>Carregando Acarajé da Mari...</div>
+        <div>Carregando Sales Manager...</div>
       </div>
     );
   }

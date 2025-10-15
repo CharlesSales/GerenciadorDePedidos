@@ -121,7 +121,7 @@ export async function criarFuncionario(req, res) {
   }
 }
 
-
+// cadastra funcionario no pedido
 export async function cadastrarFuncionario(req, res) {
   const { id, nome } = req.body;
   const { data, error } = await supabase
@@ -131,3 +131,47 @@ export async function cadastrarFuncionario(req, res) {
   if (error) return res.status(500).json({ error: error.message });
   res.json({ message: 'funcionario cadastrado com sucesso!', produto: data[0] });
 };
+
+
+export async function editarFuncionario(req, res) {
+  const { id } = req.params;
+  const { campo, novoValor } = req.body;
+
+
+  const colunasPermitidas = ["nome", "usuario", "cargo", "restaurante"];
+
+  if (!colunasPermitidas.includes(campo)) {
+    return res.status(400).json({ error: "Campo inválido para atualização" });
+  }
+
+  console.log("📩 Dados recebidos no editarFuncionario:", req.params, req.body);
+
+  try {
+    const { data: funcionarioAtual, error: errorSelect } = await supabase
+      .from("funcionario")
+      .select("id_funcionario")
+      .eq("id_funcionario", id)
+      .single();
+
+    if (errorSelect || !funcionarioAtual) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+
+    const { data, error } = await supabase
+      .from("funcionario")
+      .update({ [campo]: novoValor })
+      .eq("id_funcionario", id)
+      .select();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Erro ao atualizar funcionário" });
+    }
+
+   
+    res.json({ message: "Funcionário atualizado com sucesso!", funcionario: data[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro inesperado ao atualizar funcionário" });
+  }
+}

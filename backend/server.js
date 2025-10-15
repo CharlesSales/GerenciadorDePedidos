@@ -5,9 +5,13 @@ import produtosRoutes from "./routes/produtos.js"
 import funcionariosRoutes from "./routes/funcionarios.js"
 import pedidosRestauranteRoutes from "./routes/pedidosRestaurante.js"
 import pedidosAcarajeRoutes from "./routes/pedidosAcaraje.js"
+import cargoRoutes from "./routes/cargo.js"
+import categriaRoutes from "./routes/categoria.js"
 import pedidosGeralRoutes from "./routes/pedidosGeral.js"
 import pedidosRoutes from './routes/pedidos.js'
+import relatoriosRoutes from "./routes/relatorios.js"
 import userRoutes from "./routes/user.js"
+import restauranteRoutes from "./routes/restaurante.js"
 import authRoutes from "./routes/auth.js"
 import { Server } from "socket.io"
 import http from "http"
@@ -26,13 +30,17 @@ app.get('/', (req, res) => {
 
 
 // rotas
+app.use("/auth", authRoutes)
+app.use("/cargo", cargoRoutes)
+app.use("/categoria", categriaRoutes)
 app.use("/produtos", produtosRoutes)
 app.use("/funcionarios", funcionariosRoutes)
 app.use("/pedidos", pedidosRoutes) 
 app.use("/pedidosRestaurante", pedidosRestauranteRoutes)
 app.use("/pedidosAcaraje", pedidosAcarajeRoutes)
 app.use("/pedidosGeral", pedidosGeralRoutes)
-app.use("/auth", authRoutes)
+app.use("/restaurante", restauranteRoutes)
+app.use("/relatorios", relatoriosRoutes)
 app.use("/user", userRoutes)
 
 

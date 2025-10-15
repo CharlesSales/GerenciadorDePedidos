@@ -113,7 +113,7 @@ export default function ListaPedidos() {
         pedidosFiltrados.map(pedido => (
           <PedidoCard
             key={pedido.id_pedido}
-            pedido={pedido}
+            pedido={{pedido}}
             formatarData={formatarData}
             handleChangeStatus={handleChangeStatus}
           />
