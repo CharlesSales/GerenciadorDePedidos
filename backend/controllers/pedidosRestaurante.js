@@ -1,9 +1,38 @@
 import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
-
+import jwt from "jsonwebtoken";
 
 export async function listarPedidos(req, res) {
   try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    let restauranteId = null;
+
+    if (token) {
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tipo === "funcionario") {
+          // Funcionario: pegar id do restaurante dele
+          const { data: funcionario } = await supabase
+            .from("funcionario")
+            .select("restaurante")
+            .eq("id_funcionario", decoded.id)
+            .single();
+
+          restauranteId = funcionario?.restaurante;
+        } else if (decoded.tipo === "restaurante") {
+          // Restaurante: usar próprio id
+          restauranteId = decoded.id;
+        }
+      } catch (err) {
+        console.error("Token inválido:", err.message);
+        return res.status(401).json({ error: "Token inválido" });
+      }
+    } else {
+      return res.status(401).json({ error: "Token é obrigatório" });
+    }    
+    
     const { data, error } = await supabase
       .from("pedidos_geral")
       .select("*")
@@ -48,7 +77,7 @@ export async function listarPedidos(req, res) {
 
 
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total } = req.body
+  const { cliente, funcionario, casa, itens, total, restaurante } = req.body
   const { data, error } = await supabase
     .from("pedidos_geral")
     .insert([{
@@ -56,7 +85,8 @@ export async function cadastrarPedidos(req, res) {
       nome_cliente: cliente,
       funcionario,
       casa,
-      total
+      total,
+      restaurante
     }])
     .select()
 

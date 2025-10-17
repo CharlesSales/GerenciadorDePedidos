@@ -1,19 +1,27 @@
 import "./globals.css";
+import { AuthProvider } from "../context/AuthContext";
 import { CarrinhoProvider } from "../context/CarrinhoContext";
-import Header from "../components/Header"; // 👈 versão cliente do Header
+import { RestauranteProvider } from "../context/RestauranteContext";
+import Header from "../components/Header";
 
 export const metadata = {
-  title: "Acarajé da Mari",
+  title: "Sales Manager",
+  description: "Sistema de pedidos e gestão de restaurante",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-BR">
       <body>
-        <CarrinhoProvider>
-          <Header /> {/* controla se mostra ou não */}
-          {children}
-        </CarrinhoProvider>
+        {/* Componente cliente */}
+        <AuthProvider>
+          <CarrinhoProvider>
+            <RestauranteProvider>
+              <Header />
+              {children}
+            </RestauranteProvider>
+          </CarrinhoProvider>
+        </AuthProvider>
       </body>
     </html>
   );

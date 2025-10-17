@@ -1,10 +1,20 @@
-import express from "express"
+import express from 'express';
+import multer from "multer";
+import { 
+  listarProdutos, 
+  buscarProdutoPorId,
+  editarprodutos, 
+  cadastrarProdutos
+} from '../controllers/produtos.js';
 
-import { listarProdutos, cadastrarProdutos } from "../controllers/produtos.js"
+const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-const router = express.Router()
 
-router.get("/", listarProdutos)
-router.post("/", cadastrarProdutos)
+// ✅ ROTAS SIMPLES SEM MIDDLEWARE
+router.get('/', listarProdutos);
+router.put("/:id/:campo/:novoValor", editarprodutos);
+router.post("/", upload.single("imagem"), cadastrarProdutos);
+router.get('/:id', buscarProdutoPorId);
 
-export default router
+export default router;

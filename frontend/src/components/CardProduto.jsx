@@ -2,97 +2,107 @@
 import React from 'react';
 
 export default function CardProduto({ produto, quantidade, onAdd, onRemove, onClear }) {
+  // ✅ VERIFICAR SE PRODUTO EXISTE
+  if (!produto) {
+    return <div>Produto não encontrado</div>;
+  }
+
+  // ✅ GARANTIR QUE OS VALORES SEJAM STRINGS/NÚMEROS
+  const nome = produto.nome || 'Produto sem nome';
+  const preco = Number(produto.preco) || 0;
+  const quantidadeAtual = Number(quantidade) || 1;
+  const subtotal = preco * quantidadeAtual;
+
   return (
     <div style={{
-      border: '1px solid #f1f1f1',
-      borderRadius: '12px',
-      padding: '12px',
-      width: '220px',
-      textAlign: 'center',
-      margin: '10px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-      backgroundColor: 'white',
-      transition: 'transform 0.2s ease',
-    }}
-    onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"}
-    onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-    >
-      {/* Imagem do produto */}
-      <img
-        src={produto.imagem}
-        alt={produto.nome}
-        style={{
-          width: '100%',
-          height: '140px',
-          objectFit: 'cover',
-          borderRadius: '12px'
-        }}
-      />
-
-      {/* Nome */}
-      <h3 style={{ margin: '10px 0 4px', fontSize: '16px', fontWeight: '600', color: '#333' }}>
-        {produto.nome}
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      padding: '16px',
+      margin: '8px',
+      backgroundColor: '#fff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      minWidth: '300px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }}>
+      {/* ✅ NOME DO PRODUTO */}
+      <h3 style={{ 
+        margin: 0, 
+        fontSize: '18px', 
+        fontWeight: 'bold',
+        color: '#333'
+      }}>
+        {nome} {/* ✅ RENDERIZAR STRING, NÃO OBJETO */}
       </h3>
 
-      {/* Preço */}
-      <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#E53935', marginBottom: '8px' }}>
-        R$ {(produto.preco * quantidade).toFixed(2)}
-      </p>
-
-      {/* Controles */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '10px',
-        marginTop: '8px'
-      }}>
-        <button
-          onClick={() => onRemove(produto)}
-          style={{
-            background: '#f1f1f1',
-            border: 'none',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            fontSize: '18px',
-            cursor: 'pointer'
-          }}
-        >-</button>
-
-        <span style={{ fontWeight: '600', fontSize: '16px' }}>{quantidade}</span>
-
-        <button
-          onClick={() => onAdd(produto)}
-          style={{
-            background: '#E53935',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            fontSize: '18px',
-            cursor: 'pointer'
-          }}
-        >+</button>
+      {/* ✅ INFORMAÇÕES DE PREÇO */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '16px', color: '#666' }}>
+          Preço unitário: R$ {preco.toFixed(2)} {/* ✅ RENDERIZAR NÚMERO FORMATADO */}
+        </span>
+        <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#28a745' }}>
+          Subtotal: R$ {subtotal.toFixed(2)} {/* ✅ RENDERIZAR NÚMERO FORMATADO */}
+        </span>
       </div>
 
-      {/* Remover */}
-      <button
-        onClick={() => onClear(produto)}
-        style={{
-          marginTop: '12px',
-          backgroundColor: '#B71C1C',
-          color: 'white',
-          border: 'none',
-          padding: '6px 12px',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: '14px'
-        }}
-      >
-        Remover
-      </button>
+      {/* ✅ CONTROLES DE QUANTIDADE */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={onRemove}
+            style={{
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              cursor: 'pointer'
+            }}
+          >
+            ➖
+          </button>
+          
+          <span style={{ 
+            fontSize: '18px', 
+            fontWeight: 'bold',
+            minWidth: '30px',
+            textAlign: 'center'
+          }}>
+            {quantidadeAtual} {/* ✅ RENDERIZAR NÚMERO, NÃO OBJETO */}
+          </span>
+          
+          <button
+            onClick={onAdd}
+            style={{
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              cursor: 'pointer'
+            }}
+          >
+            ➕
+          </button>
+        </div>
+
+        {/* ✅ BOTÃO REMOVER COMPLETAMENTE */}
+        <button
+          onClick={onClear}
+          style={{
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '6px 12px',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          🗑️ Remover
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,42 +1,43 @@
 'use client';
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
+import { useAuth } from "../context/AuthContext";
 import styles from "../app/page.module.css"
 import Link from "next/link";
-
+import { useCarrinho } from '@/context/CarrinhoContext'
 
 export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
-  const [funcionarios, setFuncionarios] = useState([]);
-  const [funcionario, setFuncionario] = useState("");
   const [casa, setCasa] = useState("");
-  const [obs, setObs] = useState("")
+  const [obs, setObs] = useState("");
   const [enviado, setEnviado] = useState(false);
-  const router = useRouter()
 
-  const itensParaBackend = Object.entries(pedidoConfirmado).map(
-    ([produtoId, quantidade]) => {
-      const produto = produtos.find(p => p.id_produto === parseInt(produtoId));
-      return {
-        produto_id: produto?.id_produto,
-        nome: produto?.nome,
-        quantidade,
-        preco: Number(produto?.preco || 0),
-        cozinha: produto?.cozinha
-      };
-    }
-  );
+  const { user, token } = useAuth(); // usuario logado
+  const router = useRouter();
 
+  const { limparCarrinho } = useCarrinho();
 
-  //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  // Se o usuário logado for funcionário, já marcamos ele
+  const funcionarioId = user?.tipo === 'funcionario' ? user.dados?.id_funcionario : null;
+  const restauranteId = user?.dados?.restaurante?.id_restaurante || null;
 
   useEffect(() => {
-    fetch(`${API_URL}/funcionarios`)
-      .then(res => res.json())
-      .then(data => setFuncionarios(data))
-      .catch(err => console.error("Erro ao carregar funcionários:", err));
-  }, []);
+    if (enviado) limparCarrinho();
+  }, [enviado]);
+  
+  // Preparar itens para backend
+  const itensParaBackend = pedidoConfirmado.map(item => {
+    const produto = produtos.find(p => p.id_produto === item.id_produto);
+    return {
+      produto_id: item.id_produto,
+      nome: produto?.nome || "Produto indefinido",
+      quantidade: item.quantidade,
+      preco: Number(item.preco_unitario || produto?.preco || 0),
+      cozinha: produto?.cozinha
+    };
+  });
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
   const total = itensParaBackend.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
@@ -44,44 +45,53 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   const handleConfirmarPedido = async () => {
-  if (!cliente || !funcionario || !casa || itensParaBackend.length === 0) {
-    alert("Preencha todos os campos e adicione pelo menos um produto.");
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/pedidosGeral`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cliente, funcionario, casa, itens: itensParaBackend, obs, total })
-    });
-
-    // Lê o corpo como texto primeiro
-    const text = await response.text();
-    let data;
+    if (!cliente || !funcionarioId || !casa || itensParaBackend.length === 0) {
+      alert("Preencha todos os campos e adicione pelo menos um produto.");
+      return;
+    }
 
     try {
-      data = JSON.parse(text); // tenta transformar em JSON
-    } catch {
-      console.error("Resposta não é JSON:", text);
-      alert("Erro ao enviar pedido: resposta inesperada do servidor");
-      return;
+      const response = await fetch(`${API_URL}/pedidosGeral`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` // se precisar autenticação
+        },
+        body: JSON.stringify({
+          cliente,
+          funcionario: funcionarioId,
+          casa,
+          itens: itensParaBackend,
+          obs,
+          total,
+          restauranteid: restauranteId
+        })
+      });
+
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.error("Resposta não é JSON:", text);
+        alert("Erro ao enviar pedido: resposta inesperada do servidor");
+        return;
+      }
+
+      if (!response.ok) {
+        alert(`Erro ao enviar pedido: ${data.error || data.message}`);
+        return;
+      }
+
+      console.log("Pedido enviado com sucesso:", data);
+      setEnviado(true);
+
+    } catch (err) {
+      console.error("Erro ao enviar pedido:", err);
+      alert("Erro ao enviar pedido");
     }
-
-    if (!response.ok) {
-      alert(`Erro ao enviar pedido: ${data.error || data.message}`);
-      return;
-    }
-
-    console.log("Pedido enviado com sucesso:", data);
-    setEnviado(true);
-
-  } catch (err) {
-    console.error("Erro ao enviar pedido:", err);
-    alert("Erro ao enviar pedido");
-  }
-};
-
+  };
 
   return (
     <div style={{ maxWidth: "600px", margin: "30px auto", fontFamily: "Arial, sans-serif" }}>
@@ -99,21 +109,13 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             />
           </label>
 
-          <label style={{ display: "block", marginBottom: "10px" }}>
-            <span>🧑‍🍳 Funcionário:</span>
-            <select
-              value={funcionario}
-              onChange={e => setFuncionario(Number(e.target.value))}
-              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
-            >
-              <option value="">Selecione um funcionário</option>
-              {funcionarios.map(f => (
-                <option key={f.id_funcionario} value={f.id_funcionario}>
-                  {f.nome}
-                </option>
-              ))}
-            </select>
-          </label>
+          {funcionarioId && (
+            <p style={{ marginBottom: "20px" }}>🧑‍🍳 Funcionário: {user.dados.nome}</p>
+          )}
+
+          {funcionarioId && (
+            <p style={{ marginBottom: "20px" }}>🧑‍🍳 Restaurante: {user.dados?.restaurante?.id_restaurante}</p>
+          )}
 
           <label style={{ display: "block", marginBottom: "20px" }}>
             <span>🏠 Número da casa:</span>
@@ -139,9 +141,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
           <div style={{ background: "#fff", padding: "15px", border: "1px solid #eee", borderRadius: "8px", marginBottom: "20px" }}>
             <ul style={{ listStyle: "none", padding: 0 }}>
               {itensParaBackend.map((item, idx) => (
-                <li key={`${item.produto_id}-${idx}`} style={{ marginBottom: "8px" }}>
+                <li key={item.produto_id + '-' + idx}>
                   <strong>{item.nome}</strong> — {item.quantidade}x R$ {item.preco.toFixed(2)} = 
-                  <span style={{ color: "#2d6a4f", fontWeight: "bold" }}> R$ {(item.preco * item.quantidade).toFixed(2)}</span>
+                  <span> R$ {(item.quantidade * item.preco).toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -168,31 +170,21 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       )}
 
       {enviado && (
-
         <div className={styles.page}>
-        <p style={{ textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
-          🎉 Pedido enviado com sucesso!
-        </p>
-        
-      <main className={styles.main}>
-      
-
-        <div className={styles.ctas}>
-          <Link href="/acaraje" className={styles.primary}>
-            VER PEDIDOS
-          </Link>
-          <Link href="/" className={styles.primary}>
-            VOLTAR PARA O INICIO
-          </Link>          
+          <p style={{ textAlign: "center", color: "#2d6a4f", fontWeight: "bold", fontSize: "18px" }}>
+            🎉 Pedido enviado com sucesso!
+          </p>
+          <main className={styles.main}>
+            <div className={styles.ctas}>
+              <Link href="/pedidos_geral" className={styles.primary}>VER PEDIDOS</Link>
+              <Link href="/" className={styles.primary}>VOLTAR PARA O INICIO</Link>          
+            </div>
+          </main>
+          <footer className={styles.footer}>
+            <p>© 2025 Sales Manager</p>
+          </footer>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <p>© 2025 Acarajé da Mari</p>
-      </footer>
-    </div>
       )}
     </div>
   );
 }
-

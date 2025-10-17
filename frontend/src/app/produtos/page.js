@@ -25,8 +25,9 @@ export default function Produtos() {
 
   return (
     <div style={{ paddingTop: '100px' }}>
-      {/* Filtros no centro */}
-      <div style={{
+    {/* Filtros no topo */}
+    <div
+      style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -39,8 +40,18 @@ export default function Produtos() {
         alignItems: 'center',
         gap: '10px',
         zIndex: 1000
-      }}>
-        {/* Input de busca */}
+      }}
+    >
+      {/* Linha com input e botão do carrinho */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+          width: '100%',
+        }}
+      >
         <input
           type="text"
           placeholder="Buscar produto..."
@@ -56,84 +67,89 @@ export default function Produtos() {
           }}
         />
 
-        {/* Botões de categoria */}
-        <div style={{
+        {/* Botão do carrinho */}
+        <button
+          onClick={() => router.push('/carrinho')}
+          style={{
+            backgroundColor: '#ff4d4d',
+            color: 'white',
+            fontSize: '20px',
+            padding: '10px 14px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          }}
+        >
+          🛒
+        </button>
+      </div>
+
+      {/* Botões de categoria */}
+      <div
+        style={{
           display: 'flex',
           gap: '10px',
           overflowX: 'auto',
           width: '100%',
           justifyContent: 'center'
-        }}>
+        }}
+      >
+        <button
+          onClick={() => setCategoriaSelecionada("")}
+          style={{
+            padding: '6px 14px',
+            borderRadius: '20px',
+            border: '1px solid #ddd',
+            backgroundColor:
+              categoriaSelecionada === "" ? '#ff4d4d' : '#f9f9f9',
+            color: categoriaSelecionada === "" ? '#fff' : '#000',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Todos
+        </button>
+        {categorias.map((cat) => (
           <button
-            onClick={() => setCategoriaSelecionada("")}
+            key={cat}
+            onClick={() => setCategoriaSelecionada(cat)}
             style={{
               padding: '6px 14px',
               borderRadius: '20px',
               border: '1px solid #ddd',
-              backgroundColor: categoriaSelecionada === "" ? '#ff4d4d' : '#f9f9f9',
-              color: categoriaSelecionada === "" ? '#fff' : '#000',
+              backgroundColor:
+                categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
+              color: categoriaSelecionada === cat ? '#fff' : '#000',
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
           >
-            Todos
+            {cat}
           </button>
-          {categorias.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setCategoriaSelecionada(cat)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '20px',
-                border: '1px solid #ddd',
-                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
-                color: categoriaSelecionada === cat ? '#fff' : '#000',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
+    </div>
 
-      {/* Lista de produtos */}
-      <div style={{
+    {/* Lista de produtos */}
+    <div
+      style={{
         padding: '20px',
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
         gap: '20px'
-      }}>
-        {produtosFiltrados.map(produto => (
-          <ProdutoItem
-            key={produto.id_produto}
-            produto={produto}
-            adicionarAoCarrinho={handleAdd}
-            removeDoCarrinho={handleRemove}
-          />
-        ))}
-      </div>
-
-      {/* Botão do carrinho fixo */}
-      <button
-        onClick={() => router.push('/carrinho')}
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          backgroundColor: '#ff4d4d',
-          color: 'white',
-          fontSize: '20px',
-          padding: '15px',
-          borderRadius: '50%',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-        }}
-      >
-        🛒
-      </button>
+      }}
+    >
+      {produtosFiltrados.map((produto) => (
+        <ProdutoItem
+          key={produto.id_produto}
+          produto={produto}
+          adicionarAoCarrinho={handleAdd}
+          removeDoCarrinho={handleRemove}
+        />
+      ))}
     </div>
+  </div>
+
   );
 }

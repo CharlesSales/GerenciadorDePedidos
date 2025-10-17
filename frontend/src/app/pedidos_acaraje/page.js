@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from "react";
 import {io} from "socket.io-client"
 import PedidoCard from "@/components/PedidoCard";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ListaPedidos() {
   const [pedidos, setPedidos] = useState([]);
+  const { user, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
   const [filtroData, setFiltroData] = useState(() => {
@@ -15,9 +17,14 @@ export default function ListaPedidos() {
   //const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
+
+
+
   useEffect(() => {
+
+    if (authLoading || !user || !token) return;
     // conecta no socket do backend
-    const socket = io(API_URL);
+    const socket = io(API_URL, { auth: { token } });
 
     // quando o backend emitir novo pedido
     socket.on("novoPedido", (pedido) => {
@@ -37,7 +44,12 @@ export default function ListaPedidos() {
 
     const fetchPedidos = async () => {
       try {
-        const res = await fetch(`${API_URL}/pedidosAcaraje`);
+        const res = await fetch(`${API_URL}/pedidosAcaraje`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
         setPedidos(Array.isArray(data) ? data : []);
@@ -49,7 +61,8 @@ export default function ListaPedidos() {
       }
     };
     fetchPedidos();
-  }, [API_URL]);
+    return () => socket.disconnect();
+  }, [API_URL, token]);
 
   async function handleChangeStatus(id) {
     try {
@@ -74,7 +87,7 @@ export default function ListaPedidos() {
   const formatarData = (dataHora) => {
     if (!dataHora) return "Sem data";
     const data = new Date(dataHora);
-    return data.toLocaleString("pt-BR", {
+    return data.toLocaleString("pt-br", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -94,31 +107,50 @@ export default function ListaPedidos() {
   if (erro) return <p style={{ color: "red" }}>{erro}</p>;
 
   return (
-    <div>
-      <h1>Lista de Pedidos</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <label>
-          Filtrar por dia:{" "}
-          <input
-            type="date"
-            value={filtroData}
-            onChange={(e) => setFiltroData(e.target.value)}
-          />
-        </label>
+   <div>
+        <h1>Pedidos de {user.dados.restaurante.nome_restaurante}</h1>
+  
+        <div style={{ marginBottom: "20px" }}>
+          <label>
+            Filtrar por dia:{" "}
+            <input
+              type="date"
+              value={filtroData}
+              onChange={(e) => setFiltroData(e.target.value)}
+            />
+          </label>
+        </div>
+  
+        {pedidosFiltrados.length === 0 ? (
+          <p>Nenhum pedido encontrado.</p>
+        ) : (
+          <div style={{ display: "flex", justifyContent: "center", gap: "1px" }}>
+            {/* Coluna esquerda */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              {pedidosFiltrados.filter((_, index) => index % 2 === 0).map(pedido => (
+                <PedidoCard
+                  key={pedido.id_pedido}
+                  pedido={pedido}
+                  formatarData={formatarData}
+                  handleChangeStatus={handleChangeStatus}
+                />
+              ))}
+            </div>
+  
+            {/* Coluna direita */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              {pedidosFiltrados.filter((_, index) => index % 2 !== 0).map(pedido => (
+                <PedidoCard
+                  key={pedido.id_pedido}
+                  pedido={pedido}
+                  formatarData={formatarData}
+                  handleChangeStatus={handleChangeStatus}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      {pedidosFiltrados.length === 0 ? (
-        <p>Nenhum pedido encontrado.</p>
-      ) : (
-        pedidosFiltrados.map(pedido => (
-          <PedidoCard
-            key={pedido.id_pedido}
-            pedido={pedido}
-            formatarData={formatarData}
-            handleChangeStatus={handleChangeStatus}
-          />
-        ))
-      )}
-    </div>
-  );
-}
+    );
+  }
+  

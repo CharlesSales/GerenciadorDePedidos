@@ -1,30 +1,46 @@
-import Link from "next/link";
-import styles from "../page.module.css"; // ou outro CSS
+'use client';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function AcarajePage() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout(); // ✅ Função já implementada no AuthContext
+    router.push('/login');
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <h1>Bem-vindo ao Restaurante!</h1>
-        <p>Escolha uma opção para começar:</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* ✅ HEADER COM BOTÃO DE LOGOUT */}
+     <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '80vh' // ocupa toda a altura da tela
+      }}>
+        <h1 style={{ color: '#333' }}>
+          Pagina em construção
+        </h1>
+      </div>
 
-        <div className={styles.ctas}>
-          <Link href="/pedidos_restaurante" className={styles.primary}>
-            PEDIDOS DO RESTAURANTE
-          </Link>
-          <Link href="/pedidos_acaraje" className={styles.primary}>
-            PEDIDOS DE ACARAJÉ
-          </Link>
-          <Link href="/pedidos_geral" className={styles.primary}>
-            PEDIDOS GERAL
-          </Link>
-          
+          <div style={{
+          backgroundColor: 'rgba(18, 174, 101, 0.24)',
+          borderRadius: '8px',
+          padding: 'px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => router.push('/admin')}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            Voltar
+          </div>
         </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <p>© 2025 Acarajé da Mari</p>
-      </footer>
     </div>
   );
 }
