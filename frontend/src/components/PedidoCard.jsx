@@ -1,121 +1,101 @@
 'use client';
-import React, { useState, useEffect, useRef  } from "react";
-import { useAuth } from "@/context/AuthContext";
+import React from "react";
 
-export default function PedidoCard({ pedido, formatarData, handleChangeStatus, handleChangepaymentstatus }) {
-  const [open, setOpen] = useState(false);
-  const [pago, setPago] = useState(pedido.pag === "pago"); // estado local da cor
-  const menuRef = useRef(null);
-  const token = useAuth()
-
-  const corFundo = pedido.pag === pago ? "#d4edda" : "#f8d7da";
-  const corTexto = pedido.pag === pago ? "#155724" : "#721c24";
-
+export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, handleChangepaymentstatus, getStatusColor, formatarData }) {
   const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
     ? JSON.parse(pedido.pedidos)
     : Array.isArray(pedido.pedidos)
       ? pedido.pedidos
       : [];
 
-  const nomes = itens.map(i => `\n${i.nome} (${i.quantidade}x)`).join("");
-
-
-  const detalhe_cliente = `${pedido.nome_cliente} - ${pedido.casa}`
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const toggleMenu = () => setOpen(!open);
-
-  const handleClickAlterarStatus = async (id) => {
-    // executa a função que vem das props
-    await handleChangepaymentstatus(id);
-    // alterna a cor do card (como se alterasse o status de pagamento)
-    setPago(prev => !prev);
-  };
-
-
   return (
-    <div
-      ref={menuRef}
-      style={{
-        position: "relative",
-        border: `1px solid ${corTexto}`,
-        backgroundColor: corFundo,
-        color: corTexto,
-        padding: "10px",
-        marginBottom: "10px",
-        borderRadius: "6px",
-        width: "95%",        // ocupa 80% da largura da coluna
-        marginLeft: "25px",  // centraliza horizontalmente
-        marginRight: "25px"  // centraliza horizontalmente
-      }}
-    >
-      {/* Botão do menu */}
-      <button
-        onClick={toggleMenu}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          background: "transparent",
-          border: "none",
-          fontSize: "20px",
-          cursor: "pointer"
-        }}
-      >
-        ☰
-      </button>
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '15px',
+      padding: '20px',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+      border: '1px solid #e0e0e0'
+    }}>
+      {/* Header do pedido */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div>
+          <h3 style={{ margin: 0, color: '#333', fontSize: '18px', fontWeight: 'bold' }}>
+            Pedido #{numeroPedido}
+          </h3>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+            {formatarData(pedido.data_hora)}
+          </p>
+        </div>
+        <div style={{
+          backgroundColor: getStatusColor(pedido.status),
+          padding: '5px 15px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: 'bold',
+          color: '#333'
+        }}>
+          {pedido.status}
+        </div>
+      </div>
 
-      {open && (
-        <ul
-          style={{
-            position: "absolute",
-            top: "40px",
-            right: "10px",
-            listStyle: "none",
-            margin: 0,
-            padding: "10px",
-            background: "white",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-            minWidth: "150px",
-            zIndex: 10
-          }}
-        >
-          <li
-            style={{ padding: "5px 10px", cursor: "pointer" }}
+      {/* Informações do cliente */}
+      <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '8px', marginBottom: '15px' }}>
+        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#333' }}>{pedido.nome_cliente}</p>
+        <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Casa: {pedido.casa}</p>
+        {pedido.detalhe && (
+          <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>Obs: {pedido.detalhe}</p>
+        )}
+      </div>
+
+      {/* Lista de itens */}
+      <div style={{ marginBottom: '15px' }}>
+        <h4 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '16px', fontWeight: 'bold' }}>
+          Itens do Pedido:
+        </h4>
+        {itens.map((item, index) => (
+          <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: index < itens.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontWeight: 'bold', color: '#e11616ff', fontSize: '14px' }}>{item.quantidade}x</span>
+              <span style={{ marginLeft: '10px', color: '#e11616ff', fontSize: '14px' }}>{item.nome}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Total e ações */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #f0f0f0', paddingTop: '15px' }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>Total: R$ {Number(pedido.total || 0).toFixed(2)}</div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
             onClick={() => handleChangepaymentstatus(pedido.id_pedido)}
+            style={{
+              backgroundColor: pedido.pag === 'pago' ? '#28a745' : '#dc3545',
+              color: 'white',
+              border: 'none',
+              padding: '8px 15px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
           >
-            Alterar status
-          </li>
-          <li
-            style={{ padding: "5px 10px", cursor: "pointer" }}
+            {pedido.pag === 'pago' ? 'Pago' : 'Pendente'}
+          </button>
+          <button
             onClick={() => handleChangeStatus(pedido.id_pedido, pedido.status)}
+            style={{
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '8px 15px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '12px'
+            }}
           >
-            Avançar Status
-          </li>
-        </ul>
-      )}
-
-      <p><strong>Numero do pedido:</strong> {pedido.id_pedido}</p>
-      <p style={{ whiteSpace: 'pre-line' }}><strong>Pedido:</strong> {nomes}</p>
-      {/* <p><strong>Funcionario:</strong> {pedido.funcionario}</p> */}
-      <p><strong>Cliente:</strong> {detalhe_cliente}</p>
-      <p><strong>Data:</strong> {formatarData(pedido.data_hora)}</p>
-      {/* <p><strong>Casa:</strong> {pedido.casa}</p> */}
-      <p><strong>Detalhe:</strong> {pedido.detalhe}</p>
-      <p><strong>Status:</strong> {pedido.status}</p>
-      <p><strong>Total:</strong> R$ {Number(pedido.total || 0).toFixed(2)}</p>
-      {/* <p><strong>Status de pagamento:</strong> {pedido.pag}</p> */}
+            Avançar
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

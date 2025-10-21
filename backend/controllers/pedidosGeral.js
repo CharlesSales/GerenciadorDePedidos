@@ -218,17 +218,13 @@ export const atualizarStatusPedido = async (req, res) => {
 
     // Atualiza o status do pedido
     const { data, error } = await supabase
-      .from('pedidos')
-      .update({ status_id })
-      .eq('id', id)
-      .select(`
-        id,
-        cliente_id,
-        status_pedidos (nome)
-      `)
-      .single();
+    .from('pedidos_geral') // CORRIGIDO
+    .update({ status: status_id }) // se no `pedidos_geral` o campo é `status`
+    .eq('id_pedido', id) // id correto
+    .select()
+    .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
     res.status(200).json({
       message: 'Status do pedido atualizado com sucesso!',
