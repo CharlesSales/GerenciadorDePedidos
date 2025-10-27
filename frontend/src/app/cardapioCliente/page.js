@@ -1,29 +1,31 @@
 'use client';
 import React, { useState } from 'react';
-import ProdutoItem from '@/components/ProdutoItem';
 import { useCarrinho } from '@/context/CarrinhoContext';
+import ProdutoItem from '@/components/ProdutoItem';
 import { useRouter } from 'next/navigation';
 
 export default function Produtos() {
   const { produtos, handleAdd, handleRemove } = useCarrinho();
   const router = useRouter();
-  const [filtro, setFiltro] = useState("");
-  const [coluna, setColuna] = useState("nome");
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+
+  const [busca, setBusca] = useState('');
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
 
   const categorias = [...new Set(produtos.map(p => p.categoria.categoria_nome))];
 
   const produtosFiltrados = produtos.filter(produto => {
-    const passaCategoria = categoriaSelecionada ? produto.categoria.categoria_nome === categoriaSelecionada : true;
-    const passaBusca = filtro
-      ? produto[coluna]?.toLowerCase().includes(filtro.toLowerCase())
+    const passaCategoria = categoriaSelecionada
+      ? produto.categoria.categoria_nome === categoriaSelecionada
+      : true;
+    const passaBusca = busca
+      ? produto.nome.toLowerCase().includes(busca.toLowerCase())
       : true;
     return passaCategoria && passaBusca;
   });
 
   return (
-    <div style={{ paddingTop: '100px' }}>
-      {/* Filtros fixos no topo */}
+    <div style={{ paddingTop: '120px', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* Topo fixo */}
       <div
         style={{
           position: 'fixed',
@@ -32,97 +34,88 @@ export default function Produtos() {
           right: 0,
           backgroundColor: '#fff',
           borderBottom: '1px solid #eee',
-          padding: '1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.75rem',
-          zIndex: 1000
+          padding: '0.75rem 1rem',
+          zIndex: 1000,
         }}
       >
-        {/* Linha com input e botão do carrinho */}
+        {/* Busca e carrinho */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             gap: '0.5rem',
             width: '100%',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
           }}
         >
           <input
             type="text"
             placeholder="Buscar produto..."
-            value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
             style={{
-              flex: '1 1 200px',
-              maxWidth: '400px',
-              padding: '0.5rem',
+              flex: '1 1 60%',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
               border: '1px solid #ccc',
-              borderRadius: '0.375rem',
-              textAlign: 'center',
-              minWidth: '150px'
+              fontSize: '1rem',
             }}
           />
-
           <button
             onClick={() => router.push('/carrinho')}
             style={{
               backgroundColor: '#ff4d4d',
-              color: 'white',
-              fontSize: '1.25rem',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '50%',
+              color: '#fff',
               border: 'none',
+              borderRadius: '50%',
+              width: '45px',
+              height: '45px',
+              fontSize: '1.2rem',
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
             }}
           >
             🛒
           </button>
         </div>
 
-        {/* Botões de categoria */}
+        {/* Filtros de categorias horizontal */}
         <div
           style={{
             display: 'flex',
             gap: '0.5rem',
             overflowX: 'auto',
-            width: '100%',
-            justifyContent: 'center',
-            padding: '0.25rem 0'
+            marginTop: '0.5rem',
+            paddingBottom: '0.25rem',
           }}
         >
           <button
-            onClick={() => setCategoriaSelecionada("")}
+            onClick={() => setCategoriaSelecionada('')}
             style={{
+              flexShrink: 0,
               padding: '0.4rem 1rem',
-              borderRadius: '9999px',
+              borderRadius: '20px',
               border: '1px solid #ddd',
-              backgroundColor: categoriaSelecionada === "" ? '#ff4d4d' : '#f9f9f9',
-              color: categoriaSelecionada === "" ? '#fff' : '#000',
+              backgroundColor: categoriaSelecionada === '' ? '#ff4d4d' : '#f9f9f9',
+              color: categoriaSelecionada === '' ? '#fff' : '#000',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              flexShrink: 0
             }}
           >
             Todos
           </button>
-          {categorias.map((cat) => (
+          {categorias.map(cat => (
             <button
               key={cat}
               onClick={() => setCategoriaSelecionada(cat)}
               style={{
+                flexShrink: 0,
                 padding: '0.4rem 1rem',
-                borderRadius: '9999px',
+                borderRadius: '20px',
                 border: '1px solid #ddd',
                 backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
                 color: categoriaSelecionada === cat ? '#fff' : '#000',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                flexShrink: 0
               }}
             >
               {cat}
@@ -131,17 +124,17 @@ export default function Produtos() {
         </div>
       </div>
 
-      {/* Lista de produtos */}
+      {/* Grid responsivo de produtos */}
       <div
         style={{
-          padding: '1rem',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: '2rem',
-          justifyItems: 'center'
+          gap: '1rem',
+          padding: '1rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          justifyItems: 'center',
         }}
       >
-        {produtosFiltrados.map((produto) => (
+        {produtosFiltrados.map(produto => (
           <ProdutoItem
             key={produto.id_produto}
             produto={produto}
