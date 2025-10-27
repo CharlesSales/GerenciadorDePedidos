@@ -109,13 +109,13 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             />
           </label>
 
-          {funcionarioId && (
+          {/* {funcionarioId && (
             <p style={{ marginBottom: "20px" }}>🧑‍🍳 Funcionário: {user.dados.nome}</p>
           )}
 
           {funcionarioId && (
             <p style={{ marginBottom: "20px" }}>🧑‍🍳 Restaurante: {user.dados?.restaurante?.id_restaurante}</p>
-          )}
+          )} */}
 
           <label style={{ display: "block", marginBottom: "20px" }}>
             <span>🏠 Número da casa:</span>
@@ -181,7 +181,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             </div>
           </main>
           <footer className={styles.footer}>
-            <p>© 2025 Sales Manager</p>
+            <p>© 2025 FoodFlow </p>
           </footer>
         </div>
       )}

@@ -152,9 +152,22 @@ export function CarrinhoProvider({ children }) {
   };
 
   const removerDoCarrinho = (produtoId) => {
-    console.log('➖ Removendo do carrinho:', produtoId);
-    setCarrinho(prevCarrinho => prevCarrinho.filter(item => item.id_produto !== produtoId));
-  };
+  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+
+  setCarrinho(prevCarrinho => {
+    return prevCarrinho
+      .map(item => {
+        if (item.id_produto === produtoId) {
+          // Diminui a quantidade do produto
+          return { ...item, quantidade: item.quantidade - 1 };
+        }
+        return item;
+      })
+      // Remove completamente se a quantidade for 0 ou menor
+      .filter(item => item.quantidade > 0);
+  });
+};
+
 
   const alterarQuantidade = (produtoId, novaQuantidade) => {
     if (novaQuantidade <= 0) {

@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -12,6 +12,11 @@ export default function AdminPage() {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  const handleLogout = () => {
+    logout(); // ✅ Função já implementada no AuthContext
+    router.push('/login');
+  };
 
   // ✅ Redirecionar caso não autenticado
   useEffect(() => {
@@ -117,7 +122,23 @@ export default function AdminPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
+           <button
+          onClick={handleLogout}
+          style={{
+            backgroundColor: 'transparent',
+            color: 'black',
+            fontSize: '20px',
+            padding: '10px 14px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          }}
+        >
+          ⏏️
+        </button>
         </div>
+        
       </div>
 
       {/* ✅ MENU DE OPÇÕES */}
@@ -232,7 +253,7 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/acaraje')}
+        onClick={() => router.push('/cardapioCliente')}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >

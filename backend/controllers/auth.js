@@ -97,8 +97,7 @@ export async function loginFuncionario(req, res) {
     // ✅ GERAR TOKEN JWT
     const token = jwt.sign(
       tokenPayload,
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      process.env.JWT_SECRET
     );
 
     res.json({
