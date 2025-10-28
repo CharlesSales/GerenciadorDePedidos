@@ -42,6 +42,7 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
       <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '8px', marginBottom: '15px' }}>
         <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#333' }}>{pedido.nome_cliente}</p>
         <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Casa: {pedido.casa}</p>
+        <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Mesa: {pedido.mesa}</p>
         {pedido.detalhe && (
           <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>Obs: {pedido.detalhe}</p>
         )}

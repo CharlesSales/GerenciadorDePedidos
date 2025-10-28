@@ -5,7 +5,7 @@ import ProdutoItem from '@/components/ProdutoItem';
 import { useRouter } from 'next/navigation';
 
 export default function Produtos() {
-  const { produtos, handleAdd, handleRemove } = useCarrinho();
+  const { produtos, handleAdd, handleRemove, carrinho } = useCarrinho(); // pegando o carrinho
   const router = useRouter();
 
   const [busca, setBusca] = useState('');
@@ -22,6 +22,9 @@ export default function Produtos() {
       : true;
     return passaCategoria && passaBusca;
   });
+
+  // Quantidade total de itens no carrinho
+  const totalCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
 
   return (
     <div style={{ paddingTop: '120px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -46,6 +49,7 @@ export default function Produtos() {
             width: '100%',
             flexWrap: 'wrap',
             justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
           <input
@@ -61,21 +65,40 @@ export default function Produtos() {
               fontSize: '1rem',
             }}
           />
-          <button
-            onClick={() => router.push('/carrinho')}
-            style={{
-              backgroundColor: '#ff4d4d',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '50%',
-              width: '45px',
-              height: '45px',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-            }}
-          >
-            🛒
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => router.push('/carrinhoCliente')}
+              style={{
+                backgroundColor: '#ff4d4d',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                width: '45px',
+                height: '45px',
+                fontSize: '1.2rem',
+                cursor: 'pointer',
+              }}
+            >
+              🛒
+            </button>
+            {totalCarrinho > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  padding: '2px 6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                }}
+              >
+                {totalCarrinho}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Filtros de categorias horizontal */}

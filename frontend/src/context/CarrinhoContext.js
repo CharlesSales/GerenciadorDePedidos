@@ -151,6 +151,20 @@ export function CarrinhoProvider({ children }) {
     });
   };
 
+  const diminuirQuantidate = (produtoId) => {
+  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+
+    setCarrinho(prevCarrinho => {
+      return prevCarrinho
+        .map(item => {
+          if (item.id_produto === produtoId) {
+            // Diminui a quantidade do produto
+            return { ...item, quantidade: quantidade - 1 };
+          }
+          return item;
+        })
+    });
+  };
   const removerDoCarrinho = (produtoId) => {
   console.log('➖ Diminuindo quantidade do produto:', produtoId);
 
@@ -159,7 +173,7 @@ export function CarrinhoProvider({ children }) {
       .map(item => {
         if (item.id_produto === produtoId) {
           // Diminui a quantidade do produto
-          return { ...item, quantidade: item.quantidade - 1 };
+          return { ...item, quantidade: item.quantidade * 0 };
         }
         return item;
       })
@@ -204,12 +218,14 @@ export function CarrinhoProvider({ children }) {
         loading: true,
         adicionarAoCarrinho: () => {},
         removerDoCarrinho: () => {},
+        diminuirQuantidate: () => {},
         alterarQuantidade: () => {},
         limparCarrinho: () => {},
         calcularTotal: () => 0,
         carregarProdutos: () => {},
         handleAdd: () => {},
         handleRemove: () => {},
+        handleClearProduto: () => {},
         handleClear: () => {}
       }}>
         {children}
@@ -224,12 +240,14 @@ export function CarrinhoProvider({ children }) {
       loading,
       adicionarAoCarrinho,
       removerDoCarrinho,
+      diminuirQuantidate,
       alterarQuantidade,
       limparCarrinho,
       calcularTotal,
       carregarProdutos,
       handleAdd: adicionarAoCarrinho,
       handleRemove: removerDoCarrinho,
+      handleClearProduto: diminuirQuantidate,
       handleClear: limparCarrinho
     }}>
       {children}

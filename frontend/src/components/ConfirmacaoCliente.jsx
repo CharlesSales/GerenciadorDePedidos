@@ -8,18 +8,18 @@ import { useCarrinho } from '@/context/CarrinhoContext'
 
 export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
+  const [mesa, setMesa ] = useState("")
   const [casa, setCasa] = useState("");
-  const [mesa, setMesa] = useState("");
   const [obs, setObs] = useState("");
   const [enviado, setEnviado] = useState(false);
 
   const { user, token } = useAuth(); // usuario logado
-  const router = useRouter();
+//   const router = useRouter();
 
   const { limparCarrinho } = useCarrinho();
 
   // Se o usuário logado for funcionário, já marcamos ele
-  const funcionarioId = user?.tipo === 'funcionario' ? user.dados?.id_funcionario : null;
+//   const funcionarioId = user?.tipo === 'funcionario' ? user.dados?.id_funcionario : null;
   const restauranteId = user?.dados?.restaurante?.id_restaurante || null;
 
   useEffect(() => {
@@ -46,23 +46,22 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   const handleConfirmarPedido = async () => {
-    if (!cliente || !funcionarioId || !casa || itensParaBackend.length === 0) {
+    if (!cliente || !mesa || !casa || itensParaBackend.length === 0) {
       alert("Preencha todos os campos e adicione pelo menos um produto.");
       return;
     }
 
     try {
-      const response = await fetch(`${API_URL}/pedidosGeral`, {
+      const response = await fetch(`${API_URL}/pedidosGeral/cliente`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` // se precisar autenticação
+        //   Authorization: `Bearer ${token}` // se precisar autenticação
         },
         body: JSON.stringify({
           cliente,
-          funcionario: funcionarioId,
+          mesa, 
           casa,
-          mesa,
           itens: itensParaBackend,
           obs,
           total,
@@ -102,6 +101,16 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       {!enviado && (
         <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
           <label style={{ display: "block", marginBottom: "10px" }}>
+            <span>👤 Numero no QR code:</span>
+            <input
+              type="text"
+              value={mesa}
+              onChange={e => setMesa(e.target.value)}
+              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
+            />
+          </label>
+          
+          <label style={{ display: "block", marginBottom: "10px" }}>
             <span>👤 Nome do Cliente:</span>
             <input
               type="text"
@@ -125,15 +134,6 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               type="text"
               value={casa}
               onChange={e => setCasa(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
-            />
-          </label>
-          <label style={{ display: "block", marginBottom: "20px" }}>
-            <span>🏠 Número da casa:</span>
-            <input
-              type="text"
-              value={mesa}
-              onChange={e => setMesa(e.target.value)}
               style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
             />
           </label>
