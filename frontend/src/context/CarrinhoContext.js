@@ -173,7 +173,7 @@ export function CarrinhoProvider({ children }) {
       .map(item => {
         if (item.id_produto === produtoId) {
           // Diminui a quantidade do produto
-          return { ...item, quantidade: item.quantidade * 0 };
+          return { ...item, quantidade: 0 };
         }
         return item;
       })

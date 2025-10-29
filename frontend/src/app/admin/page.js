@@ -7,6 +7,24 @@ export default function AdminPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
+  
+  // 🔍 DEBUG: Verificar estrutura do usuário
+  console.log('👤 Usuário completo:', user);
+  console.log('📊 Dados do usuário:', user?.dados);
+  console.log('🏪 ID do restaurante (v1):', user?.dados?.id_restaurante);
+  console.log('🏪 ID do restaurante (v2):', user?.dados?.id);
+  console.log('🏪 Restaurante object:', user?.dados?.restaurante);
+
+  // ✅ MÚLTIPLAS TENTATIVAS PARA PEGAR O ID
+  const id_restaurante = 
+    user?.dados?.id_restaurante || 
+    user?.dados?.id || 
+    user?.dados?.restaurante?.id_restaurante ||
+    user?.dados?.restaurante?.id ||
+    user?.id_restaurante ||
+    user?.id;
+
+  console.log('🎯 ID final escolhido:', id_restaurante);
 
   // ✅ Garantir hidratação
   useEffect(() => {
@@ -94,7 +112,7 @@ export default function AdminPage() {
     );
   }
 
-  // ✅ Resto da página (dashboard)
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -245,7 +263,7 @@ export default function AdminPage() {
         </div>
 
         {/* ✅ CONFIGURAÇÕES */}
-        <div style={{
+         <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
           padding: '20px',
@@ -253,7 +271,18 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/cardapioCliente')}
+        onClick={() => {
+          console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
+          console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
+          
+          if (!id_restaurante) {
+            alert('❌ ID do restaurante não encontrado!');
+            console.error('❌ Dados do usuário:', user);
+            return;
+          }
+          
+          router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
+        }}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
@@ -261,13 +290,12 @@ export default function AdminPage() {
             ⚙️
           </div>
           <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Configurações
+            Ver Cardápio ({id_restaurante || 'ID?'})
           </h3>
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Ajustes do sistema e restaurante
+            Visualizar cardápio do restaurante
           </p>
         </div>
-
         {/* ✅ CARDÁPIO PÚBLICO */}
         <div style={{
           backgroundColor: 'white',

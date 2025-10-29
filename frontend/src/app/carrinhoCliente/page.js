@@ -2,6 +2,7 @@
 import React from 'react';
 import { useCarrinho } from '@/context/CarrinhoContext';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CarrinhoPage() {
   const {
@@ -13,8 +14,17 @@ export default function CarrinhoPage() {
     limparCarrinho,
     calcularTotal,
   } = useCarrinho();
+
+  const { user } = useAuth();
   const router = useRouter();
 
+  const id_restaurante = 
+    user?.dados?.id_restaurante || 
+    user?.dados?.id || 
+    user?.dados?.restaurante?.id_restaurante ||
+    user?.dados?.restaurante?.id ||
+    user?.id_restaurante ||
+    user?.id;
   let total = 0;
   try {
     total = calcularTotal();
@@ -59,7 +69,7 @@ export default function CarrinhoPage() {
             Adicione alguns produtos para continuar
           </p>
           <button
-            onClick={() => router.push('/cardapioCliente')}
+            onClick={() => router.push(`/cardapioCliente?restaurante=${id_restaurante}`)}
             style={{
               backgroundColor: '#007bff',
               color: 'white',

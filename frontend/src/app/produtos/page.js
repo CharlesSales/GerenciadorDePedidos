@@ -194,18 +194,18 @@ export default function Produtos() {
           overflowY: 'auto',
         }}
       >
-        <h2 style={{marginTop: '70%', textAlign: 'center' }}>🛒 Carrinho</h2>
+        <h2 style={{textAlign: 'center' }}>🛒 Carrinho</h2>
 
         {/* Lista de itens */}
-        <div style={{ flex: 1, overflowY: 'auto', marginTop: '10px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', marginTop: '25px' }}>
           {carrinho.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#777' }}>Carrinho vazio</p>
+            <p style={{ marginTop: '80%', textAlign: 'center', color: '#777' }}>Carrinho vazio</p>
           ) : (
             carrinho.map((item, index) => (
               <div
                 key={index}
                 style={{
-                  border: '1px solid #eee',
+                  border: '1px solid #000000ff',
                   borderRadius: '8px',
                   padding: '8px',
                   marginBottom: '10px',
