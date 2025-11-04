@@ -1,21 +1,21 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProdutoItem from '@/components/ProdutoItem';
 import { useCarrinho } from '@/context/CarrinhoContext';
 
-export default function CardapioRestaurante() {
-  const searchParams = useSearchParams();
+// ✅ COMPONENTE INTERNO QUE USA useSearchParams
+function CardapioContent() {
+  const searchParams = useSearchParams(); // ← AGORA DENTRO DO SUSPENSE
   const router = useRouter();
   
   // ✅ PEGAR ID DO QUERY PARAM
-  const id = searchParams.get('restaurante'); // ?restaurante=1
+  const id = searchParams.get('restaurante');
   
   const { produtos, handleAdd, handleRemove, carrinho } = useCarrinho();
 
   const [busca, setBusca] = useState('');
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
-
   const [restaurante, setRestaurante] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -102,18 +102,12 @@ export default function CardapioRestaurante() {
     carregarProdutos();
   }, [id, API_URL]);
 
- 
-
   // ✅ SALVAR CARRINHO NO LOCALSTORAGE
   useEffect(() => {
     if (carrinho.length > 0 && id) {
       localStorage.setItem(`carrinho_restaurante_${id}`, JSON.stringify(carrinho));
     }
   }, [carrinho, id]);
-
- 
-
- 
 
   // ✅ ALTERAR QUANTIDADE
   const alterarQuantidade = (produtoId, novaQuantidade) => {
@@ -143,32 +137,10 @@ export default function CardapioRestaurante() {
     return passaCategoria && passaBusca;
   });
 
-  
-
   // ✅ CALCULAR TOTAIS
   const totalCarrinho = carrinho.reduce((total, item) => total + (item.preco * item.quantidade), 0);
   const itensCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
 
-  // 🔍 DEBUG: Loading com mais informações
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="text-4xl mb-4 animate-bounce">🍽️</div>
-  //         <p className="text-gray-600">Carregando cardápio...</p>
-  //         <p className="text-xs text-gray-400 mt-2">Restaurante ID: {id || 'N/A'}</p>
-  //         <p className="text-xs text-gray-400">API: {API_URL}</p>
-  //         <button 
-  //           onClick={() => window.location.reload()} 
-  //           className="mt-4 px-4 py-2 bg-orange-500 text-white rounded text-sm"
-  //         >
-  //           Recarregar
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-  
   // ✅ ERROR STATE
   if (error) {
     return (
@@ -348,5 +320,26 @@ export default function CardapioRestaurante() {
         ))}
       </div>
     </div>
+  );
+}
+
+// ✅ LOADING COMPONENT PARA SUSPENSE
+function CardapioLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl mb-4 animate-bounce">🍽️</div>
+        <p className="text-gray-600">Carregando cardápio...</p>
+      </div>
+    </div>
+  );
+}
+
+// ✅ COMPONENTE PRINCIPAL COM SUSPENSE
+export default function CardapioRestaurante() {
+  return (
+    <Suspense fallback={<CardapioLoading />}>
+      <CardapioContent />
+    </Suspense>
   );
 }
