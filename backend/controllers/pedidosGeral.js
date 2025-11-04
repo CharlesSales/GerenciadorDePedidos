@@ -2,6 +2,9 @@ import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
 import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
+import ZApiService from "../service/zapiService.js";
+import MensagemPedidoService from "../service/mensagemPedidoService.js";
+
 
 export async function listarPedidos(req, res) {
   try {
@@ -103,11 +106,45 @@ export async function cadastrarPedidos(req, res) {
 
     const novoPedido = data[0];
 
+    const { data: restauranteData } = await supabase
+      .from("restaurante")
+      .select("nome_restaurante, telefone_whatsapp, notificacao_whatsapp")
+      .eq("id_restaurante", restauranteid)
+      .single();
+
     // Emite Socket.IO
     try {
       io.emit("novoPedido_geral", novoPedido);
     } catch (err) {
       console.error("Falha no Socket.IO:", err.message);
+    }
+
+    // ✅ ENVIAR WHATSAPP PARA O RESTAURANTE (SEM FILTRO)
+    if (restauranteData?.telefone_whatsapp && restauranteData?.notificacao_whatsapp) {
+      try {
+        console.log('📤 Enviando WhatsApp para restaurante:', restauranteData.nome_restaurante);
+        
+        const mensagem = MensagemPedidoService.formatarPedidoCompleto(
+          novoPedido, 
+          restauranteData
+        );
+
+        const resultadoWhatsApp = await ZApiService.enviarMensagem(
+          restauranteData.telefone_whatsapp,
+          mensagem
+        );
+
+        console.log('✅ WhatsApp enviado com sucesso para:', restauranteData.telefone_whatsapp);
+        console.log('📱 Resultado Z-API:', resultadoWhatsApp);
+
+      } catch (whatsappError) {
+        console.error('❌ Erro ao enviar WhatsApp:', whatsappError);
+        // Não falha o pedido se WhatsApp der erro
+      }
+    } else {
+      console.log('⚠️ WhatsApp não configurado para restaurante:', restauranteData?.nome_restaurante);
+      console.log('📱 Telefone:', restauranteData?.telefone_whatsapp);
+      console.log('🔔 Notificação ativa:', restauranteData?.notificacao_whatsapp);
     }
 
     // Notificação push para todos funcionários do restaurante, exceto quem fez o pedido

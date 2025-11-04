@@ -15,6 +15,10 @@ import restauranteRoutes from "./routes/restaurante.js"
 import authRoutes from "./routes/auth.js"
 import { Server } from "socket.io"
 import http from "http"
+// Adicione no seu server.js
+import zapiRoutes from './routes/zapiRoutes.js';
+
+
 
 // ✅ CARREGAR VARIÁVEIS DE AMBIENTE
 dotenv.config()
@@ -32,6 +36,7 @@ app.get('/', (req, res) => {
 // rotas
 app.use("/auth", authRoutes)
 app.use("/cargo", cargoRoutes)
+app.use('/api/zapi', zapiRoutes);
 app.use("/categoria", categriaRoutes)
 app.use("/produtos", produtosRoutes)
 app.use("/funcionarios", funcionariosRoutes)

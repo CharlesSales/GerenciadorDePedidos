@@ -257,7 +257,8 @@ export default function CarrinhoPage() {
               </button>
 
               <button
-                onClick={() => router.push('/confirmacaoCliente')}
+                // onClick={() => router.push('/confirmacaoCliente')}
+                onClick={() => router.push('/teste')}
                 style={{
                   ...botaoPrincipal('#28a745'),
                   flex: 2,

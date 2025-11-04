@@ -282,6 +282,7 @@ export default function AdminPage() {
           }
           
           router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
+          // router.push(`/teste`);
         }}
         onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
         onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
@@ -294,6 +295,41 @@ export default function AdminPage() {
           </h3>
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
             Visualizar cardápio do restaurante
+          </p>
+        </div>
+       
+        {/* ✅ CONFIGURAÇÕES */}
+         <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+        onClick={() => {
+          console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
+          console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
+          
+          if (!id_restaurante) {
+            alert('❌ ID do restaurante não encontrado!');
+            console.error('❌ Dados do usuário:', user);
+            return;
+          }
+          
+          router.push(`/cardapioDelivery?restaurante=${id_restaurante}`);
+        }}
+        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            ⚰️
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Ver Cardápio ({id_restaurante || 'ID?'})
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Visualizar cardápio do delivery
           </p>
         </div>
         {/* ✅ CARDÁPIO PÚBLICO */}

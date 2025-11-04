@@ -150,24 +150,24 @@ export default function CardapioRestaurante() {
   const itensCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
 
   // 🔍 DEBUG: Loading com mais informações
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-bounce">🍽️</div>
-          <p className="text-gray-600">Carregando cardápio...</p>
-          <p className="text-xs text-gray-400 mt-2">Restaurante ID: {id || 'N/A'}</p>
-          <p className="text-xs text-gray-400">API: {API_URL}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-orange-500 text-white rounded text-sm"
-          >
-            Recarregar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="text-4xl mb-4 animate-bounce">🍽️</div>
+  //         <p className="text-gray-600">Carregando cardápio...</p>
+  //         <p className="text-xs text-gray-400 mt-2">Restaurante ID: {id || 'N/A'}</p>
+  //         <p className="text-xs text-gray-400">API: {API_URL}</p>
+  //         <button 
+  //           onClick={() => window.location.reload()} 
+  //           className="mt-4 px-4 py-2 bg-orange-500 text-white rounded text-sm"
+  //         >
+  //           Recarregar
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
   
   // ✅ ERROR STATE
   if (error) {
