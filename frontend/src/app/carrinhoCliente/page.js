@@ -18,26 +18,24 @@ export default function CarrinhoPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const id_restaurante = 
-    user?.dados?.id_restaurante || 
-    user?.dados?.id || 
+  const id_restaurante =
+    user?.dados?.id_restaurante ||
+    user?.dados?.id ||
     user?.dados?.restaurante?.id_restaurante ||
     user?.dados?.restaurante?.id ||
     user?.id_restaurante ||
     user?.id;
+
   let total = 0;
   try {
     total = calcularTotal();
     if (isNaN(total)) total = 0;
-  } catch (error) {
-    console.error('❌ Erro ao calcular total:', error);
+  } catch {
     total = 0;
   }
 
   const carrinhoValido = Array.isArray(carrinho)
-    ? carrinho.filter(
-        (item) => item && typeof item === 'object' && item.id_produto && item.nome
-      )
+    ? carrinho.filter((item) => item && typeof item === 'object' && item.id_produto && item.nome)
     : [];
 
   return (
@@ -47,10 +45,11 @@ export default function CarrinhoPage() {
         flexDirection: 'column',
         minHeight: '100vh',
         padding: '16px',
-        backgroundColor: '#f9f9f9',
+        background: 'linear-gradient(180deg, #FFF6EE 0%, #FFE9D1 100%)',
+        fontFamily: 'Inter, sans-serif',
       }}
     >
-      {/* 🛒 Carrinho Vazio */}
+      {/* Carrinho vazio */}
       {carrinhoValido.length === 0 && (
         <div
           style={{
@@ -64,51 +63,38 @@ export default function CarrinhoPage() {
           }}
         >
           <h1 style={{ fontSize: '64px', margin: 0 }}>🛒</h1>
-          <p style={{ fontSize: '20px', fontWeight: 'bold' }}>Carrinho vazio</p>
-          <p style={{ fontSize: '14px', color: '#666' }}>
+          <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#FF7A00' }}>
+            Carrinho vazio
+          </p>
+          <p style={{ fontSize: '15px', color: '#7A7A7A' }}>
             Adicione alguns produtos para continuar
           </p>
           <button
             onClick={() => router.push(`/cardapioCliente?restaurante=${id_restaurante}`)}
-            style={{
-              backgroundColor: '#007bff',
-              color: 'white',
-              padding: '12px 20px',
-              fontSize: '16px',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              width: '90%',
-              maxWidth: '280px',
-            }}
+            style={botaoPrincipal('#FF7A00')}
           >
-            Ver Produtos
+            🍽️ Ver Cardápio
           </button>
         </div>
       )}
 
-      {/* 🧾 Carrinho com Itens */}
+      {/* Carrinho com Itens */}
       {carrinhoValido.length > 0 && (
         <>
           <h2
             style={{
               textAlign: 'center',
-              fontSize: '22px',
+              fontSize: '24px',
               marginBottom: '16px',
-              color: '#333',
+              color: '#FF7A00',
+              fontWeight: 'bold',
             }}
           >
             Seu Carrinho ({carrinhoValido.length}{' '}
             {carrinhoValido.length === 1 ? 'item' : 'itens'})
           </h2>
 
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              paddingBottom: '120px', // espaço pro rodapé fixo
-            }}
-          >
+          <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px' }}>
             {carrinhoValido.map((item, index) => {
               const nomeItem = item.nome || 'Produto sem nome';
               const precoItem = parseFloat(item.preco) || 0;
@@ -119,13 +105,12 @@ export default function CarrinhoPage() {
                 <div
                   key={`item-${item.id_produto}-${index}`}
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    backgroundColor: '#fff',
-                    borderRadius: '12px',
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '14px',
                     padding: '16px',
                     marginBottom: '12px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+                    border: '1px solid #FFE2C1',
                   }}
                 >
                   <div
@@ -150,18 +135,17 @@ export default function CarrinhoPage() {
                       <p
                         style={{
                           margin: '4px 0',
-                          color: '#666',
+                          color: '#555',
                           fontSize: '14px',
                         }}
                       >
                         R$ {precoItem.toFixed(2)} x {quantidadeItem} ={' '}
-                        <strong style={{ color: '#28a745' }}>
+                        <strong style={{ color: '#FF7A00' }}>
                           R$ {subtotalItem.toFixed(2)}
                         </strong>
                       </p>
                     </div>
 
-                    {/* Controles */}
                     <div
                       style={{
                         display: 'flex',
@@ -177,7 +161,7 @@ export default function CarrinhoPage() {
                             ? alterarQuantidade(item.id_produto, quantidadeItem - 1)
                             : diminuirQuantidade(item.id_produto)
                         }
-                        style={botaoAcao('#dc3545')}
+                        style={botaoAcao('#E53935')}
                       >
                         ➖
                       </button>
@@ -185,6 +169,7 @@ export default function CarrinhoPage() {
                         style={{
                           fontSize: '18px',
                           fontWeight: 'bold',
+                          color: '#333',
                           textAlign: 'center',
                           width: '28px',
                         }}
@@ -193,7 +178,7 @@ export default function CarrinhoPage() {
                       </span>
                       <button
                         onClick={() => adicionarAoCarrinho(item)}
-                        style={botaoAcao('#28a745')}
+                        style={botaoAcao('#00C851')}
                       >
                         ➕
                       </button>
@@ -210,14 +195,14 @@ export default function CarrinhoPage() {
             })}
           </div>
 
-          {/* Rodapé fixo com total */}
+          {/* Rodapé fixo */}
           <div
             style={{
               position: 'fixed',
               bottom: 0,
               left: 0,
               width: '100%',
-              backgroundColor: '#fff',
+              backgroundColor: '#FFFFFF',
               boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
               padding: '16px',
               display: 'flex',
@@ -225,13 +210,14 @@ export default function CarrinhoPage() {
               alignItems: 'center',
               gap: '10px',
               zIndex: 999,
+              borderTop: '4px solid #FF7A00',
             }}
           >
             <div
               style={{
-                fontSize: '20px',
+                fontSize: '22px',
                 fontWeight: 'bold',
-                color: '#28a745',
+                color: '#FF7A00',
               }}
             >
               Total: R$ {total.toFixed(2)}
@@ -242,27 +228,15 @@ export default function CarrinhoPage() {
                 display: 'flex',
                 gap: '12px',
                 width: '100%',
-                maxWidth: '400px',
-                justifyContent: 'space-between',
+                maxWidth: '420px',
               }}
             >
-              <button
-                onClick={() => limparCarrinho()}
-                style={{
-                  ...botaoPrincipal('#6c757d'),
-                  flex: 1,
-                }}
-              >
+              <button onClick={limparCarrinho} style={botaoPrincipal('#6c757d')}>
                 Limpar
               </button>
-
               <button
-                // onClick={() => router.push('/confirmacaoCliente')}
                 onClick={() => router.push('/teste')}
-                style={{
-                  ...botaoPrincipal('#28a745'),
-                  flex: 2,
-                }}
+                style={botaoPrincipal('#00C851')}
               >
                 Finalizar Pedido
               </button>
@@ -274,16 +248,17 @@ export default function CarrinhoPage() {
   );
 }
 
-/* ✅ Funções utilitárias para estilos */
+/* 🎨 Estilos utilitários */
 function botaoAcao(cor) {
   return {
     backgroundColor: cor,
     color: 'white',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '8px',
     padding: '8px 12px',
     fontSize: '16px',
     cursor: 'pointer',
+    transition: 'transform 0.2s ease, opacity 0.2s ease',
   };
 }
 
@@ -294,7 +269,10 @@ function botaoPrincipal(cor) {
     padding: '12px',
     fontSize: '16px',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '10px',
     cursor: 'pointer',
+    flex: 1,
+    fontWeight: '600',
+    transition: 'transform 0.2s ease, opacity 0.2s ease',
   };
 }

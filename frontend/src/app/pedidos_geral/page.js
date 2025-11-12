@@ -60,22 +60,52 @@ export default function PedidosPage() {
     if (authLoading || !user || !token) return;
     const socket = io(API_URL, { auth: { token } });
 
+    socket.on('connect', () => {
+      console.log('✅ Socket.IO conectado:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('❌ Socket.IO desconectado');
+    });
+
+    // ✅ CORREÇÃO: Novos pedidos
     socket.on("novoPedido_geral", (pedido) => {
-      if (pedido.restaurante_id === user.dados.restaurante.id_restaurante) {
+      console.log('📦 Novo pedido recebido:', pedido);
+      console.log('🏪 Pedido restaurante:', pedido.restaurante);
+      console.log('👤 User restaurante:', user?.dados?.restaurante?.id_restaurante);
+      
+      // ✅ CORREÇÃO: Usar o campo correto 'restaurante'
+      if (pedido.restaurante === user.dados.restaurante.id_restaurante) {
+        console.log('✅ Pedido é do restaurante do usuário, adicionando à lista');
+        
         setPedidos(prev => {
           const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
-          return jaExiste ? prev : [pedido, ...prev];
+          if (jaExiste) {
+            console.log('⚠️ Pedido já existe na lista');
+            return prev;
+          }
+          console.log('🆕 Adicionando novo pedido à lista');
+          return [pedido, ...prev];
         });
+      } else {
+        console.log('❌ Pedido não é do restaurante do usuário');
       }
     });
 
-    socket.on("statusAtualizado", ({ id, novoStatus }) => {
-      setPedidos(prev =>
-        prev.map(p =>
-          p.id_pedido === id ? { ...p, status: proximoStatus.status_pedido } : p
-        )
-      );
 
+  socket.on("statusAtualizado", ({ id, novoStatus }) => {
+      console.log('🔄 Status atualizado recebido:', { id, novoStatus });
+      
+      setPedidos(prev => {
+        const updated = prev.map(p => {
+          if (p.id_pedido === parseInt(id)) {
+            console.log('🔄 Atualizando status do pedido:', id, 'para:', novoStatus);
+            return { ...p, status: novoStatus }; // ✅ USAR novoStatus direto
+          }
+          return p;
+        });
+        return updated;
+      });
     });
 
     const fetchPedidos = async () => {

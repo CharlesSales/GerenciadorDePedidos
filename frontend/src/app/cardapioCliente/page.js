@@ -8,10 +8,10 @@ import { useCarrinho } from '@/context/CarrinhoContext';
 function CardapioContent() {
   const searchParams = useSearchParams(); // ← AGORA DENTRO DO SUSPENSE
   const router = useRouter();
-  
+
   // ✅ PEGAR ID DO QUERY PARAM
   const id = searchParams.get('restaurante');
-  
+
   const { produtos, handleAdd, handleRemove, carrinho } = useCarrinho();
 
   const [busca, setBusca] = useState('');
@@ -49,13 +49,13 @@ function CardapioContent() {
         console.log('🔄 Fazendo requisição para:', url);
 
         const response = await fetch(url);
-        
+
         console.log('📡 Status da resposta:', response.status);
         console.log('📡 Response OK:', response.ok);
 
         if (!response.ok) {
           console.log('❌ Resposta não OK, status:', response.status);
-          
+
           let errorData;
           try {
             errorData = await response.json();
@@ -64,7 +64,7 @@ function CardapioContent() {
             console.log('❌ Erro ao fazer parse do JSON:', parseError);
             errorData = { error: 'Erro desconhecido' };
           }
-          
+
           if (response.status === 404) {
             setError({
               tipo: 'RESTAURANTE_NAO_ENCONTRADO',
@@ -74,20 +74,20 @@ function CardapioContent() {
             });
             return;
           }
-          
+
           throw new Error(errorData.error || `Erro HTTP ${response.status}`);
         }
 
         const data = await response.json();
         console.log('📦 Dados recebidos:', data);
-        
+
         setRestaurante(data.restaurante);
-        
+
         console.log(`✅ ${data.produtos?.length || 0} produtos carregados`);
 
       } catch (err) {
         console.error('❌ Erro detalhado:', err);
-        
+
         setError({
           tipo: 'ERRO_CONEXAO',
           titulo: 'Erro de conexão',
@@ -148,8 +148,8 @@ function CardapioContent() {
         <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
           <div className="text-5xl mb-4">
             {error.tipo === 'RESTAURANTE_NAO_ENCONTRADO' ? '🏪' :
-             error.tipo === 'RESTAURANTE_INATIVO' ? '⏰' : 
-             error.tipo === 'ID_INVALIDO' ? '🔗' : '📶'}
+              error.tipo === 'RESTAURANTE_INATIVO' ? '⏰' :
+                error.tipo === 'ID_INVALIDO' ? '🔗' : '📶'}
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             {error.titulo}
@@ -306,7 +306,9 @@ function CardapioContent() {
           display: 'grid',
           gap: '1rem',
           padding: '1rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', // ✅ PRODUTOS MAIS LARGOS
+          maxWidth: '1200px', // ✅ MÁXIMO 3 COLUNAS
+          margin: '0 auto',
           justifyItems: 'center',
         }}
       >
