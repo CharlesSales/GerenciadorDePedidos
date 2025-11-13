@@ -264,10 +264,10 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
           <div style={{ textAlign: "center", marginTop: "40px" }}>
             <h3 style={{ color: "#2a9d8f", fontWeight: "bold", fontSize: "22px" }}>
               🎉 Pedido enviado com sucesso!
-            </h3>
-            <div style={{ marginTop: "20px" }}>
-              <Link href="/pedidos_geral" className={styles.primary}>Ver Produtos</Link>
-              <Link href="/" className={styles.primary} style={{ marginLeft: "10px" }}>
+            </h3>   
+            <div style={{ marginTop: "20px", backgroundColor: 'transparent' }}>
+              <Link href={`/cardapioCliente?restaurante=${restauranteId}`} className={styles.primary} style={{backgroundColor: 'transparent', color: '#ff4d4d'}}>Ver Produtos</Link>
+              <Link href="/" className={styles.primary} style={{ marginLeft: '10px', backgroundColor: 'transparent', color: '#ff4d4d' }}>
                 Acompanhar Entrega
               </Link>
             </div>

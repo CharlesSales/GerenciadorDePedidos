@@ -4,12 +4,9 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import ProdutoItem from '@/components/ProdutoItem';
 import { useCarrinho } from '@/context/CarrinhoContext';
 
-// ✅ COMPONENTE INTERNO QUE USA useSearchParams
 function CardapioContent() {
-  const searchParams = useSearchParams(); // ← AGORA DENTRO DO SUSPENSE
+  const searchParams = useSearchParams();
   const router = useRouter();
-
-  // ✅ PEGAR ID DO QUERY PARAM
   const id = searchParams.get('restaurante');
 
   const { produtos, handleAdd, handleRemove, carrinho } = useCarrinho();
@@ -19,23 +16,16 @@ function CardapioContent() {
   const [restaurante, setRestaurante] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filtro, setFiltro] = useState("");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://gerenciadordepedidos.onrender.com';
 
-  // ✅ CARREGAR PRODUTOS DO RESTAURANTE
   useEffect(() => {
     const carregarProdutos = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        console.log('🔄 ID do restaurante:', id);
-        console.log('🔄 URL da API:', API_URL);
-
         if (!id) {
-          console.log('❌ ID do restaurante não encontrado na URL');
           setError({
             tipo: 'ID_INVALIDO',
             titulo: 'URL inválida',
@@ -45,87 +35,31 @@ function CardapioContent() {
           return;
         }
 
-        const url = `${API_URL}/produtos/restaurante/${id}`;
-        console.log('🔄 Fazendo requisição para:', url);
-
-        const response = await fetch(url);
-
-        console.log('📡 Status da resposta:', response.status);
-        console.log('📡 Response OK:', response.ok);
-
-        if (!response.ok) {
-          console.log('❌ Resposta não OK, status:', response.status);
-
-          let errorData;
-          try {
-            errorData = await response.json();
-            console.log('❌ Dados do erro:', errorData);
-          } catch (parseError) {
-            console.log('❌ Erro ao fazer parse do JSON:', parseError);
-            errorData = { error: 'Erro desconhecido' };
-          }
-
-          if (response.status === 404) {
-            setError({
-              tipo: 'RESTAURANTE_NAO_ENCONTRADO',
-              titulo: 'Restaurante não encontrado',
-              mensagem: 'Este restaurante não existe ou foi removido.',
-              acao: 'Voltar ao início'
-            });
-            return;
-          }
-
-          throw new Error(errorData.error || `Erro HTTP ${response.status}`);
-        }
-
+        const response = await fetch(`${API_URL}/produtos/restaurante/${id}`);
+        if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
         const data = await response.json();
-        console.log('📦 Dados recebidos:', data);
 
         setRestaurante(data.restaurante);
-
-        console.log(`✅ ${data.produtos?.length || 0} produtos carregados`);
-
       } catch (err) {
-        console.error('❌ Erro detalhado:', err);
-
         setError({
           tipo: 'ERRO_CONEXAO',
           titulo: 'Erro de conexão',
-          mensagem: `Erro: ${err.message}`,
+          mensagem: err.message,
           acao: 'Tentar novamente'
         });
       } finally {
         setLoading(false);
       }
     };
-
     carregarProdutos();
   }, [id, API_URL]);
 
-  // ✅ SALVAR CARRINHO NO LOCALSTORAGE
   useEffect(() => {
     if (carrinho.length > 0 && id) {
       localStorage.setItem(`carrinho_restaurante_${id}`, JSON.stringify(carrinho));
     }
   }, [carrinho, id]);
 
-  // ✅ ALTERAR QUANTIDADE
-  const alterarQuantidade = (produtoId, novaQuantidade) => {
-    if (novaQuantidade <= 0) {
-      removerDoCarrinho(produtoId);
-      return;
-    }
-
-    setCarrinho(carrinhoAtual =>
-      carrinhoAtual.map(item =>
-        item.id_produto === produtoId
-          ? { ...item, quantidade: novaQuantidade }
-          : item
-      )
-    );
-  };
-
-  // ✅ FILTROS
   const categorias = [...new Set(produtos.map(p => p.categoria.categoria_nome))];
   const produtosFiltrados = produtos.filter(produto => {
     const passaCategoria = categoriaSelecionada
@@ -137,51 +71,78 @@ function CardapioContent() {
     return passaCategoria && passaBusca;
   });
 
-  // ✅ CALCULAR TOTAIS
-  const totalCarrinho = carrinho.reduce((total, item) => total + (item.preco * item.quantidade), 0);
   const itensCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
 
-  // ✅ ERROR STATE
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
-          <div className="text-5xl mb-4">
-            {error.tipo === 'RESTAURANTE_NAO_ENCONTRADO' ? '🏪' :
-              error.tipo === 'RESTAURANTE_INATIVO' ? '⏰' :
-                error.tipo === 'ID_INVALIDO' ? '🔗' : '📶'}
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #FFE29F 0%, #FFA99F 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
+            padding: '40px',
+            maxWidth: '400px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: '60px', marginBottom: '20px' }}>
+            {error.tipo === 'RESTAURANTE_NAO_ENCONTRADO'
+              ? '🏪'
+              : error.tipo === 'ID_INVALIDO'
+              ? '🔗'
+              : '📶'}
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 style={{ color: '#2d3436', fontWeight: '700', marginBottom: '10px' }}>
             {error.titulo}
           </h2>
-          <p className="text-gray-600 mb-6">
-            {error.mensagem}
-          </p>
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                if (error.tipo === 'RESTAURANTE_NAO_ENCONTRADO' || error.tipo === 'ID_INVALIDO') {
-                  router.push('/');
-                } else {
-                  window.location.reload();
-                }
-              }}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              {error.acao}
-            </button>
-            <p className="text-xs text-gray-400">
-              ID: {id} | API: {API_URL}
-            </p>
-          </div>
+          <p style={{ color: '#636e72', marginBottom: '20px' }}>{error.mensagem}</p>
+          <button
+            onClick={() => {
+              if (error.tipo === 'RESTAURANTE_NAO_ENCONTRADO' || error.tipo === 'ID_INVALIDO') {
+                router.push('/');
+              } else {
+                window.location.reload();
+              }
+            }}
+            style={{
+              backgroundColor: '#ff7b00',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 24px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#ff9500')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ff7b00')}
+          >
+            {error.acao}
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ paddingTop: '120px', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* Topo fixo */}
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FFE29F 0%, #FFA99F 100%)',
+        paddingTop: '120px'
+      }}
+    >
+      {/* Barra fixa topo */}
       <div
         style={{
           position: 'fixed',
@@ -189,47 +150,48 @@ function CardapioContent() {
           left: 0,
           right: 0,
           backgroundColor: '#fff',
-          borderBottom: '1px solid #eee',
+          borderBottom: '2px solid #ffe29f',
           padding: '0.75rem 1rem',
-          zIndex: 1000,
+          zIndex: 1000
         }}
       >
-        {/* Busca e carrinho */}
+        {/* Busca + Carrinho */}
         <div
           style={{
             display: 'flex',
             gap: '0.5rem',
-            width: '100%',
             flexWrap: 'wrap',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'center'
           }}
         >
           <input
             type="text"
             placeholder="Buscar produto..."
             value={busca}
-            onChange={e => setBusca(e.target.value)}
+            onChange={(e) => setBusca(e.target.value)}
             style={{
               flex: '1 1 60%',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: '1px solid #ccc',
+              padding: '0.6rem 1rem',
+              borderRadius: '12px',
+              border: '2px solid #ffc107',
               fontSize: '1rem',
+              outline: 'none'
             }}
           />
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => router.push('/carrinhoCliente')}
               style={{
-                backgroundColor: '#ff4d4d',
+                backgroundColor: '#ff7b00',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '50%',
-                width: '45px',
-                height: '45px',
-                fontSize: '1.2rem',
+                width: '48px',
+                height: '48px',
+                fontSize: '1.4rem',
                 cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
               }}
             >
               🛒
@@ -240,12 +202,12 @@ function CardapioContent() {
                   position: 'absolute',
                   top: '-5px',
                   right: '-5px',
-                  backgroundColor: '#000',
+                  backgroundColor: '#d63031',
                   color: '#fff',
                   borderRadius: '50%',
                   padding: '2px 6px',
                   fontSize: '0.75rem',
-                  fontWeight: 'bold',
+                  fontWeight: 'bold'
                 }}
               >
                 {itensCarrinho}
@@ -254,14 +216,14 @@ function CardapioContent() {
           </div>
         </div>
 
-        {/* Filtros de categorias horizontal */}
+        {/* Filtro categorias */}
         <div
           style={{
             display: 'flex',
             gap: '0.5rem',
             overflowX: 'auto',
-            marginTop: '0.5rem',
-            paddingBottom: '0.25rem',
+            marginTop: '0.75rem',
+            paddingBottom: '0.25rem'
           }}
         >
           <button
@@ -270,16 +232,18 @@ function CardapioContent() {
               flexShrink: 0,
               padding: '0.4rem 1rem',
               borderRadius: '20px',
-              border: '1px solid #ddd',
-              backgroundColor: categoriaSelecionada === '' ? '#ff4d4d' : '#f9f9f9',
-              color: categoriaSelecionada === '' ? '#fff' : '#000',
+              border: 'none',
+              backgroundColor: categoriaSelecionada === '' ? '#ff7b00' : '#fff',
+              color: categoriaSelecionada === '' ? '#fff' : '#ff7b00',
+              boxShadow:
+                categoriaSelecionada === '' ? '0 4px 10px rgba(255,123,0,0.4)' : '0 2px 6px rgba(0,0,0,0.1)',
               cursor: 'pointer',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap'
             }}
           >
             Todos
           </button>
-          {categorias.map(cat => (
+          {categorias.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoriaSelecionada(cat)}
@@ -287,11 +251,15 @@ function CardapioContent() {
                 flexShrink: 0,
                 padding: '0.4rem 1rem',
                 borderRadius: '20px',
-                border: '1px solid #ddd',
-                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
-                color: categoriaSelecionada === cat ? '#fff' : '#000',
+                border: 'none',
+                backgroundColor: categoriaSelecionada === cat ? '#ff7b00' : '#fff',
+                color: categoriaSelecionada === cat ? '#fff' : '#ff7b00',
+                boxShadow:
+                  categoriaSelecionada === cat
+                    ? '0 4px 10px rgba(255,123,0,0.4)'
+                    : '0 2px 6px rgba(0,0,0,0.1)',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'nowrap'
               }}
             >
               {cat}
@@ -300,19 +268,19 @@ function CardapioContent() {
         </div>
       </div>
 
-      {/* Grid responsivo de produtos */}
+      {/* Produtos */}
       <div
         style={{
           display: 'grid',
-          gap: '1rem',
+          gap: '1.2rem',
           padding: '1rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', // ✅ PRODUTOS MAIS LARGOS
-          maxWidth: '1200px', // ✅ MÁXIMO 3 COLUNAS
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          maxWidth: '1200px',
           margin: '0 auto',
-          justifyItems: 'center',
+          justifyItems: 'center'
         }}
       >
-        {produtosFiltrados.map(produto => (
+        {produtosFiltrados.map((produto) => (
           <ProdutoItem
             key={produto.id_produto}
             produto={produto}
@@ -325,19 +293,25 @@ function CardapioContent() {
   );
 }
 
-// ✅ LOADING COMPONENT PARA SUSPENSE
 function CardapioLoading() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-4xl mb-4 animate-bounce">🍽️</div>
-        <p className="text-gray-600">Carregando cardápio...</p>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #FFE29F 0%, #FFA99F 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '40px', marginBottom: '10px', animation: 'bounce 1s infinite' }}>🍽️</div>
+        <p style={{ color: '#636e72' }}>Carregando cardápio...</p>
       </div>
     </div>
   );
 }
 
-// ✅ COMPONENTE PRINCIPAL COM SUSPENSE
 export default function CardapioRestaurante() {
   return (
     <Suspense fallback={<CardapioLoading />}>
