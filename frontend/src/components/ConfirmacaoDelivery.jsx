@@ -1,12 +1,13 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "../context/AuthContext";
 import styles from "../app/page.module.css";
 import Link from "next/link";
 import { useCarrinho } from '@/context/CarrinhoContext';
 
-export default function Confirmacao({ pedidoConfirmado, produtos }) {
+// ✅ COMPONENTE INTERNO COM useSearchParams
+function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
   const [logradouro, setLogradouro] = useState("");
   const [numero, setNumero] = useState("");
@@ -310,5 +311,48 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
         }
       `}</style>
     </div>
+  );
+}
+
+// ✅ COMPONENTE DE LOADING
+function ConfirmacaoLoading() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f9f871, #f4a261, #2a9d8f)",
+        padding: "40px 20px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          background: "#ffffffee",
+          borderRadius: "16px",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+          padding: "40px",
+          backdropFilter: "blur(8px)",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'bounce 1s infinite' }}>
+          🚚
+        </div>
+        <p style={{ fontSize: '18px', color: '#264653', fontWeight: 'bold' }}>
+          Carregando confirmação...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ✅ COMPONENTE PRINCIPAL COM SUSPENSE
+export default function Confirmacao({ pedidoConfirmado, produtos }) {
+  return (
+    <Suspense fallback={<ConfirmacaoLoading />}>
+      <ConfirmacaoContent pedidoConfirmado={pedidoConfirmado} produtos={produtos} />
+    </Suspense>
   );
 }
