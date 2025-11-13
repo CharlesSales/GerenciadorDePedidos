@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useCarrinho } from '@/context/CarrinhoContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function CarrinhoPage() {
@@ -15,16 +15,21 @@ export default function CarrinhoPage() {
     calcularTotal,
   } = useCarrinho();
 
-  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const restauranteFromUrl = searchParams.get("restaurante");
+
+  // const { user } = useAuth();
   const router = useRouter();
 
-  const id_restaurante =
-    user?.dados?.id_restaurante ||
-    user?.dados?.id ||
-    user?.dados?.restaurante?.id_restaurante ||
-    user?.dados?.restaurante?.id ||
-    user?.id_restaurante ||
-    user?.id;
+  // 1. Pega da URL
+const id_restaurante =
+  restauranteFromUrl ||
+  carrinho?.[0]?.restaurante_id || // 2. Pega do carrinho
+  null;
+
+
+  
+  console.log(`o id do restaurante é ${id_restaurante}`)
 
   let total = 0;
   try {

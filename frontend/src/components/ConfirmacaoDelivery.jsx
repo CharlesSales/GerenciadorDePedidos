@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "../context/AuthContext";
 import styles from "../app/page.module.css";
 import Link from "next/link";
@@ -20,7 +20,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const { user } = useAuth();
   const { limparCarrinho } = useCarrinho();
 
-  const restauranteId = user?.dados?.restaurante?.id_restaurante || null;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
 
   useEffect(() => {
     if (enviado) limparCarrinho();
@@ -33,9 +35,16 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       nome: produto?.nome || "Produto indefinido",
       quantidade: item.quantidade,
       preco: Number(item.preco_unitario || produto?.preco || 0),
-      cozinha: produto?.cozinha
+      cozinha: produto?.cozinha,
+      restaurante_id: produto?.restaurante || null
     };
   });
+
+  const restauranteDaUrl = searchParams.get("restaurante");
+  const restauranteDosItens = itensParaBackend?.[0]?.restaurante_id;
+  const restauranteId = restauranteDaUrl || restauranteDosItens || null;
+
+  console.log(`o id é ${restauranteId}`)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
   const total = itensParaBackend.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
@@ -264,9 +273,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
           <div style={{ textAlign: "center", marginTop: "40px" }}>
             <h3 style={{ color: "#2a9d8f", fontWeight: "bold", fontSize: "22px" }}>
               🎉 Pedido enviado com sucesso!
-            </h3>   
+            </h3>
             <div style={{ marginTop: "20px", backgroundColor: 'transparent' }}>
-              <Link href={`/cardapioCliente?restaurante=${restauranteId}`} className={styles.primary} style={{backgroundColor: 'transparent', color: '#ff4d4d'}}>Ver Produtos</Link>
+              <Link href={`/cardapioCliente?restaurante=${restauranteId}`} className={styles.primary} style={{ backgroundColor: 'transparent', color: '#ff4d4d' }}>Ver Produtos</Link>
               <Link href="/" className={styles.primary} style={{ marginLeft: '10px', backgroundColor: 'transparent', color: '#ff4d4d' }}>
                 Acompanhar Entrega
               </Link>

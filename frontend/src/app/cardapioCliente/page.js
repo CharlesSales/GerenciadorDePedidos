@@ -9,11 +9,12 @@ function CardapioContent() {
   const router = useRouter();
   const id = searchParams.get('restaurante');
 
-  const { produtos, handleAdd, handleRemove, carrinho } = useCarrinho();
+  const { handleAdd, handleRemove, carrinho } = useCarrinho();
 
   const [busca, setBusca] = useState('');
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
   const [restaurante, setRestaurante] = useState(null);
+  const [produtosRestaurante, setProdutosRestaurante] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,6 +41,7 @@ function CardapioContent() {
         const data = await response.json();
 
         setRestaurante(data.restaurante);
+        setProdutosRestaurante(data.produtos); // <<< AQUI É O QUE FALTAVA
       } catch (err) {
         setError({
           tipo: 'ERRO_CONEXAO',
@@ -51,6 +53,7 @@ function CardapioContent() {
         setLoading(false);
       }
     };
+
     carregarProdutos();
   }, [id, API_URL]);
 
@@ -60,19 +63,24 @@ function CardapioContent() {
     }
   }, [carrinho, id]);
 
-  const categorias = [...new Set(produtos.map(p => p.categoria.categoria_nome))];
-  const produtosFiltrados = produtos.filter(produto => {
+  // ---------------------- FILTROS ----------------------------
+  const categorias = [...new Set(produtosRestaurante.map(p => p.categoria?.categoria_nome))];
+
+  const produtosFiltrados = produtosRestaurante.filter(produto => {
     const passaCategoria = categoriaSelecionada
-      ? produto.categoria.categoria_nome === categoriaSelecionada
+      ? produto.categoria?.categoria_nome === categoriaSelecionada
       : true;
+
     const passaBusca = busca
       ? produto.nome.toLowerCase().includes(busca.toLowerCase())
       : true;
+
     return passaCategoria && passaBusca;
   });
 
   const itensCarrinho = carrinho.reduce((total, item) => total + item.quantidade, 0);
 
+  // ---------------------- ERRO ----------------------------
   if (error) {
     return (
       <div
@@ -106,6 +114,7 @@ function CardapioContent() {
             {error.titulo}
           </h2>
           <p style={{ color: '#636e72', marginBottom: '20px' }}>{error.mensagem}</p>
+
           <button
             onClick={() => {
               if (error.tipo === 'RESTAURANTE_NAO_ENCONTRADO' || error.tipo === 'ID_INVALIDO') {
@@ -121,11 +130,8 @@ function CardapioContent() {
               borderRadius: '12px',
               padding: '12px 24px',
               fontSize: '16px',
-              cursor: 'pointer',
-              transition: 'background-color 0.3s'
+              cursor: 'pointer'
             }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#ff9500')}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#ff7b00')}
           >
             {error.acao}
           </button>
@@ -134,6 +140,7 @@ function CardapioContent() {
     );
   }
 
+  // ---------------------- TELA PRINCIPAL ----------------------------
   return (
     <div
       style={{
@@ -179,6 +186,7 @@ function CardapioContent() {
               outline: 'none'
             }}
           />
+
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => router.push('/carrinhoCliente')}
@@ -196,6 +204,7 @@ function CardapioContent() {
             >
               🛒
             </button>
+
             {itensCarrinho > 0 && (
               <span
                 style={{
@@ -216,7 +225,7 @@ function CardapioContent() {
           </div>
         </div>
 
-        {/* Filtro categorias */}
+        {/* Categorias */}
         <div
           style={{
             display: 'flex',
@@ -235,14 +244,16 @@ function CardapioContent() {
               border: 'none',
               backgroundColor: categoriaSelecionada === '' ? '#ff7b00' : '#fff',
               color: categoriaSelecionada === '' ? '#fff' : '#ff7b00',
-              boxShadow:
-                categoriaSelecionada === '' ? '0 4px 10px rgba(255,123,0,0.4)' : '0 2px 6px rgba(0,0,0,0.1)',
+              boxShadow: categoriaSelecionada === '' 
+                ? '0 4px 10px rgba(255,123,0,0.4)' 
+                : '0 2px 6px rgba(0,0,0,0.1)',
               cursor: 'pointer',
               whiteSpace: 'nowrap'
             }}
           >
             Todos
           </button>
+
           {categorias.map((cat) => (
             <button
               key={cat}
@@ -254,10 +265,9 @@ function CardapioContent() {
                 border: 'none',
                 backgroundColor: categoriaSelecionada === cat ? '#ff7b00' : '#fff',
                 color: categoriaSelecionada === cat ? '#fff' : '#ff7b00',
-                boxShadow:
-                  categoriaSelecionada === cat
-                    ? '0 4px 10px rgba(255,123,0,0.4)'
-                    : '0 2px 6px rgba(0,0,0,0.1)',
+                boxShadow: categoriaSelecionada === cat
+                  ? '0 4px 10px rgba(255,123,0,0.4)'
+                  : '0 2px 6px rgba(0,0,0,0.1)',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap'
               }}
@@ -268,7 +278,7 @@ function CardapioContent() {
         </div>
       </div>
 
-      {/* Produtos */}
+      {/* Lista de produtos */}
       <div
         style={{
           display: 'grid',
@@ -305,7 +315,9 @@ function CardapioLoading() {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '40px', marginBottom: '10px', animation: 'bounce 1s infinite' }}>🍽️</div>
+        <div style={{ fontSize: '40px', marginBottom: '10px', animation: 'bounce 1s infinite' }}>
+          🍽️
+        </div>
         <p style={{ color: '#636e72' }}>Carregando cardápio...</p>
       </div>
     </div>
