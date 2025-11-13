@@ -1,10 +1,11 @@
 'use client';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useCarrinho } from '@/context/CarrinhoContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
-export default function CarrinhoPage() {
+// ✅ COMPONENTE INTERNO COM useSearchParams
+function CarrinhoContent() {
   const {
     carrinho,
     adicionarAoCarrinho,
@@ -17,19 +18,15 @@ export default function CarrinhoPage() {
 
   const searchParams = useSearchParams();
   const restauranteFromUrl = searchParams.get("restaurante");
-
-  // const { user } = useAuth();
   const router = useRouter();
 
   // 1. Pega da URL
-const id_restaurante =
-  restauranteFromUrl ||
-  carrinho?.[0]?.restaurante_id || // 2. Pega do carrinho
-  null;
+  const id_restaurante =
+    restauranteFromUrl ||
+    carrinho?.[0]?.restaurante_id || // 2. Pega do carrinho
+    null;
 
-
-  
-  console.log(`o id do restaurante é ${id_restaurante}`)
+  console.log(`o id do restaurante é ${id_restaurante}`);
 
   let total = 0;
   try {
@@ -75,7 +72,13 @@ const id_restaurante =
             Adicione alguns produtos para continuar
           </p>
           <button
-            onClick={() => router.push(`/cardapioCliente?restaurante=${id_restaurante}`)}
+            onClick={() => {
+              if (id_restaurante) {
+                router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
+              } else {
+                router.push('/'); // ✅ Fallback se não tiver ID
+              }
+            }}
             style={botaoPrincipal('#FF7A00')}
           >
             🍽️ Ver Cardápio
@@ -240,7 +243,14 @@ const id_restaurante =
                 Limpar
               </button>
               <button
-                onClick={() => router.push('/teste')}
+                onClick={() => {
+                  // ✅ PASSAR O RESTAURANTE ID PARA A CONFIRMAÇÃO
+                  if (id_restaurante) {
+                    router.push(`/teste?restaurante=${id_restaurante}`);
+                  } else {
+                    router.push('/teste');
+                  }
+                }}
                 style={botaoPrincipal('#00C851')}
               >
                 Finalizar Pedido
@@ -250,6 +260,40 @@ const id_restaurante =
         </>
       )}
     </div>
+  );
+}
+
+// ✅ COMPONENTE DE LOADING
+function CarrinhoLoading() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        padding: '16px',
+        background: 'linear-gradient(180deg, #FFF6EE 0%, #FFE9D1 100%)',
+        fontFamily: 'Inter, sans-serif',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div style={{ fontSize: '48px', marginBottom: '16px', animation: 'bounce 1s infinite' }}>
+        🛒
+      </div>
+      <p style={{ fontSize: '18px', color: '#FF7A00', fontWeight: 'bold' }}>
+        Carregando carrinho...
+      </p>
+    </div>
+  );
+}
+
+// ✅ COMPONENTE PRINCIPAL COM SUSPENSE
+export default function CarrinhoPage() {
+  return (
+    <Suspense fallback={<CarrinhoLoading />}>
+      <CarrinhoContent />
+    </Suspense>
   );
 }
 
