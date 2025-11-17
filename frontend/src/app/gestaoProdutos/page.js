@@ -89,6 +89,23 @@ export default function AdminPage() {
     );
   }
 
+
+  const redirecionarParaHome = () => {
+    if (!user) {
+      router.push('/');
+      return;
+    }
+
+    // Verificar se é admin
+    const isAdmin = user.isAdmin || user.dados?.cargo === 1;
+
+    if (isAdmin) {
+      router.push('/admin'); // Página de admin
+    } else {
+      router.push('/funcionario'); // Página de funcionário
+    }
+  }
+
   // ✅ Resto da página (dashboard)
   return (
     <div style={{
@@ -117,6 +134,21 @@ export default function AdminPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
+          <button
+          onClick={redirecionarParaHome}
+          style={{
+            backgroundColor: 'transparent',
+            color: 'black',
+            fontSize: '20px',
+            padding: '10px 14px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          }}
+        >
+          🏠︎
+        </button>
         </div>
       </div>
 
@@ -174,25 +206,7 @@ export default function AdminPage() {
             Visualizar e atualizar status dos pedidos
           </p>
         </div>
-        
-        <button
-        onClick={() => router.push('/admin')}
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          backgroundColor: '#6c757d',
-          color: 'white',
-          fontSize: '16px',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          border: 'none',
-          cursor: 'pointer',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-          zIndex: 1000
-        }}
-        > ← Voltar</button>
-        </div>
+      </div>
       
 
       {/* ✅ INFORMAÇÕES DO USUÁRIO */}

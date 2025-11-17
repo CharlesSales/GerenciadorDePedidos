@@ -97,8 +97,7 @@ export async function loginFuncionario(req, res) {
     // ✅ GERAR TOKEN JWT
     const token = jwt.sign(
       tokenPayload,
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      process.env.JWT_SECRET
     );
 
     res.json({
@@ -136,7 +135,6 @@ export async function loginRestaurante(req, res) {
       .from('restaurante')
       .select('*')
       .eq('usuario', usuario)
-      .eq('senha', senha)
       .single();
 
     if (error || !restaurante) {
@@ -146,6 +144,12 @@ export async function loginRestaurante(req, res) {
         error: 'Usuário ou senha inválidos' 
       });
     }
+    // ✅ Comparar senha usando bcrypt
+    const passwordMatch = await bcrypt.compare(senha, funcionario.senha);
+    if (!passwordMatch) {
+      return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
+    }
+
 
     console.log('✅ Restaurante logado:', restaurante.nome_restaurante);
 
@@ -169,8 +173,7 @@ export async function loginRestaurante(req, res) {
         tipo: 'restaurante',
         restaurante: restaurante.id_restaurante
       },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      process.env.JWT_SECRET 
     );
 
     res.json({

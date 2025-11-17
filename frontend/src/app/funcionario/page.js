@@ -58,6 +58,11 @@ export default function FuncionarioPage() {
     return <div>Carregando...</div>;
   }
 
+    const handleLogout = () => {
+    logout(); // ✅ Função já implementada no AuthContext
+    router.push('/login');
+  };
+
   return (
 
        <div style={{
@@ -86,6 +91,21 @@ export default function FuncionarioPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            fontSize: '20px',
+            padding: '10px 14px',
+            borderRadius: '50%',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+          }}
+        >
+          ⏏️
+        </button>
         </div>
       </div>
 

@@ -1,18 +1,16 @@
 'use client';
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import PedidoCard from "@/components/PedidoCard";
 import { useAuth } from "@/context/AuthContext";
+import HeaderPedidos from "@/components/ListaPedidos";
+import PedidoCard from "@/components/PedidoCard";
 
-export default function ListaPedidos() {
+export default function PedidosPage() {
   const { user, token, loading: authLoading } = useAuth();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
-  const [filtroData, setFiltroData] = useState(() => {
-    const hoje = new Date();
-    return hoje.toISOString().slice(0, 10);
-  });
+  const [filtroData, setFiltroData] = useState(() => new Date().toISOString().slice(0, 10));
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
@@ -24,34 +22,96 @@ export default function ListaPedidos() {
     { id: 5, status_pedido: 'entregue' },
   ];
 
+  const formatarData = (dataHora) => {
+    if (!dataHora) return "Sem data";
+    const data = new Date(dataHora);
+    if (isNaN(data.getTime())) return "Data inválida";
+    return data.toLocaleString("pt-br", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Pedido feito': return '#FFE4B5';
+      case 'preparando': return '#FFB6C1';
+      case 'pronto': return '#98FB98';
+      case 'a caminho': return '#87CEEB';
+      case 'entregue': return '#D3D3D3';
+      default: return '#F0F0F0';
+    }
+  };
+
+  const gerarNumeroPedido = (pedido, pedidosDoDia) => {
+    const pedidosDoMesmoDia = pedidosDoDia.filter(p => {
+      if (!p.data_hora || !pedido.data_hora) return false;
+      return new Date(p.data_hora).toISOString().slice(0,10) === new Date(pedido.data_hora).toISOString().slice(0,10);
+    });
+    pedidosDoMesmoDia.sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora));
+    const posicao = pedidosDoMesmoDia.findIndex(p=>p.id_pedido===pedido.id_pedido);
+    return String(posicao+1).padStart(3,'0');
+  };
+
+  const pedidosFiltrados = pedidos.filter(pedido => {
+    if (!filtroData) return true;
+    if (!pedido.data_hora) return false;
+    return new Date(pedido.data_hora).toISOString().slice(0,10) === filtroData;
+  });
+
   useEffect(() => {
     if (authLoading || !user || !token) return;
     const socket = io(API_URL, { auth: { token } });
 
+    socket.on('connect', () => {
+      console.log('✅ Socket.IO conectado:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('❌ Socket.IO desconectado');
+    });
+
+    // ✅ CORREÇÃO: Novos pedidos
     socket.on("novoPedido_geral", (pedido) => {
-      if (pedido.restaurante_id === user.dados.restaurante.id_restaurante) {
+      console.log('📦 Novo pedido recebido:', pedido);
+      console.log('🏪 Pedido restaurante:', pedido.restaurante);
+      console.log('👤 User restaurante:', user?.dados?.restaurante?.id_restaurante);
+      
+      // ✅ CORREÇÃO: Usar o campo correto 'restaurante'
+      if (pedido.restaurante === user.dados.restaurante.id_restaurante) {
+        console.log('✅ Pedido é do restaurante do usuário, adicionando à lista');
+        
         setPedidos(prev => {
           const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
-          return jaExiste ? prev : [pedido, ...prev];
+          if (jaExiste) {
+            console.log('⚠️ Pedido já existe na lista');
+            return prev;
+          }
+          console.log('🆕 Adicionando novo pedido à lista');
+          return [pedido, ...prev];
         });
+      } else {
+        console.log('❌ Pedido não é do restaurante do usuário');
       }
     });
 
-    socket.on("statusAtualizado", ({ id, novoStatus }) => {
-      setPedidos(prev =>
-        prev.map(p =>
-          p.id_pedido === Number(id) ? { ...p, pag: novoStatus } : p
-        )
-      );
+
+  socket.on("statusAtualizado", ({ id, novoStatus }) => {
+      console.log('🔄 Status atualizado recebido:', { id, novoStatus });
+      
+      setPedidos(prev => {
+        const updated = prev.map(p => {
+          if (p.id_pedido === parseInt(id)) {
+            console.log('🔄 Atualizando status do pedido:', id, 'para:', novoStatus);
+            return { ...p, status: novoStatus }; // ✅ USAR novoStatus direto
+          }
+          return p;
+        });
+        return updated;
+      });
     });
 
     const fetchPedidos = async () => {
       try {
         const res = await fetch(`${API_URL}/pedidosGeral/`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
@@ -65,7 +125,6 @@ export default function ListaPedidos() {
     };
 
     fetchPedidos();
-
     return () => socket.disconnect();
   }, [API_URL, user, token, authLoading]);
 
@@ -73,10 +132,31 @@ export default function ListaPedidos() {
     try {
       const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
         method: 'PUT',
-        headers: { 
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        console.error('Erro ao atualizar status:', await response.text());
+        return;
+      }
+      const result = await response.json();
+      setPedidos(prev => prev.map(p => p.id_pedido === id ? { ...p, pag: result.pedido.pag } : p));
+    } catch (err) { console.error('Erro inesperado:', err); }
+  }
+
+  async function handleChangeStatus(id, statusAtual) {
+    try {
+      const indiceAtual = statusOrdem.findIndex(s => s.status_pedido === statusAtual);
+      const proximoStatus = indiceAtual < statusOrdem.length - 1
+        ? statusOrdem[indiceAtual + 1]
+        : statusOrdem[indiceAtual];
+
+      const response = await fetch(`${API_URL}/pedidosGeral/${id}/status`, {
+        method: 'PUT',
+        headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({ status_id: proximoStatus.id })
       });
 
       if (!response.ok) {
@@ -84,125 +164,44 @@ export default function ListaPedidos() {
         console.error('Erro ao atualizar status:', text);
         return;
       }
+
       const result = await response.json();
+
+      // Atualiza apenas o status do pedido no estado
       setPedidos(prev =>
-        prev.map(p => p.id_pedido === id ? { ...p, pag: result.pedido.pag } : p)
+        prev.map(p =>
+          p.id_pedido === id ? { ...p, status: proximoStatus.status_pedido } : p
+        )
       );
+
     } catch (err) {
       console.error('Erro inesperado:', err);
     }
   }
 
-  async function handleChangeStatus(id, statusAtual) {
-  try {
-    // encontra índice do status atual
-    const indiceAtual = statusOrdem.findIndex(s => s.status_pedido === statusAtual);
-    // define próximo status ou mantém último
-    const proximoStatus = indiceAtual < statusOrdem.length - 1
-      ? statusOrdem[indiceAtual + 1]
-      : statusOrdem[indiceAtual];
-
-    // envia apenas o id do status
-    const response = await fetch(`${API_URL}/pedidosGeral/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ status_id: proximoStatus.id }),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error('Erro ao atualizar status:', text);
-      return;
-    }
-
-    const result = await response.json();
-
-    // atualiza localmente
-    setPedidos(prev =>
-      prev.map(p =>
-        p.id_pedido === id ? { ...p, status: proximoStatus.status_pedido } : p
-      )
-    );
-
-  } catch (err) {
-    console.error('Erro inesperado:', err);
-  }
-}
-
-
-
-
-
-  const formatarData = (dataHora) => {
-    if (!dataHora) return "Sem data";
-    const data = new Date(dataHora);
-    if (isNaN(data.getTime())) return "Data inválida";
-    return data.toLocaleString("pt-br", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
-
-  const pedidosFiltrados = pedidos.filter(pedido => {
-    if (!filtroData) return true;
-    if (!pedido.data_hora) return false;
-    const pedidoData = new Date(pedido.data_hora).toISOString().slice(0, 10);
-    return pedidoData === filtroData;
-  });
 
   if (loading || authLoading) return <p>Carregando pedidos...</p>;
-  if (erro) return <p style={{ color: "red" }}>{erro}</p>;
+  if (erro) return <p style={{ color: 'red' }}>{erro}</p>;
 
   return (
-    <div>
-      <h1>Pedidos de {user.dados.restaurante.nome_restaurante}</h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <label>
-          Filtrar por dia:{" "}
-          <input
-            type="date"
-            value={filtroData}
-            onChange={(e) => setFiltroData(e.target.value)}
-          />
-        </label>
-      </div>
-
+    <div style={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
+      <HeaderPedidos user={user} filtroData={filtroData} setFiltroData={setFiltroData} />
+      <h2 style={{ marginBottom: '20px', color: '#333', fontSize: '24px', fontWeight: 'bold' }}>Pedidos do Dia</h2>
       {pedidosFiltrados.length === 0 ? (
-        <p>Nenhum pedido encontrado.</p>
+        <p style={{ textAlign: 'center', color: '#666', fontSize: '18px' }}>Nenhum pedido encontrado para esta data.</p>
       ) : (
-        <div style={{ display: "flex", justifyContent: "center", gap: "1px" }}>
-          {/* Coluna esquerda */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {pedidosFiltrados.filter((_, index) => index % 2 === 0).map(pedido => (
-              <PedidoCard
-                key={pedido.id_pedido}
-                pedido={pedido}
-                formatarData={formatarData}
-                handleChangepaymentstatus={handleChangepaymentstatus}
-                handleChangeStatus={handleChangeStatus}
-              />
-            ))}
-          </div>
-
-          {/* Coluna direita */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-            {pedidosFiltrados.filter((_, index) => index % 2 !== 0).map(pedido => (
-              <PedidoCard
-                key={pedido.id_pedido}
-                pedido={pedido}
-                formatarData={formatarData}
-                handleChangepaymentstatus={handleChangepaymentstatus}
-                handleChangeStatus={handleChangeStatus}
-              />
-            ))}
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
+          {pedidosFiltrados.map(pedido => (
+            <PedidoCard
+              key={pedido.id_pedido}
+              pedido={pedido}
+              numeroPedido={gerarNumeroPedido(pedido, pedidos)}
+              handleChangeStatus={handleChangeStatus}
+              handleChangepaymentstatus={handleChangepaymentstatus}
+              getStatusColor={getStatusColor}
+              formatarData={formatarData}
+            />
+          ))}
         </div>
       )}
     </div>

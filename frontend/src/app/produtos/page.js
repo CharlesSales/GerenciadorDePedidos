@@ -1,155 +1,266 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProdutoItem from '@/components/ProdutoItem';
 import { useCarrinho } from '@/context/CarrinhoContext';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Produtos() {
-  const { produtos, handleAdd, handleRemove } = useCarrinho();
+  const { produtos, handleAdd, handleRemove, carrinho, calcularTotal, limparCarrinho } = useCarrinho();
+  const { user } = useAuth();
   const router = useRouter();
-  const [filtro, setFiltro] = useState("");
-  const [coluna, setColuna] = useState("nome");
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
+  const [filtro, setFiltro] = useState('');
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
 
   // categorias únicas
   const categorias = [...new Set(produtos.map(p => p.categoria.categoria_nome))];
 
-  // aplica filtros
+  // produtos filtrados
   const produtosFiltrados = produtos.filter(produto => {
     const passaCategoria = categoriaSelecionada ? produto.categoria.categoria_nome === categoriaSelecionada : true;
-    const passaBusca = filtro
-      ? produto[coluna]?.toLowerCase().includes(filtro.toLowerCase())
-      : true;
+    const passaBusca = filtro ? produto.nome.toLowerCase().includes(filtro.toLowerCase()) : true;
     return passaCategoria && passaBusca;
   });
 
+  const total = calcularTotal();
+
+  // função para redirecionar home conforme o cargo
+  const redirecionarParaHome = () => {
+    if (!user) {
+      router.push('/');
+      return;
+    }
+    const isAdmin = user.isAdmin || user.dados?.cargo === 1;
+    router.push(isAdmin ? '/admin' : '/funcionario');
+  };
+
   return (
-    <div style={{ paddingTop: '100px' }}>
-    {/* Filtros no topo */}
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        borderBottom: '1px solid #eee',
-        padding: '15px',
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '10px',
-        zIndex: 1000
+        height: '100vh',
+        width: '100%',
+        overflow: 'hidden',
+        backgroundColor: '#f8f9fa',
       }}
     >
-      {/* Linha com input e botão do carrinho */}
+      {/* === 25% - FILTROS LATERAIS === */}
       <div
         style={{
+          width: '10%',
+          borderRight: '1px solid #ddd',
+          backgroundColor: '#fff',
+          padding: '20px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-          width: '100%',
+          gap: '15px',
+          overflowY: 'auto',
         }}
       >
-        <input
-          type="text"
-          placeholder="Buscar produto..."
-          value={filtro}
-          onChange={(e) => setFiltro(e.target.value)}
-          style={{
-            width: '80%',
-            maxWidth: '400px',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '6px',
-            textAlign: 'center'
-          }}
-        />
+       
 
-        {/* Botão do carrinho */}
-        <button
-          onClick={() => router.push('/carrinho')}
+        {/* Botões de categoria */}
+        <div
           style={{
-            backgroundColor: '#ff4d4d',
-            color: 'white',
-            fontSize: '20px',
-            padding: '10px 14px',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
+            marginTop: '20px',
           }}
         >
-          🛒
-        </button>
-      </div>
-
-      {/* Botões de categoria */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          overflowX: 'auto',
-          width: '100%',
-          justifyContent: 'center'
-        }}
-      >
-        <button
-          onClick={() => setCategoriaSelecionada("")}
-          style={{
-            padding: '6px 14px',
-            borderRadius: '20px',
-            border: '1px solid #ddd',
-            backgroundColor:
-              categoriaSelecionada === "" ? '#ff4d4d' : '#f9f9f9',
-            color: categoriaSelecionada === "" ? '#fff' : '#000',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          Todos
-        </button>
-        {categorias.map((cat) => (
           <button
-            key={cat}
-            onClick={() => setCategoriaSelecionada(cat)}
+            onClick={() => setCategoriaSelecionada('')}
             style={{
-              padding: '6px 14px',
+              padding: '8px',
               borderRadius: '20px',
               border: '1px solid #ddd',
-              backgroundColor:
-                categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
-              color: categoriaSelecionada === cat ? '#fff' : '#000',
+              backgroundColor: categoriaSelecionada === '' ? '#ff4d4d' : '#f9f9f9',
+              color: categoriaSelecionada === '' ? '#fff' : '#000',
               cursor: 'pointer',
-              whiteSpace: 'nowrap'
+              width: '100%',
             }}
           >
-            {cat}
+            Todos
           </button>
-        ))}
+          {categorias.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoriaSelecionada(cat)}
+              style={{
+                padding: '8px',
+                borderRadius: '20px',
+                border: '1px solid #ddd',
+                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
+                color: categoriaSelecionada === cat ? '#fff' : '#000',
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {/* === 50% - PRODUTOS === */}
+      <div
+        style={{
+          width: '70%',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Campo de busca fixo */}
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            backgroundColor: '#fff',
+            padding: '10px',
+            zIndex: 10,
+            borderBottom: '1px solid #ddd',
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Buscar produto..."
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+            style={{
+              width: '90%',
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '8px',
+              textAlign: 'center',
+            }}
+          />
+          <button
+            onClick={redirecionarParaHome}
+            style={{
+              marginLeft: '22px', 
+              backgroundColor: '#f5f5f5',
+              right: '5px',
+              fontSize: '15px',
+              padding: '11px',
+              borderRadius: '50%',
+              border: '1px solid #ccc',
+              cursor: 'pointer',
+            }}
+          >
+            🏠︎
+          </button>
+        </div>
+
+        {/* Lista de produtos */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '15px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '10px',
+            justifyItems: 'center',
+          }}
+        >
+          {produtosFiltrados.map((produto) => (
+            <ProdutoItem
+              key={produto.id_produto}
+              produto={produto}
+              adicionarAoCarrinho={handleAdd}
+              removeDoCarrinho={handleRemove}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* === 25% - CARRINHO FIXO === */}
+      <div
+        style={{
+          width: '20%',
+          borderLeft: '1px solid #ddd',
+          backgroundColor: '#fff',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflowY: 'auto',
+        }}
+      >
+        <h2 style={{textAlign: 'center' }}>🛒 Carrinho</h2>
+
+        {/* Lista de itens */}
+        <div style={{ flex: 1, overflowY: 'auto', marginTop: '25px' }}>
+          {carrinho.length === 0 ? (
+            <p style={{ marginTop: '80%', textAlign: 'center', color: '#777' }}>Carrinho vazio</p>
+          ) : (
+            carrinho.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  border: '1px solid #000000ff',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  marginBottom: '10px',
+                }}
+              >
+                <strong>{item.nome}</strong>
+                <p style={{ margin: '4px 0' }}>
+                  R$ {item.preco.toFixed(2)} x {item.quantidade}
+                </p>
+                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                  <button onClick={() => handleRemove(item.id_produto)}>➖</button>
+                  <button onClick={() => handleAdd(item)}>➕</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Total e ações */}
+        <div style={{ borderTop: '1px solid #eee', paddingTop: '10px' }}>
+          <h3 style={{ textAlign: 'center', color: '#28a745' }}>
+            Total: R$ {total.toFixed(2)}
+          </h3>
+          <button
+            onClick={() => limparCarrinho()}
+            style={{
+              backgroundColor: '#6c757d',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px',
+              width: '100%',
+              marginTop: '10px',
+              cursor: 'pointer',
+            }}
+          >
+            Limpar Carrinho
+          </button>
+          <button
+            onClick={() => router.push('/confirmacao')}
+            style={{
+              backgroundColor: '#28a745',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px',
+              width: '100%',
+              marginTop: '10px',
+              cursor: 'pointer',
+            }}
+          >
+            Finalizar Pedido
+          </button>
+        </div>
       </div>
     </div>
-
-    {/* Lista de produtos */}
-    <div
-      style={{
-        padding: '20px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-        gap: '20px'
-      }}
-    >
-      {produtosFiltrados.map((produto) => (
-        <ProdutoItem
-          key={produto.id_produto}
-          produto={produto}
-          adicionarAoCarrinho={handleAdd}
-          removeDoCarrinho={handleRemove}
-        />
-      ))}
-    </div>
-  </div>
-
   );
 }

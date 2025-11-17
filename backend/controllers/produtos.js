@@ -13,7 +13,7 @@ export async function listarProdutos(req, res) {
     const cacheKey = 'produtos_list';
     const cached = cache.get(cacheKey);
 
-     // Verificar cache
+    // Verificar cache
     if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
       console.log('📦 Produtos servidos do cache');
       return res.json(cached.data);
@@ -91,6 +91,89 @@ export async function listarProdutos(req, res) {
 
   } catch (err) {
     console.error("❌ Erro:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function listarProdutosPorRestaurante(req, res) {
+  try {
+    const { restauranteId } = req.params;
+    console.log('🏪 ID recebido:', restauranteId, 'Tipo:', typeof restauranteId);
+
+    // 🔍 DEBUG: Verificar se existem restaurantes
+    const { data: todosRestaurantes, error: debugError } = await supabase
+      .from('restaurante')
+      .select('id_restaurante, nome_restaurante');
+    
+    console.log('🔍 RESTAURANTES NO BANCO:', todosRestaurantes);
+
+    if (!todosRestaurantes || todosRestaurantes.length === 0) {
+      return res.status(404).json({ 
+        error: 'Nenhum restaurante encontrado no banco de dados',
+        codigo: 'NENHUM_RESTAURANTE'
+      });
+    }
+
+    // Converter para número
+    const restauranteIdNum = parseInt(restauranteId, 10);
+    console.log('🔍 Buscando restaurante ID:', restauranteIdNum);
+
+    // ✅ BUSCAR RESTAURANTE ESPECÍFICO
+    const { data: restaurante, error: restauranteError } = await supabase
+      .from('restaurante')
+      .select('id_restaurante, nome_restaurante, estado, cidade')
+      .eq('id_restaurante', restauranteIdNum)
+      .single();
+
+    console.log('🔍 RESULTADO DA BUSCA:', restaurante);
+    console.log('🔍 ERRO:', restauranteError);
+
+    if (restauranteError || !restaurante) {
+      return res.status(404).json({ 
+        error: 'Restaurante não encontrado',
+        codigo: 'RESTAURANTE_NAO_ENCONTRADO',
+        debug: {
+          idBuscado: restauranteIdNum,
+          restaurantesDisponiveis: todosRestaurantes.map(r => r.id_restaurante)
+        }
+      });
+    }
+
+    // ✅ BUSCAR PRODUTOS DO RESTAURANTE
+    const { data: produtos, error: produtosError } = await supabase
+      .from('produtos')
+      .select(`
+        id_produto,
+        nome,
+        descricao,
+        preco,
+        imagem,
+        cozinha,
+        estoque,
+        restaurante,
+        categoria(categoria_nome)
+      `)
+      .eq('restaurante', restauranteIdNum)
+      // .eq('estoque', true);
+
+    if (produtosError) {
+      console.error('❌ Erro ao buscar produtos:', produtosError);
+      return res.status(500).json({ error: produtosError.message });
+    }
+
+    console.log(`✅ ${produtos?.length || 0} produtos encontrados`);
+
+    res.json({
+      restaurante: {
+        id: restaurante.id_restaurante,
+        nome: restaurante.nome_restaurante
+      },
+      produtos: produtos || [],
+      total: produtos?.length || 0
+    });
+
+  } catch (err) {
+    console.error("❌ ERRO:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -276,7 +359,7 @@ produto
       return res.status(500).json({ error: "Erro ao atualizar produtos" });
     }
 
-   
+  
     res.json({ message: "Funcionário atualizado com sucesso!", produtos: data[0] });
   } catch (err) {
     console.error(err);

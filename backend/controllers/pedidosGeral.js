@@ -2,6 +2,9 @@ import { supabase } from "../supabaseClient.js"
 import { io } from "../server.js"   // 👈 importa o socket
 import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
+import ZApiService from "../service/zapiService.js";
+import MensagemPedidoService from "../service/mensagemPedidoService.js";
+
 
 export async function listarPedidos(req, res) {
   try {
@@ -66,18 +69,6 @@ export const listarPedidosPorRestaurante = async (id_restaurante) => {
 };
 
 
-/*
-export async function listarPedidos(req, res) {
-  const { data, error } = await supabase
-    .from("pedidos_geral")
-    .select("*")
-    .order("data_hora", { ascending: false })
-
-  if (error) return res.status(500).json({ error: error.message })
-  res.json(data)
-}
-
-*/
 export async function cadastrarPedidos(req, res) {
   const { cliente, funcionario, casa, itens, total, obs, restauranteid } = req.body;
 
@@ -92,6 +83,127 @@ export async function cadastrarPedidos(req, res) {
         pedidos: JSON.stringify(itens),
         nome_cliente: cliente,
         funcionario,
+        casa,
+        detalhe: obs,
+        total,
+        restaurante: restauranteid
+      }])
+      .select();
+
+    if (error) throw error;
+
+    const novoPedido = data[0];
+
+    const { data: restauranteData } = await supabase
+      .from("restaurante")
+      .select("nome_restaurante, telefone_whatsapp, notificacao_whatsapp")
+      .eq("id_restaurante", restauranteid)
+      .single();
+
+    // Emite Socket.IO
+    try {
+      io.emit("novoPedido_geral", novoPedido);
+    } catch (err) {
+      console.error("Falha no Socket.IO:", err.message);
+    }
+
+    // ✅ ENVIAR WHATSAPP PARA O RESTAURANTE (SEM FILTRO)
+    if (restauranteData?.telefone_whatsapp && restauranteData?.notificacao_whatsapp) {
+      try {
+        console.log('📤 Enviando WhatsApp para restaurante:', restauranteData.nome_restaurante);
+        
+        const mensagem = MensagemPedidoService.formatarPedidoCompleto(
+          novoPedido, 
+          restauranteData
+        );
+
+        const resultadoWhatsApp = await ZApiService.enviarMensagem(
+          restauranteData.telefone_whatsapp,
+          mensagem
+        );
+
+        console.log('✅ WhatsApp enviado com sucesso para:', restauranteData.telefone_whatsapp);
+        console.log('📱 Resultado Z-API:', resultadoWhatsApp);
+
+      } catch (whatsappError) {
+        console.error('❌ Erro ao enviar WhatsApp:', whatsappError);
+        // Não falha o pedido se WhatsApp der erro
+      }
+    } else {
+      console.log('⚠️ WhatsApp não configurado para restaurante:', restauranteData?.nome_restaurante);
+      console.log('📱 Telefone:', restauranteData?.telefone_whatsapp);
+      console.log('🔔 Notificação ativa:', restauranteData?.notificacao_whatsapp);
+    }
+
+    // Notificação push para todos funcionários do restaurante, exceto quem fez o pedido
+    try {
+      // Busca todos funcionários do restaurante com expo_token
+      const { data: funcionariosRestaurante } = await supabase
+        .from("funcionario")
+        .select("expo_token, id_funcionario")
+        .eq("restaurante", restauranteid)
+        .not("expo_token", "is", null);
+
+      // Filtra para não notificar quem fez o pedido
+    const tokens = (funcionariosRestaurante ?? [])
+    .filter(f => f.id_funcionario !== novoPedido.funcionario)
+    .map(f => f.expo_token);
+
+      // Busca todos pedidos pendentes do restaurante
+      const { data: pedidosPendentes } = await supabase
+        .from("pedidos_geral")
+        .select("nome_cliente, pedidos, detalhe")
+        .eq("restaurante", restauranteid)
+        .eq("status", "pendente")
+        .order("data_hora", { ascending: true });
+
+      // Monta mensagem com lista de pedidos
+      const pedidosMsg = pedidosPendentes?.map(p =>
+        `#${p.nome_cliente}: ${p.pedidos} ${p.detalhe ? " (" + p.detalhe + ")" : ""}`
+      ).join("\n");
+
+      const messages = tokens.map(token => ({
+        to: token,
+        sound: "default",
+        title: "Novo pedido!",
+        body: pedidosMsg || "Nenhum pedido pendente.",
+        data: { pedidoId: novoPedido.id_pedido }
+      }));
+
+      if (messages.length > 0) {
+        await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(messages)
+        });
+      }
+    } catch (err) {
+      console.error("Falha na notificação push:", err.message);
+    }
+
+    return res.status(200).json({ message: "Pedido salvo com sucesso!", pedido: novoPedido });
+
+  } catch (err) {
+    console.error("Erro ao cadastrar pedido:", err.message);
+    return res.status(500).json({ error: "Erro interno ao cadastrar pedido" });
+  }
+}
+
+// aqui termina
+export async function cadastrarPedidosCliente(req, res) {
+  const { mesa, cliente, casa, itens, total, obs, restauranteid } = req.body;
+
+  if (!restauranteid) {
+    return res.status(400).json({ error: "ID do restaurante é obrigatório" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("pedidos_geral")
+      .insert([{
+        pedidos: JSON.stringify(itens),
+        nome_cliente: cliente,
+        mesa,
         casa,
         detalhe: obs,
         total,
@@ -164,6 +276,228 @@ export async function cadastrarPedidos(req, res) {
   }
 }
 
+export async function cadastrarPedidosDelivery(req, res) {
+  const { 
+    cliente, 
+    logradouro, 
+    numero, 
+    bairro, 
+    cidade, 
+    complemento, 
+    referencia, 
+    itens, 
+    obs, 
+    total, 
+    restauranteid, 
+  } = req.body;
+
+  console.log('📦 Dados recebidos para delivery:', {
+    cliente, logradouro, numero, bairro, cidade, complemento, 
+    referencia, itens: itens?.length, obs, total, restauranteid
+  });
+
+  if (!restauranteid) {
+    return res.status(400).json({ error: "ID do restaurante é obrigatório" });
+  }
+
+  if (!itens || !Array.isArray(itens) || itens.length === 0) {
+    return res.status(400).json({ error: "Itens do pedido são obrigatórios" });
+  }
+
+  if (!cliente || !logradouro || !numero || !bairro || !cidade) {
+    return res.status(400).json({ error: "Dados de endereço são obrigatórios" });
+  }
+
+  try {
+    // 1️⃣ SALVAR ENDEREÇO
+    console.log('📍 Salvando endereço...');
+    const { data: enderecoData, error: enderecoError } = await supabase
+      .from("endereco")
+      .insert([{
+        logradouro: logradouro || '',
+        numero: numero || '',
+        bairro: bairro || '',
+        cidade: cidade || '',
+        complemento: complemento || '',
+        referencia: referencia || ''
+      }])
+      .select()
+      .single();
+
+    if (enderecoError) {
+      console.error('❌ Erro ao salvar endereço:', enderecoError);
+      throw enderecoError;
+    }
+
+    const enderecoId = enderecoData.id_endereco;
+    console.log('✅ Endereço salvo com ID:', enderecoId);
+
+    // 2️⃣ SALVAR PEDIDO PRINCIPAL COM ENDEREÇO VINCULADO
+    console.log('📝 Salvando pedido principal...');
+    
+    // ✅ CRIAR ENDEREÇO RESUMIDO PARA O CAMPO 'casa'
+    const enderecoResumo = `${logradouro}, ${numero} - ${bairro}, ${cidade}`;
+    
+    const { data: pedidoData, error: pedidoError } = await supabase
+      .from("pedidos_geral")
+      .insert([{
+        pedidos: JSON.stringify(itens), // ✅ MANTER COMPATIBILIDADE
+        nome_cliente: cliente,
+        detalhe: obs || '',
+        total: Number(total) || 0,
+        status: 1, // ✅ STATUS INICIAL (ID do status)
+        data_hora: new Date().toISOString(),
+        restaurante: restauranteid,
+        funcionario: 17, // ✅ ID funcionário padrão para pedidos externos
+        casa: enderecoResumo, // ✅ ENDEREÇO RESUMIDO NO CAMPO EXISTENTE
+        id_endereco: enderecoData.id_endereco,
+        pag: 'nao' // ✅ STATUS DE PAGAMENTO INICIAL
+      }])
+      .select()
+      .single();
+
+    if (pedidoError) {
+      console.error('❌ Erro ao salvar pedido:', pedidoError);
+      throw pedidoError;
+    }
+
+    const pedidoId = pedidoData.id_pedido;
+    console.log('✅ Pedido salvo com ID:', pedidoId);
+
+    // 3️⃣ SALVAR ITENS DO PEDIDO
+    console.log('📦 Salvando itens do pedido...');
+    const itensFormatados = itens.map((item) => ({
+      id_pedido: pedidoId, // ✅ CAMPO CORRETO
+      id_produto: item.produto_id || item.id_produto, // ✅ FLEXIBILIDADE
+      quantidade: Number(item.quantidade) || 1,
+      preco_unitario: Number(item.preco) || 0,
+      observacao: item.observacao || obs || 'sem observacao'
+    }));
+
+    console.log('📦 Itens formatados:', itensFormatados);
+
+    const { data: itensData, error: itensError } = await supabase
+      .from("pedido_item") // ✅ TABELA CORRETA
+      .insert(itensFormatados)
+      .select();
+
+    if (itensError) {
+      console.error('❌ Erro ao salvar itens:', itensError);
+      throw itensError;
+    }
+
+    console.log('✅ Itens salvos:', itensData?.length);
+
+    // 4️⃣ BUSCAR DADOS DO RESTAURANTE
+    const { data: restauranteData } = await supabase
+      .from("restaurante")
+      .select("nome_restaurante, telefone_whatsapp, notificacao_whatsapp")
+      .eq("id_restaurante", restauranteid)
+      .single();
+
+    // 5️⃣ EMITIR SOCKET.IO COM DADOS COMPLETOS
+    try {
+      console.log('📡 Emitindo Socket.IO...');
+      
+      const dadosCompletos = {
+        ...pedidoData,
+        endereco_completo: enderecoData, // ✅ ENDEREÇO COMPLETO
+        itens_detalhados: itensData,     // ✅ ITENS DETALHADOS
+        restaurante_nome: restauranteData?.nome_restaurante,
+        tipo: 'delivery' // ✅ IDENTIFICAR TIPO
+      };
+
+      io.emit("novoPedido_geral", dadosCompletos);
+      
+      console.log('✅ Socket.IO emitido com sucesso');
+    } catch (socketError) {
+      console.error("❌ Erro no Socket.IO:", socketError.message);
+    }
+
+    // 6️⃣ ENVIAR WHATSAPP PARA O RESTAURANTE
+    // if (restauranteData?.telefone_whatsapp && restauranteData?.notificacao_whatsapp) {
+    //   try {
+    //     console.log('📱 Enviando WhatsApp...');
+        
+    //     const itensTexto = itens.map(item => 
+    //       `${item.quantidade}x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`
+    //     ).join('\n');
+
+    //     const mensagem = `🚚 *NOVO PEDIDO DELIVERY* #${pedidoId}\n\n` +
+    //       `👤 Cliente: ${cliente}\n` +
+    //       `📍 Endereço: ${enderecoResumo}\n` +
+    //       `${complemento ? `🏠 Complemento: ${complemento}\n` : ''}` +
+    //       `${referencia ? `📍 Referência: ${referencia}\n` : ''}` +
+    //       `💰 Total: R$ ${Number(total).toFixed(2)}\n\n` +
+    //       `📦 Itens:\n${itensTexto}\n\n` +
+    //       `${obs ? `📝 Observações: ${obs}\n\n` : ''}` +
+    //       `🕐 ${new Date().toLocaleString('pt-BR')}\n\n` +
+    //       `⚡ *DELIVERY - ENTREGAR NO ENDEREÇO ACIMA*`;
+
+        // await ZApiService.enviarMensagem(
+        //   restauranteData.telefone_whatsapp,
+        //   mensagem
+        // );
+
+    //     console.log('✅ WhatsApp enviado com sucesso');
+    //   } catch (whatsappError) {
+    //     console.error('❌ Erro ao enviar WhatsApp:', whatsappError);
+    //     // Não falha o pedido se WhatsApp der erro
+    //   }
+    // }
+
+    // 7️⃣ NOTIFICAÇÃO PUSH
+    try {
+      const { data: funcionariosRestaurante } = await supabase
+        .from("funcionario")
+        .select("expo_token, id_funcionario")
+        .eq("restaurante", restauranteid)
+        .not("expo_token", "is", null);
+
+      const tokens = (funcionariosRestaurante ?? []).map(f => f.expo_token);
+
+      const messages = tokens.map(token => ({
+        to: token,
+        sound: "default",
+        title: "🚚 Novo Pedido Delivery!",
+        body: `${cliente} - ${enderecoResumo} - R$ ${Number(total).toFixed(2)}`,
+        data: { 
+          pedidoId: pedidoId,
+          tipo: 'delivery',
+          endereco: enderecoResumo,
+          enderecoId: enderecoId
+        }
+      }));
+
+      if (messages.length > 0) {
+        await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(messages)
+        });
+        console.log('✅ Notificações push enviadas');
+      }
+    } catch (pushError) {
+      console.error("❌ Erro na notificação push:", pushError.message);
+    }
+
+    return res.status(200).json({
+      message: "Pedido de delivery cadastrado com sucesso!",
+      pedido: pedidoData,
+      endereco: enderecoData,
+      itens: itensData,
+      enderecoId: enderecoId // ✅ RETORNAR ID DO ENDEREÇO
+    });
+
+  } catch (err) {
+    console.error("❌ Erro ao cadastrar pedido delivery:", err);
+    return res.status(500).json({ 
+      error: "Erro interno ao cadastrar pedido",
+      details: err.message 
+    });
+  }
+}
+
 export async function editarPedidos(req, res) {
   const { id } = req.params
 
@@ -218,17 +552,13 @@ export const atualizarStatusPedido = async (req, res) => {
 
     // Atualiza o status do pedido
     const { data, error } = await supabase
-      .from('pedidos')
-      .update({ status_id })
-      .eq('id', id)
-      .select(`
-        id,
-        cliente_id,
-        status_pedidos (nome)
-      `)
-      .single();
+    .from('pedidos_geral') // CORRIGIDO
+    .update({ status: status_id }) // se no `pedidos_geral` o campo é `status`
+    .eq('id_pedido', id) // id correto
+    .select()
+    .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
     res.status(200).json({
       message: 'Status do pedido atualizado com sucesso!',

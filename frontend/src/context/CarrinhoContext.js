@@ -151,10 +151,37 @@ export function CarrinhoProvider({ children }) {
     });
   };
 
-  const removerDoCarrinho = (produtoId) => {
-    console.log('➖ Removendo do carrinho:', produtoId);
-    setCarrinho(prevCarrinho => prevCarrinho.filter(item => item.id_produto !== produtoId));
+  const diminuirQuantidate = (produtoId) => {
+  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+
+    setCarrinho(prevCarrinho => {
+      return prevCarrinho
+        .map(item => {
+          if (item.id_produto === produtoId) {
+            // Diminui a quantidade do produto
+            return { ...item, quantidade: quantidade - 1 };
+          }
+          return item;
+        })
+    });
   };
+  const removerDoCarrinho = (produtoId) => {
+  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+
+  setCarrinho(prevCarrinho => {
+    return prevCarrinho
+      .map(item => {
+        if (item.id_produto === produtoId) {
+          // Diminui a quantidade do produto
+          return { ...item, quantidade: 0 };
+        }
+        return item;
+      })
+      // Remove completamente se a quantidade for 0 ou menor
+      .filter(item => item.quantidade > 0);
+  });
+};
+
 
   const alterarQuantidade = (produtoId, novaQuantidade) => {
     if (novaQuantidade <= 0) {
@@ -191,12 +218,14 @@ export function CarrinhoProvider({ children }) {
         loading: true,
         adicionarAoCarrinho: () => {},
         removerDoCarrinho: () => {},
+        diminuirQuantidate: () => {},
         alterarQuantidade: () => {},
         limparCarrinho: () => {},
         calcularTotal: () => 0,
         carregarProdutos: () => {},
         handleAdd: () => {},
         handleRemove: () => {},
+        handleClearProduto: () => {},
         handleClear: () => {}
       }}>
         {children}
@@ -211,12 +240,14 @@ export function CarrinhoProvider({ children }) {
       loading,
       adicionarAoCarrinho,
       removerDoCarrinho,
+      diminuirQuantidate,
       alterarQuantidade,
       limparCarrinho,
       calcularTotal,
       carregarProdutos,
       handleAdd: adicionarAoCarrinho,
       handleRemove: removerDoCarrinho,
+      handleClearProduto: diminuirQuantidate,
       handleClear: limparCarrinho
     }}>
       {children}

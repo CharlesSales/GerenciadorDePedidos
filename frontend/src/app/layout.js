@@ -2,10 +2,10 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { CarrinhoProvider } from "../context/CarrinhoContext";
 import { RestauranteProvider } from "../context/RestauranteContext";
-import Header from "../components/Header";
+// import Header from "../components/Header";
 
 export const metadata = {
-  title: "Sales Manager",
+  title: "FoodFlow",
   description: "Sistema de pedidos e gestão de restaurante",
 };
 
@@ -17,7 +17,6 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CarrinhoProvider>
             <RestauranteProvider>
-              <Header />
               {children}
             </RestauranteProvider>
           </CarrinhoProvider>
