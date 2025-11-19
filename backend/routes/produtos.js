@@ -5,7 +5,8 @@ import {
   buscarProdutoPorId,
   listarProdutosPorRestaurante,
   editarprodutos, 
-  cadastrarProdutos
+  cadastrarProdutos,
+  deletarProduto
 } from '../controllers/produtos.js';
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.get("/restaurante/:restauranteId", listarProdutosPorRestaurante)
 router.put("/:id/:campo/:novoValor", editarprodutos);
 router.post("/", upload.single("imagem"), cadastrarProdutos);
 router.get('/:id', buscarProdutoPorId);
+router.delete('/:id', deletarProduto)
 
 export default router;

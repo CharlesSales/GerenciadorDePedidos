@@ -3,7 +3,7 @@ import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
+export default function HeaderPedidos({ user, filtroData, setFiltroData, filtroPeriodo, setFiltroPeriodo }) {
   const { user: userA } = useAuth();
   const router = useRouter();
 
@@ -13,15 +13,11 @@ export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
       return;
     }
 
-    // Verificar se é admin
     const isAdmin = userA.isAdmin || userA.dados?.cargo === 1;
 
-    if (isAdmin) {
-      router.push('/admin'); // Página de admin
-    } else {
-      router.push('/funcionario'); // Página de funcionário
-    }
-  }
+    if (isAdmin) router.push('/admin');
+    else router.push('/funcionario');
+  };
 
   return (
     <div style={{
@@ -34,7 +30,8 @@ export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
       borderRadius: '10px',
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
     }}>
-      {/* Lado esquerdo - Info do restaurante */}
+
+      {/* ESQUERDA */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
         <div style={{
           width: '50px',
@@ -49,17 +46,41 @@ export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
           🍽️
         </div>
         <div>
-          <h1 style={{ margin: 0, color: '#333' }}>{user?.dados?.restaurante?.nome_restaurante || 'Restaurant'}</h1>
-          <p style={{ margin: 0, color: '#666' }}>Pedidos do dia</p>
+          <h1 style={{ margin: 0 }}>{user?.dados?.restaurante?.nome_restaurante || 'Restaurante'}</h1>
+          <p style={{ margin: 0, color: '#666' }}>Painel de pedidos</p>
         </div>
       </div>
 
-      {/* Lado direito - Calendário e botão home */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center',
-        gap: '15px' 
-      }}>
+      {/* DIREITA */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        
+        {/* FILTROS */}
+        <div style={{
+          display: "flex",
+          gap: "10px",
+          flexWrap: "wrap",
+          marginRight: "20px"
+        }}>
+          {["dia", "semana", "mes", "todos"].map((tipo) => (
+            <button
+              key={tipo}
+              onClick={() => setFiltroPeriodo(tipo)}
+              style={{
+                padding: "10px 18px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: filtroPeriodo === tipo ? "#2563eb" : "#e5e7eb",
+                color: filtroPeriodo === tipo ? "white" : "black",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              {tipo.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {/* CALENDÁRIO */}
         <input
           type="date"
           value={filtroData}
@@ -71,14 +92,14 @@ export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
             fontSize: '14px'
           }}
         />
-        
+
+        {/* BOTÃO HOME */}
         <button
           onClick={redirecionarParaHome}
           style={{
             backgroundColor: 'transparent',
-            color: 'black',
-            fontSize: '20px',
-            padding: '10px 14px',
+            fontSize: '22px',
+            padding: '10px',
             borderRadius: '50%',
             border: 'none',
             cursor: 'pointer',
@@ -87,7 +108,9 @@ export default function HeaderPedidos({ user, filtroData, setFiltroData }) {
         >
           🏠︎
         </button>
+
       </div>
+
     </div>
   );
 }

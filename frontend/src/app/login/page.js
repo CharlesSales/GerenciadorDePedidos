@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [loginMode, setLoginMode] = useState('usuario');
   const [rememberMe, setRememberMe] = useState(false);
 
+  const usuarioFormatado = formData.usuario.trim().replace(/\s+/g, '');
+  const senhaFormatada = formData.senha.trim();
+
+
   const { login, user } = useAuth();
   const router = useRouter();
 
@@ -62,7 +66,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
       if (loginMode === 'usuario') {
         if (!formData.usuario || !formData.senha) {
@@ -71,14 +75,14 @@ export default function LoginPage() {
         }
 
         console.log('📝 Tentativa de login funcionário/restaurante:', formData.usuario);
-        
-        let result = await login(formData.usuario, formData.senha, 'funcionario');
-        
+
+        let result = await login(usuarioFormatado, senhaFormatada, 'funcionario');
+
         if (!result.success) {
           console.log('🔄 Tentando como restaurante...');
-          result = await login(formData.usuario, formData.senha, 'restaurante');
+          result = await login(usuarioFormatado, senhaFormatada, 'restaurante');
         }
-        
+
         if (result.success) {
           console.log('✅ Login realizado com sucesso!');
         } else {
@@ -113,7 +117,7 @@ export default function LoginPage() {
       overflow: 'hidden',
       padding: '20px'
     }}>
-      
+
       {/* Background Pattern */}
       <div style={{
         position: 'absolute',
@@ -142,7 +146,7 @@ export default function LoginPage() {
         boxShadow: '0 25px 45px rgba(0, 0, 0, 0.3)',
         zIndex: 2
       }}>
-        
+
         {/* Logo e Título DENTRO do card */}
         <div style={{
           textAlign: 'center',
@@ -186,7 +190,7 @@ export default function LoginPage() {
             Management
           </p>
         </div>
-        
+
         {/* Abas de Perfil */}
         <div style={{
           display: 'flex',
@@ -220,7 +224,7 @@ export default function LoginPage() {
           >
             Funcionário
           </button>
-          
+
           <button
             type="button"
             onClick={() => {
@@ -442,7 +446,7 @@ export default function LoginPage() {
             style={{
               width: '100%',
               padding: '15px',
-              background: isLoading 
+              background: isLoading
                 ? 'rgba(149, 165, 166, 0.8)'
                 : 'linear-gradient(135deg, #c0392b 0%, #e74c3c 100%)',
               color: 'white',

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
 export default function AtualizarProdutos() {
@@ -12,21 +12,52 @@ export default function AtualizarProdutos() {
   const [novoValor, setNovoValor] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [mensagem, setMensagem] = useState('');
-  const [isHydrated, setIsHydrated] = useState(false);  // ✅ CONTROLE DE HIDRATAÇÃO
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [produtoNome, setProdutoNome] = useState(''); // ✅ NOVO: Nome do produto
 
-
-  const [cargos, setCargos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [restaurantes, setRestaurantes] = useState([]);
 
-  const camposDisponiveis = ['nome', 'descricao', 'preco', 'imagem', 'cozinha', 'estoque', 'restaurante', 'categoria'];
+  const camposDisponiveis = ['nome', 'descricao', 'preco', 'imagem', 'cozinha', 'estoque', 'categoria'];
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
-  // ✅ CONTROLAR HIDRATAÇÃO
+  const searchParams = useSearchParams();
+  const idFromUrl = searchParams.get('id');
+
+  useEffect(() => {
+    if (idFromUrl) {
+      setId(idFromUrl);
+      // ✅ BUSCAR NOME DO PRODUTO
+      buscarProduto(idFromUrl);
+    }
+  }, [idFromUrl]);
+
+  // ✅ FUNÇÃO PARA BUSCAR DADOS DO PRODUTO
+  const buscarProduto = async (produtoId) => {
+    try {
+      const response = await fetch(`${API_URL}/produtos/${produtoId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const produto = await response.json();
+        setProdutoNome(produto.nome || 'Produto não encontrado');
+      } else {
+        setProdutoNome('Produto não encontrado');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar produto:', error);
+      setProdutoNome('Erro ao carregar produto');
+    }
+  };
+
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // ✅ VERIFICAR AUTENTICAÇÃO APÓS HIDRATAÇÃO
   useEffect(() => {
     if (isHydrated && !loading) {
       console.log('🔍 Verificando autenticação:', {
@@ -45,67 +76,72 @@ export default function AtualizarProdutos() {
     }
   }, [isHydrated, loading, isAuthenticated, token, user, router]);
 
-  // ✅ VERIFICAR AUTENTICAÇÃO APÓS HIDRATAÇÃO (CONTINUAÇÃO)
+  // ✅ BUSCAR CATEGORIAS E RESTAURANTES
   useEffect(() => {
-    if (isHydrated && !loading) {
-      console.log('🔍 Verificando autenticação:', {
-        isAuthenticated,
-        hasToken: !!token,
-        hasUser: !!user
-      });
-
-      if (!isAuthenticated || !token) {
-        console.log('❌ Usuário não autenticado, redirecionando...');
-        router.push('/login');
-        return;
-      }
-
-      console.log('✅ Usuário autenticado:', user?.dados?.nome);
-    }
-  }, [isHydrated, loading, isAuthenticated, token, user, router]);
-
-
-  // Buscar cargos e restaurantes ao montar o componente
-   useEffect(() => {
     const fetchDados = async () => {
       try {
-        const resCargos = await fetch(`${API_URL}/produtos`);
-        const dataCargos = await resCargos.json();
-        setCargos(dataCargos.map(c => ({ ...c, nome_cargo: c.nome_cargo.trim() })));
+        // Buscar categorias
+        const resCategorias = await fetch(`${API_URL}/categoria`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (resCategorias.ok) {
+          const dataCategorias = await resCategorias.json();
+          setCategorias(dataCategorias);
+        }
+        // Buscar restaurantes
+        const resRestaurantes = await fetch(`${API_URL}/restaurante`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (resRestaurantes.ok) {
+          const dataRestaurantes = await resRestaurantes.json();
+          setRestaurantes(dataRestaurantes);
+        }
       } catch (err) {
-        console.error('Erro ao carregar cargos ou restaurantes', err);
+        console.error('Erro ao carregar dados:', err);
       }
     };
-    fetchDados();
-  }, []);
+
+    if (token) {
+      fetchDados();
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCarregando(true);
     setMensagem('');
 
+    console.log(`Testando update: \nid:${id}\ncampo: ${campo}\nnovo valor: ${novoValor}`);
+
     try {
-     const res = await fetch(`${API_URL}/funcionarios/${id}/${campo}/${encodeURIComponent(novoValor)}`, {
-            method: 'PUT', // ✅ MÉTODO CORRETO
-            headers: {
-            'Authorization': `Bearer ${token}`, // ✅ TOKEN DE AUTENTICAÇÃO
-            'Content-Type': 'application/json'
-            },
+      const res = await fetch(`${API_URL}/produtos/${id}/${campo}/${encodeURIComponent(novoValor)}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-        campo: campo,
-        novoValor: novoValor
-      })
-    });
-    
-    if (res.status === 200) {
-        setMensagem('✅ Funcionário atualizado com sucesso!');
-        setTimeout(() => router.push('/gestaoFuncionarios'), 1500);
+          campo: campo,
+          novoValor: novoValor
+        })
+      });
+
+      if (res.status === 200) {
+        setMensagem('✅ Produto atualizado com sucesso!');
+        setTimeout(() => router.push('/gestaoProdutos'), 1500);
       } else {
-        setMensagem(`⚠️ ${res.data?.error || 'Erro ao atualizar funcionário'}`);
+        const errorData = await res.json();
+        setMensagem(`⚠️ ${errorData?.error || 'Erro ao atualizar produto'}`);
       }
     } catch (err) {
       console.error(err);
-      setMensagem('⚠️ Erro inesperado ao atualizar funcionário');
+      setMensagem('⚠️ Erro inesperado ao atualizar produto');
     } finally {
       setCarregando(false);
     }
@@ -130,7 +166,20 @@ export default function AtualizarProdutos() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontSize: '64px', marginBottom: '16px' }}>📦</div>
-          <h1 style={{ margin: 0, color: '#dc3545', fontSize: '28px' }}>Atualizar Produto</h1>
+          <h1 style={{ margin: 0, color: '#dc3545', fontSize: '28px' }}>
+            Atualizar Produto
+          </h1>
+          {/* ✅ MOSTRAR NOME DO PRODUTO */}
+          {produtoNome && (
+            <p style={{
+              margin: '8px 0 0 0',
+              color: '#6c757d',
+              fontSize: '28px',
+              fontWeight: '500'
+            }}>
+              {produtoNome}
+            </p>
+          )}
         </div>
 
         {mensagem && (
@@ -148,14 +197,17 @@ export default function AtualizarProdutos() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <input
-            type="text"
-            placeholder="ID do Funcionário"
-            value={id}
-            onChange={e => setId(e.target.value)}
-            required
-            style={inputStyle}
-          />
+          {/* ✅ INPUT PARA ID (se não vier da URL) */}
+          {!idFromUrl && (
+            <input
+              type="text"
+              placeholder="ID do Produto"
+              value={id}
+              onChange={e => setId(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          )}
 
           <select
             value={campo}
@@ -165,60 +217,117 @@ export default function AtualizarProdutos() {
           >
             <option value="">Selecione um campo</option>
             {camposDisponiveis.map(c => (
-              <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+              <option key={c} value={c}>
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </option>
             ))}
           </select>
 
-          {/* Se for cargo ou restaurante, mostrar select com os existentes */}
-          {['cargo', 'restaurante'].includes(campo) ? (
+          {/* ✅ CAMPO DINÂMICO BASEADO NA SELEÇÃO */}
+          {campo === 'categoria' ? (
             <select
               value={novoValor}
               onChange={e => setNovoValor(e.target.value)}
               required
               style={inputStyle}
             >
-              <option value="">Selecione {campo}</option>
-              {campo === 'cargo' && cargos.map(c => (
-                <option key={c.id} value={c.nome_cargo}>
-                    {c.nome_cargo}
+              <option value="">Selecione uma categoria</option>
+              {categorias.map(c => (
+                <option key={c.id_categoria} value={c.id_categoria}>
+                  {c.categoria_nome}
                 </option>
-                ))}
-
-              {campo === 'restaurante' && restaurantes.map(r => (
-                <option key={r.id} value={r.id}>{r.nome_restaurante}</option>
               ))}
             </select>
-          ) : (
+          ) : campo === 'restaurante' ? (
+            <select
+              value={novoValor}
+              onChange={e => setNovoValor(e.target.value)}
+              required
+              style={inputStyle}
+            >
+              <option value="">Selecione um restaurante</option>
+              {restaurantes.map(r => (
+                <option key={r.id_restaurante} value={r.id_restaurante}>
+                  {r.nome_restaurante}
+                </option>
+              ))}
+            </select>
+          ) : campo === 'preco' ? (
             <input
-              type="text"
-              placeholder="Novo Valor"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Preço (ex: 15.90)"
               value={novoValor}
               onChange={e => setNovoValor(e.target.value)}
               required
               style={inputStyle}
             />
-          )}
+          ) : campo === 'estoque' ? (
+            <input
+              type="number"
+              min="0"
+              placeholder="Quantidade em estoque"
+              value={novoValor}
+              onChange={e => setNovoValor(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          ) : campo === 'cozinha' ? (
+            <select
+              value={novoValor}
+              onChange={e => setNovoValor(e.target.value)}
+              required
+              style={inputStyle}
+            >
+              <option value="">Selecione a cozinha</option>
+              <option value="Doce">Doce</option>
+              <option value="Salgada">Salgada</option>
+              <option value="Ambas">Ambas</option>
+            </select>
+          ) : campo ? (
+            <input
+              type={campo === 'imagem' ? 'url' : 'text'}
+              placeholder={
+                campo === 'nome' ? 'Nome do produto' :
+                  campo === 'descricao' ? 'Descrição do produto' :
+                    campo === 'imagem' ? 'URL da imagem' :
+                      'Novo valor'
+              }
+              value={novoValor}
+              onChange={e => setNovoValor(e.target.value)}
+              required
+              style={inputStyle}
+            />
+          ) : null}
 
           <button
             type="submit"
-            disabled={carregando}
+            disabled={carregando || !id || !campo || !novoValor}
             style={{
-              width: '100%', padding: '14px',
-              backgroundColor: carregando ? '#6c757d' : '#dc3545',
+              width: '100%',
+              padding: '14px',
+              backgroundColor:
+                carregando || !id || !campo || !novoValor
+                  ? '#6c757d'
+                  : '#dc3545',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
               fontSize: '16px',
               fontWeight: '600',
-              cursor: carregando ? 'not-allowed' : 'pointer'
+              cursor:
+                carregando || !id || !campo || !novoValor
+                  ? 'not-allowed'
+                  : 'pointer'
             }}
           >
-            {carregando ? '⏳ Atualizando...' : '🚀 Atualizar'}
+            {carregando ? '⏳ Atualizando...' : '🚀 Atualizar Produto'}
           </button>
         </form>
 
         <button
-          onClick={() => router.push('/gestaoFuncionarios')}
+          onClick={() => router.push('/gestaoProdutos')}
           style={{
             marginTop: '20px',
             backgroundColor: '#6c757d',
@@ -230,7 +339,7 @@ export default function AtualizarProdutos() {
             cursor: 'pointer'
           }}
         >
-          ← Voltar
+          ← Voltar para Gestão de Produtos
         </button>
       </div>
     </div>

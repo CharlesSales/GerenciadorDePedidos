@@ -1,11 +1,21 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 
 export default function AtualizarFuncionario() {
   const router = useRouter();
   const { user, token, isAuthenticated, loading } = useAuth();
+
+  const searchParams = useSearchParams();
+  const idFromUrl = searchParams.get('id');
+
+  useEffect(() => {
+    if (idFromUrl) {
+      setId(idFromUrl);  // Preenche automaticamente o ID
+    }
+  }, [idFromUrl]);
+
 
   const [id, setId] = useState('');
   const [campo, setCampo] = useState('');
@@ -66,7 +76,7 @@ export default function AtualizarFuncionario() {
 
 
   // Buscar cargos e restaurantes ao montar o componente
-   useEffect(() => {
+  useEffect(() => {
     const fetchDados = async () => {
       try {
         const resCargos = await fetch(`${API_URL}/cargo`);
@@ -89,20 +99,20 @@ export default function AtualizarFuncionario() {
     setMensagem('');
 
     try {
-        const res = await fetch(`${API_URL}/funcionarios/${id}/${campo}/${encodeURIComponent(novoValor)}`, {
-            method: 'PUT', // ✅ MÉTODO CORRETO
-            headers: {
-            'Authorization': `Bearer ${token}`, // ✅ TOKEN DE AUTENTICAÇÃO
-            'Content-Type': 'application/json'
-            },
+      const res = await fetch(`${API_URL}/funcionarios/${id}/${campo}/${encodeURIComponent(novoValor)}`, {
+        method: 'PUT', // ✅ MÉTODO CORRETO
+        headers: {
+          'Authorization': `Bearer ${token}`, // ✅ TOKEN DE AUTENTICAÇÃO
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
-        campo: campo,
-        novoValor: novoValor
-      })
-    });
+          campo: campo,
+          novoValor: novoValor
+        })
+      });
 
-    console.log('📊 Status da resposta:', res.status);
-    if (res.status === 200) {
+      console.log('📊 Status da resposta:', res.status);
+      if (res.status === 200) {
         setMensagem('✅ Funcionário atualizado com sucesso!');
         setTimeout(() => router.push('/gestaoFuncionarios'), 1500);
       } else {
@@ -157,10 +167,11 @@ export default function AtualizarFuncionario() {
             type="text"
             placeholder="ID do Funcionário"
             value={id}
+            readOnly={!!idFromUrl}
             onChange={e => setId(e.target.value)}
-            required
             style={inputStyle}
           />
+
 
           <select
             value={campo}
@@ -185,9 +196,9 @@ export default function AtualizarFuncionario() {
               <option value="">Selecione {campo}</option>
               {campo === 'cargo' && cargos.map(c => (
                 <option key={c.id} value={c.nome_cargo}>
-                    {c.nome_cargo}
+                  {c.nome_cargo}
                 </option>
-                ))}
+              ))}
 
               {campo === 'restaurante' && restaurantes.map(r => (
                 <option key={r.id} value={r.id}>{r.nome_restaurante}</option>

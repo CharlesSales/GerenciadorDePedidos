@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 export default function CadastrarRestaurante() {
   const router = useRouter();
 
-  
+
   const [nome_restaurante, setNome_restaurante] = useState('');
   const [usuario, setUsuario] = useState('');
   const [estado, setEstado] = useState('');
   const [cidade, setCidade] = useState('');
   const [numero_endereco, setNumero_endereco] = useState('');
   const [rua, setRua] = useState('');
+  const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
 
@@ -21,47 +22,59 @@ export default function CadastrarRestaurante() {
   const [successMsg, setSuccessMsg] = useState('');
 
 
-    const handleSubmit = async (e) => {
+  function validarEmail(email) {
+    const regex = /^[A-Za-z0-9](\.?[A-Za-z0-9_-])*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+    return regex.test(String(email).trim());
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    // ✅ VALIDAÇÃO CORRETA DOS CAMPOS
-    if (!nome_restaurante || !usuario || !estado || !cidade || !numero_endereco || !rua || !senha || !confirmarSenha) {
+    // 📌 1 — valida campos vazios
+    if (
+      !nome_restaurante ||
+      !usuario ||
+      !estado ||
+      !cidade ||
+      !numero_endereco ||
+      !rua ||
+      !email ||
+      !senha ||
+      !confirmarSenha
+    ) {
       setErrorMsg('Todos os campos são obrigatórios.');
       return;
     }
 
-    if (senha !== confirmarSenha) {
-      setErrorMsg('As senhas não conferem.');
+    // 📌 2 — valida email
+    if (!validarEmail(email)) {
+      setErrorMsg('O email informado é inválido.');
       return;
     }
 
+    // 📌 3 — valida tamanho da senha
     if (senha.length < 6) {
       setErrorMsg('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
+    // 📌 4 — valida confirmação
+    if (senha !== confirmarSenha) {
+      setErrorMsg('As senhas não conferem.');
+      return;
+    }
+
+    // Se todas as validações passaram →
     setLoading(true);
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
-      console.log('📤 Enviando dados:', {
-        nome_restaurante,
-        usuario,
-        estado,
-        cidade,
-        numero_endereco,
-        rua
-      });
-
       const response = await fetch(`${API_URL}/restaurante/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-          // ✅ REMOVIDO Authorization pois é cadastro público
-        },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome_restaurante,
           usuario,
@@ -70,40 +83,43 @@ export default function CadastrarRestaurante() {
           cidade,
           numero_endereco,
           rua,
-          confirmarSenha
-        })
+          email,
+          confirmarSenha,
+        }),
       });
 
       const data = await response.json();
-      console.log('📥 Resposta do servidor:', data);
 
       if (!response.ok) {
-        setErrorMsg(data.msg || data.error || 'Erro ao cadastrar restaurante');
-      } else {
-        setSuccessMsg('Restaurante cadastrado com sucesso! Redirecionando...');
-        
-        // ✅ LIMPAR CAMPOS
-        setNome_restaurante('');
-        setUsuario('');
-        setEstado('');
-        setCidade('');
-        setNumero_endereco('');
-        setRua('');
-        setSenha('');
-        setConfirmarSenha('');
-
-        // ✅ REDIRECIONAR PARA LOGIN
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
+        setErrorMsg(data.msg || data.error || "Erro ao cadastrar restaurante");
+        return;
       }
-    } catch (error) {
-      console.error('❌ Erro ao cadastrar restaurante:', error);
-      setErrorMsg('Erro de conexão com o servidor');
+
+      setSuccessMsg("Restaurante cadastrado com sucesso! Redirecionando...");
+
+      // limpar campos
+      setNome_restaurante('');
+      setUsuario('');
+      setEstado('');
+      setCidade('');
+      setNumero_endereco('');
+      setRua('');
+      setEmail('');
+      setSenha('');
+      setConfirmarSenha('');
+
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+
+    } catch (err) {
+      console.error(err);
+      setErrorMsg("Erro ao conectar com o servidor.");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div style={{
@@ -147,6 +163,7 @@ export default function CadastrarRestaurante() {
           <input type="text" placeholder="cidade" value={cidade} onChange={e => setCidade(e.target.value)} style={inputStyle} />
           <input type="text" placeholder="Numero" value={numero_endereco} onChange={e => setNumero_endereco(e.target.value)} style={inputStyle} />
           <input type="text" placeholder="Rua" value={rua} onChange={e => setRua(e.target.value)} style={inputStyle} />
+          <input type="text" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
           <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={inputStyle} />
           <input type="password" placeholder="Confirmar Senha" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} style={inputStyle} />
 

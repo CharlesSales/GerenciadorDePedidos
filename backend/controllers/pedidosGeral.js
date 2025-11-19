@@ -401,13 +401,14 @@ export async function cadastrarPedidosDelivery(req, res) {
       
       const dadosCompletos = {
         ...pedidoData,
+        restaurante: Number(restauranteid),
         endereco_completo: enderecoData, // ✅ ENDEREÇO COMPLETO
         itens_detalhados: itensData,     // ✅ ITENS DETALHADOS
         restaurante_nome: restauranteData?.nome_restaurante,
         tipo: 'delivery' // ✅ IDENTIFICAR TIPO
       };
 
-      io.emit("novoPedido_geral", dadosCompletos);
+      io.emit("novo_pedido", dadosCompletos);
       
       console.log('✅ Socket.IO emitido com sucesso');
     } catch (socketError) {
@@ -525,7 +526,18 @@ export async function editarPedidos(req, res) {
       return res.status(500).json({ error: "Erro ao atualizar status" })
     }
 
-    io.emit("statusAtualizado", { id, novoStatus })
+     try {
+      io.emit("pagamentoAtualizado", { 
+        id: Number(id), 
+        novoStatusPagamento: novoStatus,
+        pedido: data[0]
+      });
+      console.log("✅ Socket.IO pagamento emitido");
+    } catch (err) {
+      console.error("❌ Erro no Socket.IO:", err.message);
+    }
+
+    res.json({ message: "Status de pagamento atualizado com sucesso!", pedido: data[0] })
 
     res.json({ message: "Status atualizado com sucesso!", pedido: data[0] })
   } catch (err) {

@@ -145,7 +145,7 @@ export async function loginRestaurante(req, res) {
       });
     }
     // ✅ Comparar senha usando bcrypt
-    const passwordMatch = await bcrypt.compare(senha, funcionario.senha);
+    const passwordMatch = await bcrypt.compare(senha, restaurante.senha);
     if (!passwordMatch) {
       return res.status(401).json({ success: false, error: 'Usuário ou senha inválidos' });
     }

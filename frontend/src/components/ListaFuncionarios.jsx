@@ -44,10 +44,10 @@ export default function ListaFuncionario({
 
   if (!Array.isArray(funcionarios)) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         height: '100vh',
         flexDirection: 'column',
         gap: '20px'
@@ -82,10 +82,10 @@ export default function ListaFuncionario({
   )];
 
   const funcionariosFiltrados = funcionariosValidos.filter(funcionario => {
-    const passaCargo = cargoSelecionado 
-      ? (funcionario.cargo_nome === cargoSelecionado || 
-         funcionario.cargo?.nome === cargoSelecionado ||
-         funcionario.cargo === cargoSelecionado)
+    const passaCargo = cargoSelecionado
+      ? (funcionario.cargo_nome === cargoSelecionado ||
+        funcionario.cargo?.nome === cargoSelecionado ||
+        funcionario.cargo === cargoSelecionado)
       : true;
 
     let passaBusca = true;
@@ -146,7 +146,7 @@ export default function ListaFuncionario({
           >
             Todos ({funcionariosValidos.length})
           </button>
-          
+
           {cargos.map(cargo => (
             <button
               key={cargo}
@@ -182,20 +182,7 @@ export default function ListaFuncionario({
           ➕ Novo Funcionário
         </button>
 
-         <button
-            onClick={() => router.push(`/atualizarFuncionarios`)}
-            style={{
-              backgroundColor: '#ffc107',
-              color: 'white',
-              padding: '8px 16px',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}
-          >✏️ Editar
-          </button>
+
 
       </div>
 
@@ -249,7 +236,7 @@ export default function ListaFuncionario({
                   <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#666' }}>🏪 <strong>Restaurante:</strong> {restaurante}</p>
 
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                   
+
                     <button
                       onClick={() => { if (confirm(`Tem certeza que deseja excluir ${nome}?`)) console.log('🗑️ Excluir funcionário:', id); }}
                       style={{
@@ -262,7 +249,23 @@ export default function ListaFuncionario({
                         fontSize: '12px',
                         fontWeight: 'bold'
                       }}
-                    >🗑️ Excluir</button>
+                    >🗑️ Excluir
+                    </button>
+
+                    <button
+                      onClick={() => router.push(`/atualizarFuncionarios?id=${id}`)}
+                      style={{
+                        backgroundColor: '#ffc107',
+                        color: 'white',
+                        padding: '8px 16px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}  
+                    >✏️ Editar
+                    </button>
                   </div>
                 </div>
               </div>
@@ -270,7 +273,7 @@ export default function ListaFuncionario({
           })
         ) : (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', fontSize: '18px', color: '#666' }}>
-            {filtro || cargoSelecionado 
+            {filtro || cargoSelecionado
               ? `Nenhum funcionário encontrado para os filtros aplicados`
               : `Nenhum funcionário cadastrado`}
           </div>

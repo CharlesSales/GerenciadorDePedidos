@@ -15,30 +15,10 @@ export async function listarCargo(req, res) {
 
 export async function criarRestaurante(req, res) {
 
-  const { usuario, senha, nome_restaurante, estado, rua, numero_endereco, cidade, confirmarSenha  } = req.body;
+  const { usuario, senha, nome_restaurante, estado, rua, email, numero_endereco, cidade, confirmarSenha  } = req.body;
   
-  if(!usuario) {
+  if(!usuario || !nome_restaurante || !estado || !rua || !cidade || !numero_endereco || !senha || !email ) {
         return res.status(422).json({ msg: 'O nome é obrigatorio!'});
-    }
-
-    if(!nome_restaurante) {
-        return res.status(422).json({ msg: 'O cargo é obrigatorio!'});
-    }
-
-    if(!estado) {
-        return res.status(422).json({ msg: 'O restarante é obrigatoria!'});
-    }
-    if(!rua) {
-        return res.status(422).json({ msg: 'O usuario é obrigatoria!'});
-    }
-    if(!numero_endereco) {
-        return res.status(422).json({ msg: 'O usuario é obrigatoria!'});
-    }
-    if(!cidade) {
-        return res.status(422).json({ msg: 'O usuario é obrigatoria!'});
-    }
-    if(!senha) {
-        return res.status(422).json({ msg: 'A senha é obrigatoria!'});
     }
 
     if(senha !== confirmarSenha) {
