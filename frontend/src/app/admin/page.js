@@ -7,7 +7,7 @@ export default function AdminPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
-  
+
   // 🔍 DEBUG: Verificar estrutura do usuário
   console.log('👤 Usuário completo:', user);
   console.log('📊 Dados do usuário:', user?.dados);
@@ -16,9 +16,9 @@ export default function AdminPage() {
   console.log('🏪 Restaurante object:', user?.dados?.restaurante);
 
   // ✅ MÚLTIPLAS TENTATIVAS PARA PEGAR O ID
-  const id_restaurante = 
-    user?.dados?.id_restaurante || 
-    user?.dados?.id || 
+  const id_restaurante =
+    user?.dados?.id_restaurante ||
+    user?.dados?.id ||
     user?.dados?.restaurante?.id_restaurante ||
     user?.dados?.restaurante?.id ||
     user?.id_restaurante ||
@@ -140,23 +140,23 @@ export default function AdminPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
-           <button
-          onClick={handleLogout}
-          style={{
-            backgroundColor: 'transparent',
-            color: 'black',
-            fontSize: '20px',
-            padding: '10px 14px',
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          }}
-        >
-          ⏏️
-        </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: 'transparent',
+              color: 'black',
+              fontSize: '20px',
+              padding: '10px 14px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+            }}
+          >
+            ⏏️
+          </button>
         </div>
-        
+
       </div>
 
       {/* ✅ MENU DE OPÇÕES */}
@@ -165,7 +165,7 @@ export default function AdminPage() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '20px'
       }}>
-        
+
         {/* ✅ GESTÃO DE PRODUTOS */}
         <div style={{
           backgroundColor: 'white',
@@ -175,9 +175,9 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/gestaoProdutos')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => router.push('/gestaoProdutos')}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             📦
@@ -199,9 +199,9 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/pedidos')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => router.push('/pedidos')}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             📋
@@ -223,9 +223,9 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/gestaoFuncionarios')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => router.push('/gestaoFuncionarios')}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             👥
@@ -247,9 +247,9 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/relatorios')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => router.push('/relatorios')}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             📊
@@ -263,7 +263,7 @@ export default function AdminPage() {
         </div>
 
         {/* ✅ CONFIGURAÇÕES */}
-         <div style={{
+        <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
           padding: '20px',
@@ -271,21 +271,21 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => {
-          console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
-          console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
-          
-          if (!id_restaurante) {
-            alert('❌ ID do restaurante não encontrado!');
-            console.error('❌ Dados do usuário:', user);
-            return;
-          }
-          
-          router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
-          // router.push(`/teste`);
-        }}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => {
+            console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
+            console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
+
+            if (!id_restaurante) {
+              alert('❌ ID do restaurante não encontrado!');
+              console.error('❌ Dados do usuário:', user);
+              return;
+            }
+
+            router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
+            // router.push(`/teste`);
+          }}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             ⚙️
@@ -297,41 +297,7 @@ export default function AdminPage() {
             Visualizar cardápio do restaurante
           </p>
         </div>
-       
-        {/* ✅ CONFIGURAÇÕES */}
-         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-        onClick={() => {
-          console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
-          console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
-          
-          if (!id_restaurante) {
-            alert('❌ ID do restaurante não encontrado!');
-            console.error('❌ Dados do usuário:', user);
-            return;
-          }
-          
-          router.push(`/cardapioDelivery?restaurante=${id_restaurante}`);
-        }}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            ⚰️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Ver Cardápio ({id_restaurante || 'ID?'})
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar cardápio do delivery
-          </p>
-        </div>
+
         {/* ✅ CARDÁPIO PÚBLICO */}
         <div style={{
           backgroundColor: 'white',
@@ -341,9 +307,9 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-        onClick={() => router.push('/produtos')}
-        onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-        onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          onClick={() => router.push('/produtos')}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >
           <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
             🍽️
@@ -369,35 +335,35 @@ export default function AdminPage() {
         <h3 style={{ margin: '0 0 16px 0', color: '#333' }}>
           ℹ️ Informações da Sessão
         </h3>
-        
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           <div>
-            <strong>Tipo de Usuário:</strong><br/>
+            <strong>Tipo de Usuário:</strong><br />
             <span style={{ color: '#666' }}>
               {user.tipo === 'restaurante' ? '👑 Dono do Restaurante' : '👨‍💼 Funcionário Admin'}
             </span>
           </div>
-          
+
           <div>
-            <strong>Nome:</strong><br/>
+            <strong>Nome:</strong><br />
             <span style={{ color: '#666' }}>
               {user.dados?.nome || user.dados?.nome_restaurante}
             </span>
           </div>
-          
+
           {user.dados?.cargo && (
             <div>
-              <strong>Cargo:</strong><br/>
+              <strong>Cargo:</strong><br />
               <span style={{ color: '#666' }}>ID: {user.dados.cargo}</span>
             </div>
           )}
-          
-        <div>
-          <strong>Restaurante:</strong><br/>
-          <span style={{ color: '#666' }}>
-            {user.dados?.restaurante?.nome_restaurante || 'N/A'}
-          </span>
-        </div>
+
+          <div>
+            <strong>Restaurante:</strong><br />
+            <span style={{ color: '#666' }}>
+              {user.dados?.restaurante?.nome_restaurante || 'N/A'}
+            </span>
+          </div>
         </div>
       </div>
     </div>

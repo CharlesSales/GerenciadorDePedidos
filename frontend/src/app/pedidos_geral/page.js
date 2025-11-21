@@ -11,6 +11,8 @@ export default function PedidosPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(null);
   const [filtroData, setFiltroData] = useState(() => new Date().toISOString().slice(0, 10));
+  // ✅ ADICIONAR ESTADO PARA FILTRO DE PERÍODO
+  const [filtroPeriodo, setFiltroPeriodo] = useState('dia');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
@@ -43,81 +45,90 @@ export default function PedidosPage() {
   const gerarNumeroPedido = (pedido, pedidosDoDia) => {
     const pedidosDoMesmoDia = pedidosDoDia.filter(p => {
       if (!p.data_hora || !pedido.data_hora) return false;
-      return new Date(p.data_hora).toISOString().slice(0,10) === new Date(pedido.data_hora).toISOString().slice(0,10);
+      return new Date(p.data_hora).toISOString().slice(0, 10) === new Date(pedido.data_hora).toISOString().slice(0, 10);
     });
-    pedidosDoMesmoDia.sort((a,b)=>new Date(a.data_hora)-new Date(b.data_hora));
-    const posicao = pedidosDoMesmoDia.findIndex(p=>p.id_pedido===pedido.id_pedido);
-    return String(posicao+1).padStart(3,'0');
+    pedidosDoMesmoDia.sort((a, b) => new Date(a.data_hora) - new Date(b.data_hora));
+    const posicao = pedidosDoMesmoDia.findIndex(p => p.id_pedido === pedido.id_pedido);
+    return String(posicao + 1).padStart(3, '0');
   };
 
-  const pedidosFiltrados = pedidos.filter(pedido => {
-    if (!filtroData) return true;
-    if (!pedido.data_hora) return false;
-    return new Date(pedido.data_hora).toISOString().slice(0,10) === filtroData;
-  });
+  // ✅ FUNÇÃO PARA FILTRAR POR PERÍODO
+  const filtrarPorPeriodo = (pedidos, periodo) => {
+    const hoje = new Date();
+    const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+    switch (periodo) {
+      case 'dia':
+        return pedidos.filter(pedido => {
+          if (!pedido.data_hora) return false;
+          const dataPedido = new Date(pedido.data_hora);
+          return dataPedido >= inicioHoje;
+        });
+      
+      case 'semana':
+        const inicioSemana = new Date(inicioHoje);
+        inicioSemana.setDate(inicioHoje.getDate() - inicioHoje.getDay());
+        return pedidos.filter(pedido => {
+          if (!pedido.data_hora) return false;
+          const dataPedido = new Date(pedido.data_hora);
+          return dataPedido >= inicioSemana;
+        });
+      
+      case 'mes':
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        return pedidos.filter(pedido => {
+          if (!pedido.data_hora) return false;
+          const dataPedido = new Date(pedido.data_hora);
+          return dataPedido >= inicioMes;
+        });
+      
+      case 'todos':
+        return pedidos;
+      
+      default:
+        return pedidos;
+    }
+  };
+
+  // ✅ APLICAR FILTROS COMBINADOS
+  const pedidosFiltrados = (() => {
+    let resultado = pedidos;
+
+    // Primeiro aplicar filtro por período
+    resultado = filtrarPorPeriodo(resultado, filtroPeriodo);
+
+    // Depois aplicar filtro por data específica (se não for "todos")
+    if (filtroPeriodo !== 'todos' && filtroData) {
+      resultado = resultado.filter(pedido => {
+        if (!pedido.data_hora) return false;
+        return new Date(pedido.data_hora).toISOString().slice(0, 10) === filtroData;
+      });
+    }
+
+    return resultado;
+  })();
 
   useEffect(() => {
     if (authLoading || !user || !token) return;
-    const socket = io(API_URL, { auth: { token } });
 
-    socket.on('connect', () => {
-      console.log('✅ Socket.IO conectado:', socket.id);
+    const socket = io(API_URL, {
+      auth: { token },
+      transports: ["websocket"]
     });
 
-    socket.on('disconnect', () => {
-      console.log('❌ Socket.IO desconectado');
-    });
-
-    // ✅ CORREÇÃO: Novos pedidos
-    socket.on("novoPedido_geral", (pedido) => {
-      console.log('📦 Novo pedido recebido:', pedido);
-      console.log('🏪 Pedido restaurante:', pedido.restaurante);
-      console.log('👤 User restaurante:', user?.dados?.restaurante?.id_restaurante);
-      
-      // ✅ CORREÇÃO: Usar o campo correto 'restaurante'
-      if (pedido.restaurante === user.dados.restaurante.id_restaurante) {
-        console.log('✅ Pedido é do restaurante do usuário, adicionando à lista');
-        
-        setPedidos(prev => {
-          const jaExiste = prev.some(p => p.id_pedido === pedido.id_pedido);
-          if (jaExiste) {
-            console.log('⚠️ Pedido já existe na lista');
-            return prev;
-          }
-          console.log('🆕 Adicionando novo pedido à lista');
-          return [pedido, ...prev];
-        });
-      } else {
-        console.log('❌ Pedido não é do restaurante do usuário');
-      }
-    });
-
-
-  socket.on("statusAtualizado", ({ id, novoStatus }) => {
-      console.log('🔄 Status atualizado recebido:', { id, novoStatus });
-      
-      setPedidos(prev => {
-        const updated = prev.map(p => {
-          if (p.id_pedido === parseInt(id)) {
-            console.log('🔄 Atualizando status do pedido:', id, 'para:', novoStatus);
-            return { ...p, status: novoStatus }; // ✅ USAR novoStatus direto
-          }
-          return p;
-        });
-        return updated;
-      });
-    });
-
+    // 1️⃣ Função para buscar pedidos iniciais
     const fetchPedidos = async () => {
       try {
         const res = await fetch(`${API_URL}/pedidosGeral/`, {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         });
-        if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
         const data = await res.json();
         setPedidos(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Erro ao carregar pedidos:", err);
+      } catch (error) {
+        console.error("Erro ao carregar pedidos:", error);
         setErro("Não foi possível carregar os pedidos.");
       } finally {
         setLoading(false);
@@ -125,8 +136,58 @@ export default function PedidosPage() {
     };
 
     fetchPedidos();
-    return () => socket.disconnect();
-  }, [API_URL, user, token, authLoading]);
+
+    // 2️⃣ Ouvinte para pedidos de FUNCIONÁRIOS (Interno)
+    socket.on("novoPedido_geral", (pedido) => {
+      console.log("🛎️ Pedido Interno recebido:", pedido);
+
+      const idRestauranteUser = Number(user?.dados?.restaurante?.id_restaurante);
+      const idRestaurantePedido = Number(pedido.restaurante);
+
+      if (idRestaurantePedido !== idRestauranteUser) return;
+
+      setPedidos(prev => {
+        if (prev.some(p => p.id_pedido === pedido.id_pedido)) return prev;
+        return [pedido, ...prev];
+      });
+    });
+
+    // 3️⃣ Ouvinte para pedidos de DELIVERY (Externo)
+    socket.on("novo_pedido", (dadosSocket) => {
+      console.log("🛵 Pedido Delivery recebido:", dadosSocket);
+
+      const idRestauranteUser = Number(user?.dados?.restaurante?.id_restaurante);
+      const idRestaurantePedido = Number(dadosSocket.restaurante);
+
+      if (idRestaurantePedido !== idRestauranteUser) {
+        console.log(`❌ Ignorado: ID Pedido (${idRestaurantePedido}) != ID User (${idRestauranteUser})`);
+        return;
+      }
+
+      setPedidos(prev => {
+        if (prev.some(p => p.id_pedido === dadosSocket.id_pedido)) return prev;
+        return [dadosSocket, ...prev]; 
+      });
+    });
+
+    socket.on("statusAtualizado", ({ id, novoStatus }) => {
+      setPedidos(prev =>
+        prev.map(p =>
+          p.id_pedido === Number(id)
+            ? { ...p, status: novoStatus }
+            : p
+        )
+      );
+    });
+
+    return () => {
+      socket.off("novoPedido_geral");
+      socket.off("novo_pedido");
+      socket.off("statusAtualizado");
+      socket.disconnect();
+    };
+
+  }, [API_URL, user, token]);
 
   async function handleChangepaymentstatus(id) {
     try {
@@ -165,9 +226,6 @@ export default function PedidosPage() {
         return;
       }
 
-      const result = await response.json();
-
-      // Atualiza apenas o status do pedido no estado
       setPedidos(prev =>
         prev.map(p =>
           p.id_pedido === id ? { ...p, status: proximoStatus.status_pedido } : p
@@ -179,16 +237,28 @@ export default function PedidosPage() {
     }
   }
 
-
   if (loading || authLoading) return <p>Carregando pedidos...</p>;
   if (erro) return <p style={{ color: 'red' }}>{erro}</p>;
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh', fontFamily: 'Arial, sans-serif' }}>
-      <HeaderPedidos user={user} filtroData={filtroData} setFiltroData={setFiltroData} />
-      <h2 style={{ marginBottom: '20px', color: '#333', fontSize: '24px', fontWeight: 'bold' }}>Pedidos do Dia</h2>
+      {/* ✅ PASSAR TODAS AS PROPS NECESSÁRIAS */}
+      <HeaderPedidos 
+        user={user} 
+        filtroData={filtroData} 
+        setFiltroData={setFiltroData}
+        filtroPeriodo={filtroPeriodo}
+        setFiltroPeriodo={setFiltroPeriodo}
+      />
+      
+      <h2 style={{ marginBottom: '20px', color: '#333', fontSize: '24px', fontWeight: 'bold' }}>
+        Pedidos do Dia - {filtroPeriodo.toUpperCase()} ({pedidosFiltrados.length} pedidos)
+      </h2>
+      
       {pedidosFiltrados.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#666', fontSize: '18px' }}>Nenhum pedido encontrado para esta data.</p>
+        <p style={{ textAlign: 'center', color: '#666', fontSize: '18px' }}>
+          Nenhum pedido encontrado para este período.
+        </p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
           {pedidosFiltrados.map(pedido => (

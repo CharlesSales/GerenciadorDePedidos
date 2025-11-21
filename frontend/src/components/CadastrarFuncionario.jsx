@@ -132,7 +132,7 @@ export default function CadastrarFuncionario({ token }) {
         </form>
 
         <button
-          onClick={() => router.push('/funcionarios')}
+          onClick={() => router.push('/gestaoFuncionarios')}
           style={{
             marginTop: '20px',
             backgroundColor: '#6c757d',

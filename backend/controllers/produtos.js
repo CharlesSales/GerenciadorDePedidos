@@ -26,7 +26,7 @@ export async function listarProdutos(req, res) {
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
+
         if (decoded.tipo === 'funcionario') {
           // ✅ FUNCIONÁRIO: BUSCAR RESTAURANTE
           const { data: funcionario } = await supabase
@@ -34,7 +34,7 @@ export async function listarProdutos(req, res) {
             .select('restaurante')
             .eq('id_funcionario', decoded.id)
             .single();
-          
+
           restauranteId = funcionario?.restaurante;
         } else if (decoded.tipo === 'restaurante') {
           // ✅ RESTAURANTE: USAR PRÓPRIO ID
@@ -104,11 +104,11 @@ export async function listarProdutosPorRestaurante(req, res) {
     const { data: todosRestaurantes, error: debugError } = await supabase
       .from('restaurante')
       .select('id_restaurante, nome_restaurante');
-    
+
     console.log('🔍 RESTAURANTES NO BANCO:', todosRestaurantes);
 
     if (!todosRestaurantes || todosRestaurantes.length === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Nenhum restaurante encontrado no banco de dados',
         codigo: 'NENHUM_RESTAURANTE'
       });
@@ -129,7 +129,7 @@ export async function listarProdutosPorRestaurante(req, res) {
     console.log('🔍 ERRO:', restauranteError);
 
     if (restauranteError || !restaurante) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Restaurante não encontrado',
         codigo: 'RESTAURANTE_NAO_ENCONTRADO',
         debug: {
@@ -154,7 +154,7 @@ export async function listarProdutosPorRestaurante(req, res) {
         categoria(categoria_nome)
       `)
       .eq('restaurante', restauranteIdNum)
-      // .eq('estoque', true);
+    // .eq('estoque', true);
 
     if (produtosError) {
       console.error('❌ Erro ao buscar produtos:', produtosError);
@@ -228,99 +228,170 @@ export async function cadastrarProdutos(req, res) {
   console.log("Arquivo recebido:", req.file);
 
   try {
+    console.log("Dados recebidos:", req.body);
     console.log("Arquivo recebido:", req.file);
 
     const { nome, descricao, preco, estoque, cozinha, categoria, restaurante } = req.body;
-    const file = req.file; // imagem enviada pelo cliente
+    const file = req.file; // ✅ IMAGEM OPCIONAL
   
-  if(!nome) {
-        return res.status(422).json({ msg: 'O nome é obrigatorio!'});
+    // ✅ VALIDAÇÕES OBRIGATÓRIAS (SEM IMAGEM)
+    if(!nome) {
+        return res.status(422).json({ msg: 'O nome é obrigatório!'});
     }
 
     if(!descricao) {
-        return res.status(422).json({ msg: 'O descricao é obrigatorio!'});
+        return res.status(422).json({ msg: 'A descrição é obrigatória!'});
     }
 
     if(!preco) {
-        return res.status(422).json({ msg: 'O preco é obrigatoria!'});
+        return res.status(422).json({ msg: 'O preço é obrigatório!'});
     }
+    
     if(!estoque) {
-        return res.status(422).json({ msg: 'O estoque é obrigatoria!'});
+        return res.status(422).json({ msg: 'O estoque é obrigatório!'});
     }
-    if(!estoque) {
-        return res.status(422).json({ msg: 'O cozinha é obrigatoria!'});
-    }
-    if(!cozinha) {
-        return res.status(422).json({ msg: 'O categoria é obrigatoria!'});
-    }
+   
     if(!categoria) {
-        return res.status(422).json({ msg: 'O categoria é obrigatoria!'});
+        return res.status(422).json({ msg: 'A categoria é obrigatória!'});
     }
+    
     if(!restaurante) {
-        return res.status(422).json({ msg: 'O restaurante é obrigatoria!'});
+        return res.status(422).json({ msg: 'O restaurante é obrigatório!'});
     }
 
-    // ✅ VERIFICAR SE USUÁRIO JÁ EXISTE (SUPABASE CORRETO)
+    // ✅ VERIFICAR SE PRODUTO JÁ EXISTE
     const { data: exists, error: checkError } = await supabase
       .from('produtos') 
       .select('nome')
       .eq('nome', nome)
+      .eq('restaurante', restaurante)
       .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') {
-      // PGRST116 = "não encontrado" é OK, outros erros não
-      console.error('Erro ao verificar usuário:', checkError);
-      return res.status(500).json({ msg: 'Erro ao verificar usuário existente' });
+      console.error('Erro ao verificar produto:', checkError);
+      return res.status(500).json({ msg: 'Erro ao verificar produto existente' });
     }
 
     if (exists) {
-        return res.status(422).json({ msg: 'Já existe um usuário com esse nome!' });
+        return res.status(422).json({ msg: 'Já existe um produto com esse nome neste restaurante!' });
     }
 
-    // Envia imagem para o Supabase Storage
-    const fileName = `${Date.now()}-${file.originalname}`; 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("imagens")
-      .upload(fileName, file.buffer, { contentType: file.mimetype });
-    // remover arquivo temporário depois
-  
+    // ✅ PROCESSAR IMAGEM APENAS SE ENVIADA
+    let imageUrl = null;
+    
+    if (file) {
+      console.log('📷 Processando upload da imagem...');
+      
+      // Validar tipo de arquivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(422).json({ 
+          msg: 'Tipo de arquivo inválido. Use apenas: JPEG, PNG, GIF ou WebP' 
+        });
+      }
 
+      // Validar tamanho (5MB máximo)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        return res.status(422).json({ 
+          msg: 'Arquivo muito grande. Tamanho máximo: 5MB' 
+        });
+      }
 
+      // Gerar nome único para o arquivo
+      const fileName = `produto-${Date.now()}-${Math.random().toString(36).substring(7)}.${file.originalname.split('.').pop()}`;
+      
+      // Upload para Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("imagens")
+        .upload(fileName, file.buffer, { 
+          contentType: file.mimetype,
+          upsert: false
+        });
 
-    if (uploadError) {
-      console.error("Erro ao fazer upload da imagem:", uploadError);
-      return res.status(500).json({ msg: "Erro ao fazer upload da imagem" });
+      if (uploadError) {
+        console.error("❌ Erro ao fazer upload da imagem:", uploadError);
+        return res.status(500).json({ 
+          msg: "Erro ao fazer upload da imagem",
+          details: uploadError.message 
+        });
+      }
+
+      // Obter URL pública
+      const { data: publicUrlData } = supabase.storage
+        .from("imagens")
+        .getPublicUrl(fileName);
+
+      imageUrl = publicUrlData.publicUrl;
+      console.log('✅ Imagem enviada com sucesso:', imageUrl);
+    } else {
+      console.log('📷 Nenhuma imagem enviada, produto será criado sem imagem');
     }
 
-    // 🔗 Pega a URL pública
-    const { data: publicUrlData } = supabase.storage
-      .from("imagens")
-      .getPublicUrl(fileName);
+    // ✅ INSERIR PRODUTO NO BANCO (CORREÇÃO AQUI)
+    const { data: produtoData, error: insertError } = await supabase
+      .from('produtos')
+      .insert([
+        { 
+          nome, 
+          descricao, 
+          preco: parseFloat(preco),
+          estoque: parseInt(estoque),
+          cozinha, 
+          categoria: parseInt(categoria),
+          restaurante: parseInt(restaurante),
+          imagem: imageUrl
+        }
+      ])
+      .select();
 
-    const imageUrl = publicUrlData.publicUrl;
+    // ✅ VERIFICAR ERRO DE INSERÇÃO
+    if (insertError) {
+      console.error('❌ Erro ao inserir produto:', insertError);
+      
+      // Se houve erro e imagem foi enviada, deletar a imagem
+      if (imageUrl && file) {
+        const fileName = imageUrl.split('/').pop();
+        await supabase.storage.from("imagens").remove([fileName]);
+        console.log('🗑️ Imagem removida devido ao erro na inserção');
+      }
+      
+      return res.status(500).json({ 
+        msg: 'Erro ao cadastrar produto',
+        details: insertError.message 
+      });
+    }
 
+    // ✅ VERIFICAR SE DADOS FORAM RETORNADOS
+    if (!produtoData || produtoData.length === 0) {
+      console.error('❌ Nenhum dado retornado após inserção');
+      return res.status(500).json({ 
+        msg: 'Erro: produto não foi inserido corretamente' 
+      });
+    }
 
-    const { data, error } = await supabase
-    .from('produtos')
-    .insert([
-      { nome, descricao, preco, estoque, cozinha, categoria, restaurante, imagem: imageUrl } // sem id_produto
-    ])
-    .select(); // optional: retorna o registro inserido
-
-
+    // ✅ LIMPAR CACHE
     cache.delete('produtos_list');
     console.log('🗑️ Cache de produtos limpo');
 
-  if (error) return res.status(500).json({ error: error.message});
-  res.json({ message: 'Restaurante cadastrado com sucesso'})
+    console.log('✅ Produto cadastrado com sucesso:', produtoData[0]);
 
-}  catch (err) {
-    console.error('Erro interno:', err);
-    res.status(500).json({ msg: 'Erro interno do servidor' });
+    // ✅ RESPOSTA DE SUCESSO
+    res.status(201).json({ 
+      success: true,
+      message: 'Produto cadastrado com sucesso!',
+      produto: produtoData[0], // ✅ AGORA USA produtoData
+      temImagem: !!imageUrl
+    });
+
+  } catch (err) {
+    console.error('❌ Erro interno:', err);
+    res.status(500).json({ 
+      msg: 'Erro interno do servidor',
+      details: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno'
+    });
   }
 }
-
-
 
 
 // atualizarrodutos
@@ -329,7 +400,7 @@ export async function editarprodutos(req, res) {
   const { campo, novoValor } = req.body;
 
 
-  const colunasPermitidas = ['nome', 'descricao', 'preco', 'imagem', 'cozinha', 'estoque', 'restaurante', 'categoria'];
+  const colunasPermitidas = ['nome', 'descricao', 'preco', 'imagem', 'cozinha', 'estoque', 'categoria'];
 
   if (!colunasPermitidas.includes(campo)) {
     return res.status(400).json({ error: "Campo inválido para atualização" });
@@ -347,7 +418,7 @@ export async function editarprodutos(req, res) {
     if (errorSelect || !produtoAtual) {
       return res.status(404).json({ error: "Produto não encontrado" });
     }
-produto
+
     const { data, error } = await supabase
       .from("produtos")
       .update({ [campo]: novoValor })
@@ -359,10 +430,53 @@ produto
       return res.status(500).json({ error: "Erro ao atualizar produtos" });
     }
 
-  
+
     res.json({ message: "Funcionário atualizado com sucesso!", produtos: data[0] });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro inesperado ao atualizar funcionário" });
+    res.status(500).json({ error: "Erro inesperado ao atualizar produto" });
   }
 }
+
+
+export async function deletarProduto(req, res) {
+  const { id } = req.params;
+
+  try {
+    console.log('🗑️ Deletando produto ID:', id);
+
+    const produtoId = parseInt(id);
+
+
+    // ✅ DELETAR O PRODUTO (SEM .single())
+    const { data, error } = await supabase
+      .from("produtos")
+      .delete()
+      .eq("id_produto", produtoId);
+
+    if (error) {
+      console.error('❌ Erro ao deletar:', error);
+      return res.status(500).json({
+        error: "Erro ao deletar produto",
+        details: error.message
+      });
+    }
+
+    // ✅ LIMPAR CACHE
+    cache.delete('produtos_list');
+    console.log('🗑️ Cache de produtos limpo');
+    res.json({
+      success: true,
+      message: `Produto deletado com sucesso!`,
+      id: produtoId
+    });
+
+  } catch (err) {
+    console.error('❌ Erro inesperado:', err);
+    res.status(500).json({
+      error: "Erro interno do servidor",
+      details: err.message
+    });
+  }
+}
+

@@ -1,6 +1,6 @@
 class MensagemPedidoService {
   
-  // 📋 FORMATAR PEDIDO COMPLETO (FUNCIONÁRIO)
+  // FORMATAR PEDIDO COMPLETO (FUNCIONÁRIO)
   static formatarPedidoCompleto(pedido, restaurante) {
     const itens = JSON.parse(pedido.pedidos || '[]');
     const dataHora = new Date(pedido.data_hora).toLocaleString('pt-BR');
@@ -92,7 +92,6 @@ class MensagemPedidoService {
     return mensagem;
   }
 
-  // ...rest of existing methods...
 }
 
 export default MensagemPedidoService;

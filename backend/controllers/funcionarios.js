@@ -4,6 +4,10 @@ import dotenv from "dotenv"
 import bcrypt from "bcryptjs"
 
 
+// ✅ OTIMIZAÇÃO: Cache simples em memória
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 dotenv.config()
 // Rota para listar funcionarios (filtrada por restaurante do usuário logado)
 export async function listarFuncionarios(req, res) {
@@ -175,3 +179,46 @@ export async function editarFuncionario(req, res) {
     res.status(500).json({ error: "Erro inesperado ao atualizar funcionário" });
   }
 }
+
+
+export async function deletarFuncionario(req, res) {
+  const { id } = req.params;
+
+  try {
+    console.log('🗑️ Deletando produto ID:', id);
+
+    const funcionarioId = parseInt(id);
+
+
+    // ✅ DELETAR O PRODUTO (SEM .single())
+    const { data, error } = await supabase
+      .from("funcionario")
+      .delete()
+      .eq("id_funcionario", funcionarioId);
+
+    if (error) {
+      console.error('❌ Erro ao deletar:', error);
+      return res.status(500).json({
+        error: "Erro ao deletar funcionario",
+        details: error.message
+      });
+    }
+
+    // ✅ LIMPAR CACHE
+    cache.delete('funcionario_list');
+    console.log('🗑️ Cache de funcionarios limpo');
+    res.json({
+      success: true,
+      message: `Funcionario deletado com sucesso!`,
+      id: funcionarioId
+    });
+
+  } catch (err) {
+    console.error('❌ Erro inesperado:', err);
+    res.status(500).json({
+      error: "Erro interno do servidor",
+      details: err.message
+    });
+  }
+}
+
