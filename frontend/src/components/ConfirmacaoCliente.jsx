@@ -1,12 +1,36 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react"; // ✅ ADICIONAR Suspense
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "../context/AuthContext";
 import styles from "../app/page.module.css"
 import Link from "next/link";
 import { useCarrinho } from '@/context/CarrinhoContext'
 
-function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
+// ✅ COMPONENTE DE LOADING
+function ConfirmacaoLoading() {
+  return (
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      background: "linear-gradient(135deg, #f9f871, #f4a261, #2a9d8f)"
+    }}>
+      <div style={{
+        background: "#fff",
+        padding: "40px",
+        borderRadius: "16px",
+        textAlign: "center"
+      }}>
+        <div style={{ fontSize: "48px", marginBottom: "20px" }}>🍽️</div>
+        <p>Carregando confirmação...</p>
+      </div>
+    </div>
+  );
+}
+
+// ✅ RENOMEAR FUNÇÃO PRINCIPAL
+function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
   const [mesa, setMesa] = useState("")
   const [casa, setCasa] = useState("");
@@ -35,7 +59,6 @@ function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
       preco: Number(item.preco_unitario || produto?.preco || 0),
       cozinha: produto?.cozinha,
       restaurante_id: produto?.restaurante || restauranteDaUrl || null
-
     };
   });
 
@@ -60,7 +83,6 @@ function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
     };
     fetchCategorias();
   }, []);
-
 
   const total = itensParaBackend.reduce(
     (acc, item) => acc + item.preco * item.quantidade,
@@ -169,26 +191,6 @@ function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
                   placeholder="Digite seu nome"
                 />
               </div>
-
-              {/* <div>
-                <label>🏠 Casa:</label>
-                <input 
-                  value={casa} 
-                  onChange={e => setCasa(e.target.value)} 
-                  className="input-bright" 
-                  placeholder="Número da casa"
-                />
-              </div> */}
-
-              {/* <div>
-                <label>🪑 Mesa:</label>
-                <input 
-                  value={mesa} 
-                  onChange={e => setMesa(e.target.value)} 
-                  className="input-bright" 
-                  placeholder="Número da mesa"
-                />
-              </div> */}
             </div>
 
             {/* ✅ SELECT DE OPÇÃO DE RETIRADA */}
@@ -389,7 +391,8 @@ function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
   );
 }
 
-export default function Confirmacao({ pedidoConfirmado, produtos }) {
+// ✅ COMPONENTE PRINCIPAL COM SUSPENSE
+export default function ConfirmacaoCliente({ pedidoConfirmado, produtos }) {
   return (
     <Suspense fallback={<ConfirmacaoLoading />}>
       <ConfirmacaoContent pedidoConfirmado={pedidoConfirmado} produtos={produtos} />
