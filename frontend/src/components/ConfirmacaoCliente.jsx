@@ -388,3 +388,11 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
     </div>
   );
 }
+
+export default function Confirmacao({ pedidoConfirmado, produtos }) {
+  return (
+    <Suspense fallback={<ConfirmacaoLoading />}>
+      <ConfirmacaoContent pedidoConfirmado={pedidoConfirmado} produtos={produtos} />
+    </Suspense>
+  );
+}
