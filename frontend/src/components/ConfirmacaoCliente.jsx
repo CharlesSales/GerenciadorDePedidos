@@ -6,7 +6,7 @@ import styles from "../app/page.module.css"
 import Link from "next/link";
 import { useCarrinho } from '@/context/CarrinhoContext'
 
-export default function Confirmacao({ pedidoConfirmado, produtos }) {
+function Confirmacao({ pedidoConfirmado, produtos }) {
   const [cliente, setCliente] = useState("");
   const [mesa, setMesa] = useState("")
   const [casa, setCasa] = useState("");
