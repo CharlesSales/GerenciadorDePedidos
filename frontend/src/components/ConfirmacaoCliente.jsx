@@ -18,13 +18,13 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   const { user, token } = useAuth();
   const { limparCarrinho } = useCarrinho();
 
-    const [restauranteID, setRestauranteID] = useState("null")
-    const searchParams = useSearchParams();
+  const [restauranteID, setRestauranteID] = useState("null")
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (enviado) limparCarrinho();
   }, [enviado]);
-  
+
   // Preparar itens para backend
   const itensParaBackend = pedidoConfirmado.map(item => {
     const produto = produtos.find(p => p.id_produto === item.id_produto);
@@ -38,16 +38,16 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
 
     };
   });
-  
+
   const restauranteDaUrl = searchParams.get("restaurante");
   const restauranteDosItens = itensParaBackend?.[0]?.restaurante_id;
   const restauranteIdCalculado = restauranteDaUrl || restauranteDosItens || null;
-  
+
   console.log(`o id é ${restauranteIdCalculado}`)
   console.log(`A opção de retirada é ${opcaoRetirada}`)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
-  
+
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
@@ -73,11 +73,11 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
       return;
     }
 
-     if (restauranteIdCalculado) {
-        setRestauranteID(restauranteIdCalculado); 
+    if (restauranteIdCalculado) {
+      setRestauranteID(restauranteIdCalculado);
     }
-     if (!restauranteIdCalculado) {
-        alert('Não ta chegando o id') 
+    if (!restauranteIdCalculado) {
+      alert('Não ta chegando o id')
     }
 
     try {
@@ -162,14 +162,14 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             >
               <div style={{ gridColumn: "1 / -1" }}>
                 <label>👤 Nome do Cliente:</label>
-                <input 
-                  value={cliente} 
-                  onChange={e => setCliente(e.target.value)} 
-                  className="input-bright" 
+                <input
+                  value={cliente}
+                  onChange={e => setCliente(e.target.value)}
+                  className="input-bright"
                   placeholder="Digite seu nome"
                 />
               </div>
-              
+
               {/* <div>
                 <label>🏠 Casa:</label>
                 <input 
@@ -179,7 +179,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
                   placeholder="Número da casa"
                 />
               </div> */}
-              
+
               {/* <div>
                 <label>🪑 Mesa:</label>
                 <input 
@@ -194,8 +194,8 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             {/* ✅ SELECT DE OPÇÃO DE RETIRADA */}
             <label style={{ display: "block", marginBottom: "12px" }}>
               <span>📋 Tipo de Retirada:</span>
-              <select 
-                value={opcaoRetirada} 
+              <select
+                value={opcaoRetirada}
                 onChange={(e) => setOpcaoRetirada(e.target.value)}
                 className="input-bright"
                 style={{ width: "100%" }}
@@ -241,9 +241,9 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               <h3 style={{ marginBottom: "10px", color: "#264653" }}>📋 Resumo do Pedido</h3>
               <ul style={{ listStyle: "none", padding: 0 }}>
                 {itensParaBackend.map((item, idx) => (
-                  <li key={item.produto_id + '-' + idx} style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
+                  <li key={item.produto_id + '-' + idx} style={{
+                    display: "flex",
+                    justifyContent: "space-between",
                     padding: "4px 0",
                     borderBottom: idx < itensParaBackend.length - 1 ? "1px solid #f0f0f0" : "none"
                   }}>
@@ -296,10 +296,10 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             <p style={{ color: "#555", marginBottom: "30px", fontSize: "16px" }}>
               Seu pedido foi recebido e está sendo preparado. Obrigado pela preferência!
             </p>
-            
+
             <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link 
-                href="/pedidos_geral" 
+              <Link
+                href="/pedidos_geral"
                 style={{
                   backgroundColor: "#2a9d8f",
                   color: "white",
@@ -312,7 +312,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               >
                 📋 Ver Pedidos
               </Link>
-              <Link 
+              <Link
                 href={`/cardapioCliente?restaurante=${restauranteID}`}
                 style={{
                   backgroundColor: "#e76f51",
@@ -327,7 +327,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
                 🏠 Voltar ao Início
               </Link>
             </div>
-            
+
             <footer style={{ marginTop: "40px", color: "#555", fontSize: "14px" }}>
               © 2025 FoodFlow - Sistema de Gestão de Pedidos
             </footer>

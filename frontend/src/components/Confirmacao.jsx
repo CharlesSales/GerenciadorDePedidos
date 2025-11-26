@@ -46,7 +46,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
   );
 
   const handleConfirmarPedido = async () => {
-    if (!cliente || !funcionarioId || !casa || itensParaBackend.length === 0) {
+    if (!cliente || !funcionarioId || itensParaBackend.length === 0) {
       alert("Preencha todos os campos e adicione pelo menos um produto.");
       return;
     }
@@ -129,7 +129,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             />
           </label>
           <label style={{ display: "block", marginBottom: "20px" }}>
-            <span>🏠 Número da casa:</span>
+            <span>🏠 Número da mesa:</span>
             <input
               type="text"
               value={mesa}

@@ -1,5 +1,6 @@
 'use client';
-import React from "react";
+import React, { useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, handleChangepaymentstatus, getStatusColor, formatarData }) {
   const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
@@ -8,9 +9,180 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
       ? pedido.pedidos
       : [];
 
+  console.log(`os itens pedidos foram: \n${pedido.pedidos}`)
   // ✅ FUNÇÃO PARA COR DO STATUS DE PAGAMENTO
   const getPaymentColor = (pag) => {
     return pag === 'pago' ? '#d4edda' : '#f8d7da'; // Verde claro / Vermelho claro
+  };
+
+  const cardRef = useRef(null);
+  const p = pedido.pedidos
+  const total = pedido.total
+  const itensPedido = JSON.parse(p)
+  const { user } = useAuth()
+
+  const id_restaurante =
+    user?.dados?.id_restaurante ||
+    user?.dados?.id ||
+    user?.dados?.restaurante?.id_restaurante ||
+    user?.dados?.restaurante?.id ||
+    user?.id_restaurante ||
+    user?.id;
+
+  const handlePrint = () => {
+    const novaJanela = window.open("", "", "width=300,height=600");
+    novaJanela.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Pedido #${numeroPedido}</title>
+        <style>
+          body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 5px;
+            line-height: 1.2;
+            background: white;
+            width: 80mm; /* ✅ LARGURA PADRÃO EPSON */
+            font-size: 12px;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 5px;
+          }
+          .restaurante {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 2px 0;
+            text-transform: uppercase;
+          }
+          .pedido-numero {
+            font-size: 12px;
+            margin: 2px 0;
+          }
+          .data-hora {
+            font-size: 10px;
+            margin: 2px 0;
+          }
+          .cliente-info {
+            margin: 8px 0;
+            padding: 3px 0;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 5px;
+          }
+          .cliente-info div {
+            margin: 1px 0;
+            font-size: 11px;
+          }
+          .itens {
+            margin: 8px 0;
+          }
+          .itens-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 2px;
+          }
+          .item {
+            font-size: 10px;
+            margin: 2px 0;
+            display: flex;
+            justify-content: space-between;
+          }
+          .item-nome {
+            flex: 1;
+            padding-right: 5px;
+          }
+          .item-preco {
+            white-space: nowrap;
+          }
+          .total {
+            margin-top: 8px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 9px;
+            border-top: 1px dashed #000;
+            padding-top: 5px;
+          }
+          .status-pag {
+            text-align: center;
+            margin: 5px 0;
+            font-size: 11px;
+            font-weight: bold;
+          }
+          
+          /* ✅ CONFIGURAÇÕES ESPECÍFICAS PARA IMPRESSÃO */
+          @media print {
+            body { 
+              margin: 0; 
+              padding: 2px;
+              width: 80mm;
+            }
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="restaurante">${(user?.dados?.restaurante?.nome_restaurante || 'RESTAURANTE').substring(0, 25)}</div>
+          <div class="pedido-numero">PEDIDO #${numeroPedido}</div>
+          <div class="data-hora">${formatarData(pedido.data_hora)}</div>
+        </div>
+
+        <div class="cliente-info">
+          <div><strong>CLIENTE:</strong> ${pedido.nome_cliente.substring(0, 20)}</div>
+          ${pedido.casa ? `<div><strong></strong> ${pedido.casa}</div>` : ''}
+          ${pedido.mesa ? `<div><strong>MESA:</strong> ${pedido.mesa}</div>` : ''}
+        </div>
+
+        <div class="itens">
+          <div class="itens-title">ITENS DO PEDIDO</div>
+          ${itensPedido.map(item => `
+            <div class="item">
+              <div class="item-nome">${item.quantidade} ${item.nome.substring(0, 18)}</div>
+              <div class="item-preco">R$ ${Number(item.preco || 0).toFixed(2)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="total">
+          TOTAL: R$ ${Number(total || 0).toFixed(2)}
+        </div>
+        <div class="footer">
+          ${new Date().toLocaleString('pt-BR')}
+          <br>
+          Sistema FoodFlow - Obrigado!
+        </div>
+      </body>
+    </html>
+  `);
+    novaJanela.document.close();
+
+    // ✅ CONFIGURAR IMPRESSÃO PARA CUPOM
+    setTimeout(() => {
+      novaJanela.focus();
+      novaJanela.print();
+
+      // ✅ FECHAR AUTOMATICAMENTE APÓS IMPRIMIR
+      setTimeout(() => {
+        novaJanela.close();
+      }, 1000);
+    }, 500);
   };
 
   // ✅ MAPEAR STATUS NUMÉRICO PARA TEXTO
@@ -22,16 +194,16 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
       4: 'A caminho',
       5: 'Entregue'
     };
-    
+
     // Se já é texto, retorna como está
     if (typeof status === 'string') return status;
-    
+
     // Se é número, converte para texto
     return statusMap[status] || `Status ${status}`;
   };
 
   return (
-    <div style={{
+    <div ref={cardRef} style={{
       backgroundColor: 'white',
       borderRadius: '15px',
       padding: '20px',
@@ -48,7 +220,7 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
             {formatarData(pedido.data_hora)}
           </p>
         </div>
-        
+
         {/* ✅ MOSTRAR STATUS DO PEDIDO (NÃO PAGAMENTO) */}
         <div style={{
           backgroundColor: getStatusColor(getStatusText(pedido.status)),
@@ -63,10 +235,10 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
       </div>
 
       {/* ✅ ADICIONAR INDICADOR DE PAGAMENTO SEPARADO */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         marginBottom: '15px',
         padding: '8px 12px',
         backgroundColor: getPaymentColor(pedido.pag),
@@ -74,8 +246,8 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         border: `1px solid ${pedido.pag === 'pago' ? '#c3e6cb' : '#f5c6cb'}`
       }}>
         <span style={{ fontWeight: 'bold', fontSize: '14px' }}>💳 Pagamento:</span>
-        <span style={{ 
-          fontWeight: 'bold', 
+        <span style={{
+          fontWeight: 'bold',
           color: pedido.pag === 'pago' ? '#155724' : '#721c24',
           fontSize: '14px'
         }}>
@@ -102,12 +274,12 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         </h4>
         {itens.length > 0 ? (
           itens.map((item, index) => (
-            <div key={index} style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              padding: '8px 0', 
-              borderBottom: index < itens.length - 1 ? '1px solid #f0f0f0' : 'none' 
+            <div key={index} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 0',
+              borderBottom: index < itens.length - 1 ? '1px solid #f0f0f0' : 'none'
             }}>
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 'bold', color: '#e11616ff', fontSize: '14px' }}>{item.quantidade}x</span>
@@ -144,7 +316,7 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
           >
             {pedido.pag === 'pago' ? 'Pago' : 'Pendente'}
           </button>
-          
+
           {/* ✅ BOTÃO DE STATUS COM ÍCONE */}
           <button
             onClick={() => handleChangeStatus(pedido.id_pedido, getStatusText(pedido.status))}
@@ -163,6 +335,25 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
           >
             ⏩ Avançar
           </button>
+          {/* ✅ BOTÃO DE STATUS COM ÍCONE */}
+          <button
+            onClick={handlePrint}
+            style={{
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '8px 15px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            🖨️
+          </button>
+
         </div>
       </div>
     </div>

@@ -199,7 +199,7 @@ export default function AdminPage() {
           cursor: 'pointer',
           transition: 'transform 0.2s ease'
         }}
-          onClick={() => router.push('/pedidos')}
+          onClick={() => router.push('/pedidos_geral')}
           onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
           onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
         >

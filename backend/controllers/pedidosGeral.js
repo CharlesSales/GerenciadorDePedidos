@@ -70,7 +70,7 @@ export const listarPedidosPorRestaurante = async (id_restaurante) => {
 
 
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total, obs, restauranteid } = req.body;
+  const { cliente, funcionario, casa, mesa, itens, total, obs, restauranteid } = req.body;
 
   if (!restauranteid) {
     return res.status(400).json({ error: "ID do restaurante é obrigatório" });
@@ -84,6 +84,7 @@ export async function cadastrarPedidos(req, res) {
         nome_cliente: cliente,
         funcionario,
         casa,
+        mesa,
         detalhe: obs,
         total,
         restaurante: restauranteid
