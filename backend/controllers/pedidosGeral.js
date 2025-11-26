@@ -70,7 +70,7 @@ export const listarPedidosPorRestaurante = async (id_restaurante) => {
 
 
 export async function cadastrarPedidos(req, res) {
-  const { cliente, funcionario, casa, itens, total, obs, restauranteid } = req.body;
+  const { cliente, funcionario, casa, mesa, itens, total, obs, restauranteid } = req.body;
 
   if (!restauranteid) {
     return res.status(400).json({ error: "ID do restaurante é obrigatório" });
@@ -84,6 +84,7 @@ export async function cadastrarPedidos(req, res) {
         nome_cliente: cliente,
         funcionario,
         casa,
+        mesa,
         detalhe: obs,
         total,
         restaurante: restauranteid
@@ -111,9 +112,9 @@ export async function cadastrarPedidos(req, res) {
     if (restauranteData?.telefone_whatsapp && restauranteData?.notificacao_whatsapp) {
       try {
         console.log('📤 Enviando WhatsApp para restaurante:', restauranteData.nome_restaurante);
-        
+
         const mensagem = MensagemPedidoService.formatarPedidoCompleto(
-          novoPedido, 
+          novoPedido,
           restauranteData
         );
 
@@ -145,9 +146,9 @@ export async function cadastrarPedidos(req, res) {
         .not("expo_token", "is", null);
 
       // Filtra para não notificar quem fez o pedido
-    const tokens = (funcionariosRestaurante ?? [])
-    .filter(f => f.id_funcionario !== novoPedido.funcionario)
-    .map(f => f.expo_token);
+      const tokens = (funcionariosRestaurante ?? [])
+        .filter(f => f.id_funcionario !== novoPedido.funcionario)
+        .map(f => f.expo_token);
 
       // Busca todos pedidos pendentes do restaurante
       const { data: pedidosPendentes } = await supabase
@@ -191,7 +192,11 @@ export async function cadastrarPedidos(req, res) {
 
 // aqui termina
 export async function cadastrarPedidosCliente(req, res) {
-  const { mesa, cliente, casa, itens, total, obs, restauranteid } = req.body;
+  const { mesa, cliente, casa, itens, total, obs, opcaoRetirada, restauranteid } = req.body;
+
+  const mesaInt = mesa && mesa !== "" ? parseInt(mesa) : null;
+
+  console.log("BODY RECEBIDO COMPLETO:", req.body);
 
   if (!restauranteid) {
     return res.status(400).json({ error: "ID do restaurante é obrigatório" });
@@ -203,11 +208,15 @@ export async function cadastrarPedidosCliente(req, res) {
       .insert([{
         pedidos: JSON.stringify(itens),
         nome_cliente: cliente,
-        mesa,
+        mesa: mesaInt,
         casa,
         detalhe: obs,
         total,
-        restaurante: restauranteid
+        retirada: opcaoRetirada && opcaoRetirada !== '' && opcaoRetirada !== 'null'
+          ? parseInt(opcaoRetirada)
+          : null, // ✅ CONVERTER PARA INT OU NULL
+        restaurante: parseInt(restauranteid), // ✅ CONVERTER PARA INT
+
       }])
       .select();
 
@@ -232,9 +241,9 @@ export async function cadastrarPedidosCliente(req, res) {
         .not("expo_token", "is", null);
 
       // Filtra para não notificar quem fez o pedido
-    const tokens = (funcionariosRestaurante ?? [])
-    .filter(f => f.id_funcionario !== novoPedido.funcionario)
-    .map(f => f.expo_token);
+      const tokens = (funcionariosRestaurante ?? [])
+        .filter(f => f.id_funcionario !== novoPedido.funcionario)
+        .map(f => f.expo_token);
 
       // Busca todos pedidos pendentes do restaurante
       const { data: pedidosPendentes } = await supabase
@@ -277,22 +286,22 @@ export async function cadastrarPedidosCliente(req, res) {
 }
 
 export async function cadastrarPedidosDelivery(req, res) {
-  const { 
-    cliente, 
-    logradouro, 
-    numero, 
-    bairro, 
-    cidade, 
-    complemento, 
-    referencia, 
-    itens, 
-    obs, 
-    total, 
-    restauranteid, 
+  const {
+    cliente,
+    logradouro,
+    numero,
+    bairro,
+    cidade,
+    complemento,
+    referencia,
+    itens,
+    obs,
+    total,
+    restauranteid,
   } = req.body;
 
   console.log('📦 Dados recebidos para delivery:', {
-    cliente, logradouro, numero, bairro, cidade, complemento, 
+    cliente, logradouro, numero, bairro, cidade, complemento,
     referencia, itens: itens?.length, obs, total, restauranteid
   });
 
@@ -334,10 +343,10 @@ export async function cadastrarPedidosDelivery(req, res) {
 
     // 2️⃣ SALVAR PEDIDO PRINCIPAL COM ENDEREÇO VINCULADO
     console.log('📝 Salvando pedido principal...');
-    
+
     // ✅ CRIAR ENDEREÇO RESUMIDO PARA O CAMPO 'casa'
     const enderecoResumo = `${logradouro}, ${numero} - ${bairro}, ${cidade}`;
-    
+
     const { data: pedidoData, error: pedidoError } = await supabase
       .from("pedidos_geral")
       .insert([{
@@ -398,7 +407,7 @@ export async function cadastrarPedidosDelivery(req, res) {
     // 5️⃣ EMITIR SOCKET.IO COM DADOS COMPLETOS
     try {
       console.log('📡 Emitindo Socket.IO...');
-      
+
       const dadosCompletos = {
         ...pedidoData,
         restaurante: Number(restauranteid),
@@ -409,7 +418,7 @@ export async function cadastrarPedidosDelivery(req, res) {
       };
 
       io.emit("novo_pedido", dadosCompletos);
-      
+
       console.log('✅ Socket.IO emitido com sucesso');
     } catch (socketError) {
       console.error("❌ Erro no Socket.IO:", socketError.message);
@@ -419,7 +428,7 @@ export async function cadastrarPedidosDelivery(req, res) {
     // if (restauranteData?.telefone_whatsapp && restauranteData?.notificacao_whatsapp) {
     //   try {
     //     console.log('📱 Enviando WhatsApp...');
-        
+
     //     const itensTexto = itens.map(item => 
     //       `${item.quantidade}x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`
     //     ).join('\n');
@@ -435,10 +444,10 @@ export async function cadastrarPedidosDelivery(req, res) {
     //       `🕐 ${new Date().toLocaleString('pt-BR')}\n\n` +
     //       `⚡ *DELIVERY - ENTREGAR NO ENDEREÇO ACIMA*`;
 
-        // await ZApiService.enviarMensagem(
-        //   restauranteData.telefone_whatsapp,
-        //   mensagem
-        // );
+    // await ZApiService.enviarMensagem(
+    //   restauranteData.telefone_whatsapp,
+    //   mensagem
+    // );
 
     //     console.log('✅ WhatsApp enviado com sucesso');
     //   } catch (whatsappError) {
@@ -462,7 +471,7 @@ export async function cadastrarPedidosDelivery(req, res) {
         sound: "default",
         title: "🚚 Novo Pedido Delivery!",
         body: `${cliente} - ${enderecoResumo} - R$ ${Number(total).toFixed(2)}`,
-        data: { 
+        data: {
           pedidoId: pedidoId,
           tipo: 'delivery',
           endereco: enderecoResumo,
@@ -492,9 +501,9 @@ export async function cadastrarPedidosDelivery(req, res) {
 
   } catch (err) {
     console.error("❌ Erro ao cadastrar pedido delivery:", err);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Erro interno ao cadastrar pedido",
-      details: err.message 
+      details: err.message
     });
   }
 }
@@ -526,9 +535,9 @@ export async function editarPedidos(req, res) {
       return res.status(500).json({ error: "Erro ao atualizar status" })
     }
 
-     try {
-      io.emit("pagamentoAtualizado", { 
-        id: Number(id), 
+    try {
+      io.emit("pagamentoAtualizado", {
+        id: Number(id),
         novoStatusPagamento: novoStatus,
         pedido: data[0]
       });
@@ -564,13 +573,13 @@ export const atualizarStatusPedido = async (req, res) => {
 
     // Atualiza o status do pedido
     const { data, error } = await supabase
-    .from('pedidos_geral') // CORRIGIDO
-    .update({ status: status_id }) // se no `pedidos_geral` o campo é `status`
-    .eq('id_pedido', id) // id correto
-    .select()
-    .single();
+      .from('pedidos_geral') // CORRIGIDO
+      .update({ status: status_id }) // se no `pedidos_geral` o campo é `status`
+      .eq('id_pedido', id) // id correto
+      .select()
+      .single();
 
-      if (error) throw error;
+    if (error) throw error;
 
     res.status(200).json({
       message: 'Status do pedido atualizado com sucesso!',
