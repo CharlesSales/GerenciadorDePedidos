@@ -1,6 +1,15 @@
 import express from "express"
 
-import { listarPedidos , cadastrarPedidos, editarPedidos, atualizarStatusPedido, listarStatusPedidos, cadastrarPedidosCliente, cadastrarPedidosDelivery } from "../controllers/pedidosGeral.js"
+import {
+  listarPedidos,
+  cadastrarPedidos,
+  editarPedidos,
+  atualizarStatusPedido,
+  listarStatusPedidos,
+  cadastrarPedidosCliente,
+  cadastrarPedidosDelivery,
+  cadastrarPedidosQRcode
+} from "../controllers/pedidosGeral.js"
 
 const router = express.Router()
 
@@ -8,6 +17,7 @@ router.get("/", listarPedidos)
 router.post("/", cadastrarPedidos)
 router.post("/cliente", cadastrarPedidosCliente)
 router.post('/delivery', cadastrarPedidosDelivery)
+router.post('/qrcode', cadastrarPedidosQRcode)
 router.put("/:id", editarPedidos)
 router.put('/:id/status', atualizarStatusPedido);
 router.get('/status', listarStatusPedidos);

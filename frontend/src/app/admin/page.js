@@ -11,9 +11,8 @@ export default function AdminPage() {
   // 🔍 DEBUG: Verificar estrutura do usuário
   console.log('👤 Usuário completo:', user);
   console.log('📊 Dados do usuário:', user?.dados);
-  console.log('🏪 ID do restaurante (v1):', user?.dados?.id_restaurante);
-  console.log('🏪 ID do restaurante (v2):', user?.dados?.id);
-  console.log('🏪 Restaurante object:', user?.dados?.restaurante);
+  console.log('🏪 ID do restaurante (v1):', user?.dados?.restaurante?.id_restaurante);
+
 
   // ✅ MÚLTIPLAS TENTATIVAS PARA PEGAR O ID
   const id_restaurante =
@@ -238,7 +237,7 @@ export default function AdminPage() {
           </p>
         </div>
 
-        {/* ✅ RELATÓRIOS */}
+        {/* ✅ RELATÓRIOS
         <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
@@ -262,7 +261,7 @@ export default function AdminPage() {
           </p>
         </div>
 
-        {/* ✅ CONFIGURAÇÕES */}
+       
         <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
@@ -282,7 +281,6 @@ export default function AdminPage() {
             }
 
             router.push(`/cardapioCliente?restaurante=${id_restaurante}`);
-            // router.push(`/teste`);
           }}
           onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
           onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
@@ -296,7 +294,7 @@ export default function AdminPage() {
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
             Visualizar cardápio do restaurante
           </p>
-        </div>
+        </div> */}
 
         {/* ✅ CARDÁPIO PÚBLICO */}
         <div style={{
@@ -319,6 +317,80 @@ export default function AdminPage() {
           </h3>
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
             Visualizar como os produtos
+          </p>
+        </div>
+
+        {/* ✅ CARDÁPIO PÚBLICO */}
+        {/* <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+          onClick={() => {
+            console.log('🔗 Navegando para cardápio da mesa');
+            console.log('🏪 ID Restaurante:', id_restaurante);
+            console.log('🪑 ID Mesa:', 1);
+
+            if (!id_restaurante) {
+              alert('❌ ID do restaurante não encontrado!');
+              console.error('❌ Dados do usuário:', user);
+              return;
+            }
+
+            // ✅ CORREÇÃO: URL com query parameters corretos
+            router.push(`/cardapioMesa?id_restaurante=${id_restaurante}&id_mesa=1`);
+          }}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            🍽️
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Testar Cardápio Mesa
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Ver produtos como cliente da mesa 1
+          </p>
+        </div> */}
+
+        {/* ✅ CARDÁPIO PÚBLICO */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          padding: '20px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease'
+        }}
+          onClick={() => {
+            console.log('🔗 Navegando para cardápio da mesa');
+            console.log('🏪 ID Restaurante:', id_restaurante);
+            console.log('🪑 ID Mesa:', 1);
+
+            if (!id_restaurante) {
+              alert('❌ ID do restaurante não encontrado!');
+              console.error('❌ Dados do usuário:', user);
+              return;
+            }
+
+            // ✅ CORREÇÃO: URL com query parameters corretos
+            router.push(`/gestaoMesa`);
+          }}
+          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+        >
+          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+            🍽️
+          </div>
+          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+            Ver mesas
+          </h3>
+          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+            Visualizar QR code das mesas
           </p>
         </div>
 

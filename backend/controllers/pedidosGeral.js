@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
 import ZApiService from "../service/zapiService.js";
 import MensagemPedidoService from "../service/mensagemPedidoService.js";
+import { error } from "console";
 
 
 export async function listarPedidos(req, res) {
@@ -285,6 +286,54 @@ export async function cadastrarPedidosCliente(req, res) {
   }
 }
 
+export async function cadastrarPedidosQRcode(req, res) {
+  const { cliente, itens, obs, total, restauranteid, id_mesa } = req.body;
+
+  if (!cliente, !itens, !total, !restauranteid, !id_mesa) {
+    return res.status(404).json({
+      msg: "Os campos são obrigatorio"
+    })
+  }
+
+  const { data: resposta, error: err } = await supabase
+    .from("pedidos_geral")
+    .insert({
+      pedidos: JSON.stringify(itens), // ✅ MANTER COMPATIBILIDADE
+      nome_cliente: cliente,
+      detalhe: obs || '',
+      total: Number(total) || 0,
+      restaurante: restauranteid,
+      mesa: id_mesa,
+      funcionario: 17, // ✅ ID funcionário padrão para pedidos externos
+    })
+
+    if (err) {
+      res.status(402).json({
+        error: err.message
+      })
+    }
+
+    try {
+      console.log('📡 Emitindo Socket.IO...');
+
+      const dadosCompletos = {
+        ...pedidoData,
+        restaurante: Number(restauranteid),
+        endereco_completo: enderecoData, // ✅ ENDEREÇO COMPLETO
+        itens_detalhados: itensData,     // ✅ ITENS DETALHADOS
+        restaurante: restauranteid,   
+        tipo: 'delivery' // ✅ IDENTIFICAR TIPO
+      };
+
+      io.emit("novo_pedido", dadosCompletos);
+
+      console.log('✅ Socket.IO emitido com sucesso');
+    } catch (socketError) {
+      console.error("❌ Erro no Socket.IO:", socketError.message);
+    }
+
+
+}
 export async function cadastrarPedidosDelivery(req, res) {
   const {
     cliente,

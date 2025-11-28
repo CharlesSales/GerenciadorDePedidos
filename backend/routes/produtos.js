@@ -6,7 +6,8 @@ import {
   listarProdutosPorRestaurante,
   editarprodutos, 
   cadastrarProdutos,
-  deletarProduto
+  deletarProduto,
+  listarProdutosPorQRcode
 } from '../controllers/produtos.js';
 
 const router = express.Router();
@@ -16,6 +17,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // ✅ ROTAS SIMPLES SEM MIDDLEWARE
 router.get('/', listarProdutos);
 router.get("/restaurante/:restauranteId", listarProdutosPorRestaurante)
+router.get("/mesa/:id_restaurante/:id_mesa", listarProdutosPorQRcode)
 router.put("/:id/:campo/:novoValor", editarprodutos);
 router.post("/", upload.single("imagem"), cadastrarProdutos);
 router.get('/:id', buscarProdutoPorId);

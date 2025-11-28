@@ -145,8 +145,8 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         </div>
 
         <div class="cliente-info">
-          <div><strong>CLIENTE:</strong> ${pedido.nome_cliente.substring(0, 20)}</div>
-          ${pedido.casa ? `<div><strong></strong> ${pedido.casa}</div>` : ''}
+          <div><strong>PEDIDO:</strong> #${numeroPedido}</div>
+          ${pedido.casa ? `<div><strong> ${pedido.casa}</strong></div>` : ''}
           ${pedido.mesa ? `<div><strong>MESA:</strong> ${pedido.mesa}</div>` : ''}
         </div>
 
@@ -183,6 +183,39 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         novaJanela.close();
       }, 1000);
     }, 500);
+  };
+
+
+  // Exemplo de integração com Epsilon
+  const handleEpsilonPrint = async () => {
+    try {
+      // Configurar conexão com impressora Epsilon
+      const printer = new EpsilonPrinter({
+        interface: 'USB', // ou 'Serial', 'Ethernet'
+        model: 'TM-T20X' // ou modelo específico
+      });
+
+      // Comandos ESC/POS para Epsilon
+      const commands = [
+        '\x1b\x40', // Reset
+        '\x1b\x61\x01', // Centralizar
+        `${user?.dados?.restaurante?.nome_restaurante || 'RESTAURANTE'}\n`,
+        '\x1b\x61\x00', // Alinhar esquerda
+        `PEDIDO #${numeroPedido}\n`,
+        `${formatarData(pedido.data_hora)}\n`,
+        '--------------------------------\n',
+        `CLIENTE: ${pedido.nome_cliente}\n`,
+        // ... outros dados
+        '\x1d\x56\x41', // Cortar papel
+      ];
+
+      await printer.print(commands.join(''));
+
+    } catch (error) {
+      console.error('Erro na impressão Epsilon:', error);
+      // Fallback para impressão padrão
+      handlePrint();
+    }
   };
 
   // ✅ MAPEAR STATUS NUMÉRICO PARA TEXTO
@@ -258,7 +291,10 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
       {/* Informações do cliente */}
       <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '8px', marginBottom: '15px' }}>
         <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#333' }}>{pedido.nome_cliente}</p>
-        <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Casa: {pedido.casa}</p>
+        {/* <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Casa: {pedido.casa}</p> */}
+        {pedido.casa && (
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>testando: {pedido.casa}</p>
+        )}
         {pedido.mesa && (
           <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Mesa: {pedido.mesa}</p>
         )}
@@ -353,6 +389,24 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
           >
             🖨️
           </button>
+
+          {/* <button
+            onClick={handleEpsilonPrint}
+            style={{
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '8px 15px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+          >
+            Imprimir
+          </button> */}
 
         </div>
       </div>

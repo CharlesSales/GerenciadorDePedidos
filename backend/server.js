@@ -14,6 +14,7 @@ import userRoutes from "./routes/user.js"
 import retiradaRoutes from "./routes/retirada.js"
 import restauranteRoutes from "./routes/restaurante.js"
 import authRoutes from "./routes/auth.js"
+import mesaRoutes from "./routes/mesa.js"
 import { Server } from "socket.io"
 import http from "http"
 // Adicione no seu server.js
@@ -49,6 +50,7 @@ app.use("/restaurante", restauranteRoutes)
 app.use("/relatorios", relatoriosRoutes)
 app.use("/user", userRoutes)
 app.use("/retirada", retiradaRoutes)
+app.use("/mesa", mesaRoutes)
 
 
 // cria servidor HTTP a partir do app

@@ -1,7 +1,6 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { features } from 'process';
 
 export default function ListaProdutos({
     produtos,
