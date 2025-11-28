@@ -39,9 +39,9 @@ export default function CadastrarMesa({ token }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMsg(data.msg || data.error || 'Erro ao cadastrar funcionário');
+        setErrorMsg(data.msg || data.error || 'Erro ao cadastrar Mesa');
       } else {
-        setSuccessMsg('Funcionário cadastrado com sucesso!');
+        setSuccessMsg('Mesa cadastrado com sucesso!');
 
 
      setTimeout(() => {
@@ -49,7 +49,7 @@ export default function CadastrarMesa({ token }) {
         }, 1000);
       }
     } catch (error) {
-      console.error('Erro ao cadastrar funcionário:', error);
+      console.error('Erro ao cadastrar mesa:', error);
       setErrorMsg('Erro de conexão com o servidor');
     } finally {
       setLoading(false);
@@ -74,9 +74,9 @@ export default function CadastrarMesa({ token }) {
         maxWidth: '420px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>👨‍💼</div>
-          <h1 style={{ margin: 0, color: '#dc3545', fontSize: '28px' }}>Novo Funcionário</h1>
-          <p style={{ color: '#6c757d', margin: '8px 0 0 0' }}>Cadastro</p>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}></div>
+          <h1 style={{ margin: 0, color: '#dc3545', fontSize: '28px' }}>Nova Mesa</h1>
+        
         </div>
 
         {errorMsg && (
@@ -92,7 +92,7 @@ export default function CadastrarMesa({ token }) {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <input type="text" placeholder="Nome" value={numeroMesa} onChange={e => setNumeroMesa(e.target.value)} style={inputStyle} />
+          <input type="text" placeholder="Numero da mesa" value={numeroMesa} onChange={e => setNumeroMesa(e.target.value)} style={inputStyle} />
 
           <button type="submit" disabled={loading} style={{
             width: '100%', padding: '14px',
@@ -109,7 +109,7 @@ export default function CadastrarMesa({ token }) {
         </form>
 
         <button
-          onClick={() => router.push('/gestaoFuncionarios')}
+          onClick={() => router.push('/gestaoMesa')}
           style={{
             marginTop: '20px',
             backgroundColor: '#6c757d',
