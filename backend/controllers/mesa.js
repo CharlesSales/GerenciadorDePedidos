@@ -69,7 +69,7 @@ export async function criarMesa(req, res) {
         
         const id_mesa = mesaCriada[0].id
 
-        const url = `https://gerenciadordepedidos.onrender.com/cardapioMesa?id_restaurante=${restaurante}&id_mesa=${id_mesa}`;
+        const url = `https://gerenciador-de-pedidos-beryl.vercel.app/cardapioMesa?id_restaurante=${restaurante}&id_mesa=${id_mesa}`;
         const qrImage = await QRCode.toDataURL(url);
         
         const { error: updateError } = await supabase
