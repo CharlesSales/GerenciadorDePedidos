@@ -321,7 +321,7 @@ export default function AdminPage() {
         </div>
 
         {/* ✅ CARDÁPIO PÚBLICO */}
-        {/* <div style={{
+        <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
           padding: '20px',
@@ -355,7 +355,7 @@ export default function AdminPage() {
           <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
             Ver produtos como cliente da mesa 1
           </p>
-        </div> */}
+        </div>
 
         {/* ✅ CARDÁPIO PÚBLICO */}
         <div style={{
