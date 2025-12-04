@@ -86,7 +86,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
         return;
       }
 
-      console.log("Pedido enviado com sucesso:", data);
+      ("Pedido enviado com sucesso:", data);
       setEnviado(true);
 
     } catch (err) {

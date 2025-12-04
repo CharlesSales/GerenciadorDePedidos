@@ -139,7 +139,7 @@
 
       // 2️⃣ Ouvinte para pedidos de FUNCIONÁRIOS (Interno)
       socket.on("novoPedido_geral", (pedido) => {
-        console.log("🛎️ Pedido Interno recebido:", pedido);
+        ("🛎️ Pedido Interno recebido:", pedido);
 
         const idRestauranteUser = Number(user?.dados?.restaurante?.id_restaurante);
         const idRestaurantePedido = Number(pedido.restaurante);
@@ -154,13 +154,13 @@
 
       // 3️⃣ Ouvinte para pedidos de DELIVERY (Externo)
       socket.on("novo_pedido", (dadosSocket) => {
-        console.log("🛵 Pedido Delivery recebido:", dadosSocket);
+        ("🛵 Pedido Delivery recebido:", dadosSocket);
 
         const idRestauranteUser = Number(user?.dados?.restaurante?.id_restaurante);
         const idRestaurantePedido = Number(dadosSocket.restaurante);
 
         if (idRestaurantePedido !== idRestauranteUser) {
-          console.log(`❌ Ignorado: ID Pedido (${idRestaurantePedido}) != ID User (${idRestauranteUser})`);
+          (`❌ Ignorado: ID Pedido (${idRestaurantePedido}) != ID User (${idRestauranteUser})`);
           return;
         }
 

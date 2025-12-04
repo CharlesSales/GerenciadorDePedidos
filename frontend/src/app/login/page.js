@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      console.log('👤 Usuário encontrado no useEffect:', user);
+      ('👤 Usuário encontrado no useEffect:', user);
       redirectUser(user);
     }
   }, [user]);
@@ -35,7 +35,7 @@ export default function LoginPage() {
   };
 
   const redirectUser = (userData) => {
-    console.log('🔄 REDIRECIONAMENTO - Usuário:', {
+    ('🔄 REDIRECIONAMENTO - Usuário:', {
       tipo: userData.tipo,
       isAdmin: userData.isAdmin,
       nome: userData.dados?.nome || userData.dados?.nome_restaurante,
@@ -58,7 +58,7 @@ export default function LoginPage() {
       }
     }
 
-    console.log('🎯 Redirecionando para:', destino);
+    ('🎯 Redirecionando para:', destino);
     router.push(destino);
   };
 
@@ -74,17 +74,17 @@ export default function LoginPage() {
           return;
         }
 
-        console.log('📝 Tentativa de login funcionário/restaurante:', formData.usuario);
+        ('📝 Tentativa de login funcionário/restaurante:', formData.usuario);
 
         let result = await login(usuarioFormatado, senhaFormatada, 'funcionario');
 
         if (!result.success) {
-          console.log('🔄 Tentando como restaurante...');
+          ('🔄 Tentando como restaurante...');
           result = await login(usuarioFormatado, senhaFormatada, 'restaurante');
         }
 
         if (result.success) {
-          console.log('✅ Login realizado com sucesso!');
+          ('✅ Login realizado com sucesso!');
         } else {
           setError(result.error || 'Usuário ou senha inválidos');
         }
@@ -100,7 +100,7 @@ export default function LoginPage() {
   };
 
   const handleCadastro = () => {
-    console.log('📝 Navegando para cadastro...');
+    ('📝 Navegando para cadastro...');
     router.push('/cadastrarRestaurante');
   };
 

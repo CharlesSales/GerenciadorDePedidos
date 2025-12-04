@@ -34,9 +34,9 @@ export default function Produtos() {
     };
   }, []);
 
-  console.log('📦 Produtos recebidos:', produtos);
-  console.log('📦 Tipo de produtos:', typeof produtos);
-  console.log('📦 É array?', Array.isArray(produtos));
+  ('📦 Produtos recebidos:', produtos);
+  ('📦 Tipo de produtos:', typeof produtos);
+  ('📦 É array?', Array.isArray(produtos));
 
   // ✅ LOADING
   if (loading) {
@@ -114,7 +114,7 @@ export default function Produtos() {
     return true;
   });
 
-  console.log('✅ Produtos válidos:', produtosValidos.length);
+  ('✅ Produtos válidos:', produtosValidos.length);
 
   // ✅ EXTRAIR CATEGORIAS ÚNICAS
   const categorias = [...new Set(
@@ -131,7 +131,7 @@ export default function Produtos() {
       .filter(Boolean)
   )];
 
-  console.log('📂 Categorias encontradas:', categorias);
+  ('📂 Categorias encontradas:', categorias);
 
   // ✅ APLICAR FILTROS
   const produtosFiltrados = produtosValidos.filter(produto => {
@@ -165,7 +165,7 @@ export default function Produtos() {
     }
   });
 
-  console.log('🔍 Produtos após filtros:', produtosFiltrados.length);
+  ('🔍 Produtos após filtros:', produtosFiltrados.length);
 
   return (
     <div style={{ paddingTop: '20px' }}>

@@ -7,31 +7,18 @@ export default function AdminPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [couvertStatus, setCouvertStatus] = useState(null);
+  const couvert = user?.dados?.restaurante?.taxaCouvert;
+  const id_restaurante = user?.dados?.restaurante?.id_restaurante
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
 
-  // 🔍 DEBUG: Verificar estrutura do usuário
-  console.log('👤 Usuário completo:', user);
-  console.log('📊 Dados do usuário:', user?.dados);
-  console.log('🏪 ID do restaurante (v1):', user?.dados?.restaurante?.id_restaurante);
 
-
-  // ✅ MÚLTIPLAS TENTATIVAS PARA PEGAR O ID
-  const id_restaurante =
-    user?.dados?.id_restaurante ||
-    user?.dados?.id ||
-    user?.dados?.restaurante?.id_restaurante ||
-    user?.dados?.restaurante?.id ||
-    user?.id_restaurante ||
-    user?.id;
-
-  console.log('🎯 ID final escolhido:', id_restaurante);
-
-  // ✅ Garantir hidratação
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
   const handleLogout = () => {
-    logout(); // ✅ Função já implementada no AuthContext
+    logout();
     router.push('/login');
   };
 
@@ -41,6 +28,98 @@ export default function AdminPage() {
       router.push('/login');
     }
   }, [isHydrated, loading, user, router]);
+
+
+  useEffect(() => {
+    if (couvert !== undefined) {
+      setCouvertStatus(couvert);
+    }
+  }, [couvert]);
+
+
+  const buscarStatusCouvert = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // ✅ Usar a rota correta conforme suas rotas
+      const response = await fetch(`${API_URL}/restaurante/restaurantes/couvert/${id_restaurante}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        console.error("❌ Erro ao buscar couvert");
+        // ✅ Se falhar, usar o valor do contexto como fallback
+        setCouvertStatus(couvert);
+        return;
+      }
+
+      const data = await response.json();
+      // ✅ Verificar se data é array ou objeto
+      const taxaCouvert = Array.isArray(data) ? data[0]?.taxaCouvert : data?.taxaCouvert;
+
+
+      // Converte CORRETAMENTE qualquer tipo de retorno
+      const statusBoolean = taxaCouvert === true || taxaCouvert === "true" || taxaCouvert === 1 || taxaCouvert === "1";
+
+      setCouvertStatus(statusBoolean);
+
+    } catch (error) {
+      console.error("❌ Erro ao buscar status do couvert:", error);
+      // ✅ Se der erro, usar o valor do contexto
+      setCouvertStatus(couvert);
+    }
+  };
+  useEffect(() => {
+    if (user && id_restaurante) {
+      buscarStatusCouvert();
+    }
+  }, [user, id_restaurante]);
+
+
+  const handleatualizarStatusCouvert = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return alert("Token não encontrado");
+
+      const novoStatus = !couvertStatus;
+
+      const response = await fetch(`${API_URL}/restaurante`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: novoStatus,
+          id: id_restaurante,
+        }),
+      });
+
+      if (!response.ok) {
+        alert("Erro ao atualizar couvert");
+        return;
+      }
+
+      const result = await response.json();
+
+      // Atualiza o estado local imediatamente
+      setCouvertStatus(novoStatus);
+
+      // ✅ Buscar novamente para confirmar
+      setTimeout(() => {
+        buscarStatusCouvert();
+      }, 500);
+
+    } catch (error) {
+      console.error(error);
+      alert("Erro inesperado");
+    }
+  };
+
 
   // ✅ Loading visual
   if (!isHydrated || loading) {
@@ -139,6 +218,45 @@ export default function AdminPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>Couvert</span>
+            <div
+              onClick={handleatualizarStatusCouvert}
+              style={{
+                width: '50px',
+                height: '26px',
+                backgroundColor: couvertStatus ? '#28a745' : '#ccc',
+                borderRadius: '13px',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+                border: '2px solid #fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  position: 'absolute',
+                  top: '1px',
+                  left: couvertStatus ? '27px' : '3px',
+                  transition: 'left 0.3s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }}
+              />
+            </div>
+            <span style={{
+              fontSize: '12px',
+              color: couvertStatus ? '#28a745' : '#6c757d',
+              fontWeight: 'bold'
+            }}>
+              {couvertStatus ? 'ON' : 'OFF'}
+            </span>
+          </div>
+
           <button
             onClick={handleLogout}
             style={{
@@ -271,8 +389,8 @@ export default function AdminPage() {
           transition: 'transform 0.2s ease'
         }}
           onClick={() => {
-            console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
-            console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
+            ('🔗 Navegando para cardápio com ID:', id_restaurante);
+            ('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
 
             if (!id_restaurante) {
               alert('❌ ID do restaurante não encontrado!');
@@ -330,9 +448,9 @@ export default function AdminPage() {
           transition: 'transform 0.2s ease'
         }}
           onClick={() => {
-            console.log('🔗 Navegando para cardápio da mesa');
-            console.log('🏪 ID Restaurante:', id_restaurante);
-            console.log('🪑 ID Mesa:', 1);
+            ('🔗 Navegando para cardápio da mesa');
+            ('🏪 ID Restaurante:', id_restaurante);
+            ('🪑 ID Mesa:', 1);
 
             if (!id_restaurante) {
               alert('❌ ID do restaurante não encontrado!');
@@ -367,9 +485,7 @@ export default function AdminPage() {
           transition: 'transform 0.2s ease'
         }}
           onClick={() => {
-            console.log('🔗 Navegando para cardápio da mesa');
-            console.log('🏪 ID Restaurante:', id_restaurante);
-            console.log('🪑 ID Mesa:', 1);
+
 
             if (!id_restaurante) {
               alert('❌ ID do restaurante não encontrado!');

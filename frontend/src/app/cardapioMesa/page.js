@@ -12,7 +12,7 @@ function CardapioContent() {
   const id_restaurante = searchParams.get('id_restaurante');
   const id_mesa = searchParams.get('id_mesa');
 
-  console.log('📦 Parâmetros recebidos:', { id_restaurante, id_mesa });
+  ('📦 Parâmetros recebidos:', { id_restaurante, id_mesa });
 
   const { handleAdd, handleRemove, carrinho } = useCarrinho();
 
@@ -42,7 +42,7 @@ function CardapioContent() {
           return;
         }
 
-        console.log(`🌐 Fazendo requisição: ${API_URL}/produtos/mesa/${id_restaurante}/${id_mesa}`);
+        (`🌐 Fazendo requisição: ${API_URL}/produtos/mesa/${id_restaurante}/${id_mesa}`);
 
         // ✅ CORREÇÃO: Usar os parâmetros corretos na requisição
         const response = await fetch(`${API_URL}/produtos/mesa/${id_restaurante}/${id_mesa}`);
@@ -53,7 +53,7 @@ function CardapioContent() {
         }
         
         const data = await response.json();
-        console.log('📦 Dados recebidos:', data);
+        ('📦 Dados recebidos:', data);
 
         // ✅ CORREÇÃO: Verificar diferentes estruturas de resposta
         if (data.success) {

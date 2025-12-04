@@ -41,7 +41,7 @@ export default function ListaProdutos({
                 }
             });
 
-            console.log('Status: ', response.status)
+            ('Status: ', response.status)
 
             if (!response.ok) {
                 let errorMessage = 'DEU MERDA!!'
@@ -64,7 +64,7 @@ export default function ListaProdutos({
             }
 
             const result = await response.json();
-            console.log('✅ Produto deletado com sucesso:', result);
+            ('✅ Produto deletado com sucesso:', result);
             // ✅ CALLBACK PARA ATUALIZAR LISTA NO COMPONENTE PAI
             if (deletarProduto) {
                 deletarProduto(produto.id_produto);
@@ -452,7 +452,7 @@ export default function ListaProdutos({
                                                 borderRadius: '50%'
                                             }}
                                             onError={(e) => {
-                                                console.log(`❌ Erro ao carregar imagem: ${produto.imagem}`);
+                                                (`❌ Erro ao carregar imagem: ${produto.imagem}`);
                                                 e.target.style.display = 'none';
                                                 const parent = e.target.parentElement;
                                                 if (parent) {
@@ -461,7 +461,7 @@ export default function ListaProdutos({
                                                 }
                                             }}
                                             onLoad={() => {
-                                                console.log(`✅ Imagem carregada: ${produto.imagem}`);
+                                                (`✅ Imagem carregada: ${produto.imagem}`);
                                             }}
                                         />
                                     ) : (

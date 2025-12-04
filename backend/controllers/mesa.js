@@ -38,6 +38,37 @@ export async function listarMesa(req, res) {
     }
 }
 
+
+export async function buscarMesaPorId(req, res) {
+    const {id} = req.params;
+
+    if(!id) {
+        return res.status(400).json({
+            msg: 'mesa nao encontrada'
+        }
+        )
+    }
+
+    try {
+        const {data, error} = await supabase  
+            .from('mesa')
+            .select('numeroMesa')
+            .eq('id', id)
+        
+        if (error) {
+            res.status(402).json({
+                error: error
+            })
+        }
+
+        res.json(data)
+    } catch (err) {
+        return res.status(500).json({
+            msg: 'Erro no servidor'
+        })
+    }
+}
+
 export async function criarMesa(req, res) {
     const { numeroMesa, restaurante } = req.body;
 

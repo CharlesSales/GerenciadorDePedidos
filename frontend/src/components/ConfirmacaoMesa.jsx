@@ -44,14 +44,14 @@ function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
   const restauranteIdCalculado = restauranteDaUrl || restauranteDosItens || null;
   
   const restaurante = restaurante_id || restauranteID || restauranteIdCalculado
-  console.log(`o id é ${restauranteIdCalculado}`)
+  (`o id é ${restauranteIdCalculado}`)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
   const total = itensParaBackend.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
 
   const handleConfirmarPedido = async () => {
     if (enviado) return;
-    console.log(itensParaBackend)
+    (itensParaBackend)
     if (!id_mesa || itensParaBackend.length === 0) {
       alert("Preencha todos os campos e adicione pelo menos um produto.");
       return;
@@ -93,7 +93,7 @@ function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
         return;
       }
 
-      console.log("Pedido enviado com sucesso:", data);
+      ("Pedido enviado com sucesso:", data);
       setEnviado(true);
     } catch (err) {
       console.error("Erro ao enviar pedido:", err);

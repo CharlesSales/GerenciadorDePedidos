@@ -26,7 +26,7 @@ function CarrinhoContent() {
     carrinho?.[0]?.restaurante_id || // 2. Pega do carrinho
     null;
 
-  console.log(`o id do restaurante é ${id_restaurante}`);
+  (`o id do restaurante é ${id_restaurante}`);
 
   let total = 0;
   try {

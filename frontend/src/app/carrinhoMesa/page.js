@@ -20,7 +20,7 @@ function CarrinhoContent() {
   const id_mesa = searchParams.get('id_mesa');
   const restaurante_id = searchParams.get('id_restaurante')
 
-  console.log(restaurante_id)
+  (restaurante_id)
   const router = useRouter();
 
   // 1. Pega da URL
@@ -29,7 +29,7 @@ function CarrinhoContent() {
     carrinho?.[0]?.restaurante_id || // 2. Pega do carrinho
     null;
 
-  console.log(`o id do restaurante é ${id_restaurante}`);
+  (`o id do restaurante é ${id_restaurante}`);
 
   let total = 0;
   try {

@@ -46,7 +46,7 @@ function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
   const restauranteDosItens = itensParaBackend?.[0]?.restaurante_id;
   const restauranteIdCalculado = restauranteDaUrl || restauranteDosItens || null;
   
-  console.log(`o id é ${restauranteIdCalculado}`)
+  (`o id é ${restauranteIdCalculado}`)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
   const total = itensParaBackend.reduce((acc, item) => acc + item.preco * item.quantidade, 0);
@@ -100,7 +100,7 @@ function ConfirmacaoContent({ pedidoConfirmado, produtos }) {
         return;
       }
 
-      console.log("Pedido enviado com sucesso:", data);
+      ("Pedido enviado com sucesso:", data);
       setEnviado(true);
     } catch (err) {
       console.error("Erro ao enviar pedido:", err);

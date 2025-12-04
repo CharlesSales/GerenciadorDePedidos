@@ -11,10 +11,10 @@ export function PedidosProvider({ children }) {
 
   const carregarPedidos = async () => {
     try {
-      console.log('📋 Carregando pedidos do restaurante...');
+      ('📋 Carregando pedidos do restaurante...');
       
       if (!token || !isAuthenticated) {
-        console.log('❌ Usuário não autenticado');
+        ('❌ Usuário não autenticado');
         setPedidos([]);
         setLoading(false);
         return;
@@ -35,8 +35,8 @@ export function PedidosProvider({ children }) {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Pedidos carregados:', data.total_pedidos);
-        console.log('🏪 Restaurante ID:', data.restaurante_id);
+        ('✅ Pedidos carregados:', data.total_pedidos);
+        ('🏪 Restaurante ID:', data.restaurante_id);
         setPedidos(data.pedidos);
       } else {
         console.error('❌ Erro ao carregar pedidos:', data.error);
@@ -53,7 +53,7 @@ export function PedidosProvider({ children }) {
 
   const atualizarStatusPedido = async (pedidoId, novoStatus) => {
     try {
-      console.log('🔄 Atualizando status do pedido:', pedidoId, 'para:', novoStatus);
+      ('🔄 Atualizando status do pedido:', pedidoId, 'para:', novoStatus);
 
       const response = await fetch(`${API_URL}/pedidos/${pedidoId}/status`, {
         method: 'PUT',
@@ -67,7 +67,7 @@ export function PedidosProvider({ children }) {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Status atualizado com sucesso');
+        ('✅ Status atualizado com sucesso');
         // ✅ ATUALIZAR LISTA LOCAL
         setPedidos(prevPedidos => 
           prevPedidos.map(pedido => 
@@ -90,7 +90,7 @@ export function PedidosProvider({ children }) {
 
   const criarPedido = async (dadosPedido) => {
     try {
-      console.log('🆕 Criando novo pedido...');
+      ('🆕 Criando novo pedido...');
 
       const response = await fetch(`${API_URL}/pedidos`, {
         method: 'POST',
@@ -104,7 +104,7 @@ export function PedidosProvider({ children }) {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Pedido criado com sucesso');
+        ('✅ Pedido criado com sucesso');
         // ✅ RECARREGAR LISTA DE PEDIDOS
         await carregarPedidos();
         return { success: true, pedido: data.pedido };

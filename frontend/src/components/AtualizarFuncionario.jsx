@@ -39,38 +39,38 @@ export default function AtualizarFuncionario() {
   // ✅ VERIFICAR AUTENTICAÇÃO APÓS HIDRATAÇÃO
   useEffect(() => {
     if (isHydrated && !loading) {
-      console.log('🔍 Verificando autenticação:', {
+      ('🔍 Verificando autenticação:', {
         isAuthenticated,
         hasToken: !!token,
         hasUser: !!user
       });
 
       if (!isAuthenticated || !token) {
-        console.log('❌ Usuário não autenticado, redirecionando...');
+        ('❌ Usuário não autenticado, redirecionando...');
         router.push('/login');
         return;
       }
 
-      console.log('✅ Usuário autenticado:', user?.dados?.nome);
+      ('✅ Usuário autenticado:', user?.dados?.nome);
     }
   }, [isHydrated, loading, isAuthenticated, token, user, router]);
 
   // ✅ VERIFICAR AUTENTICAÇÃO APÓS HIDRATAÇÃO (CONTINUAÇÃO)
   useEffect(() => {
     if (isHydrated && !loading) {
-      console.log('🔍 Verificando autenticação:', {
+      ('🔍 Verificando autenticação:', {
         isAuthenticated,
         hasToken: !!token,
         hasUser: !!user
       });
 
       if (!isAuthenticated || !token) {
-        console.log('❌ Usuário não autenticado, redirecionando...');
+        ('❌ Usuário não autenticado, redirecionando...');
         router.push('/login');
         return;
       }
 
-      console.log('✅ Usuário autenticado:', user?.dados?.nome);
+      ('✅ Usuário autenticado:', user?.dados?.nome);
     }
   }, [isHydrated, loading, isAuthenticated, token, user, router]);
 
@@ -111,7 +111,7 @@ export default function AtualizarFuncionario() {
         })
       });
 
-      console.log('📊 Status da resposta:', res.status);
+      ('📊 Status da resposta:', res.status);
       if (res.status === 200) {
         setMensagem('✅ Funcionário atualizado com sucesso!');
         setTimeout(() => router.push('/gestaoFuncionarios'), 1500);

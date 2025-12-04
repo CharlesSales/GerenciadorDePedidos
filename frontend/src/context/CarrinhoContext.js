@@ -18,9 +18,9 @@ export function CarrinhoProvider({ children }) {
 
   const carregarProdutos = async () => {
     try {
-      console.log('📦 Carregando produtos...');
-      console.log('🔐 Token disponível:', !!token);
-      console.log('👤 Usuário autenticado:', isAuthenticated);
+      ('📦 Carregando produtos...');
+      ('🔐 Token disponível:', !!token);
+      ('👤 Usuário autenticado:', isAuthenticated);
 
       setLoading(true);
 
@@ -30,9 +30,9 @@ export function CarrinhoProvider({ children }) {
 
       if (token && isAuthenticated) {
         headers['Authorization'] = `Bearer ${token}`;
-        console.log('🔐 Carregando produtos filtrados por restaurante...');
+        ('🔐 Carregando produtos filtrados por restaurante...');
       } else {
-        console.log('📦 Carregando todos os produtos (sem filtro)...');
+        ('📦 Carregando todos os produtos (sem filtro)...');
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
@@ -47,17 +47,17 @@ export function CarrinhoProvider({ children }) {
       }
 
       const data = await response.json();
-      console.log('📦 Resposta da API:', data);
+      ('📦 Resposta da API:', data);
 
       if (Array.isArray(data)) {
-        console.log('✅ Produtos carregados (array direto):', data.length);
+        ('✅ Produtos carregados (array direto):', data.length);
         setProdutos(data);
       } else if (data && data.success && Array.isArray(data.produtos)) {
-        console.log('✅ Produtos carregados (objeto success):', data.produtos.length);
-        console.log('🏪 Restaurante ID:', data.restaurante_id);
+        ('✅ Produtos carregados (objeto success):', data.produtos.length);
+        ('🏪 Restaurante ID:', data.restaurante_id);
         setProdutos(data.produtos);
       } else if (data && Array.isArray(data.data)) {
-        console.log('✅ Produtos carregados (data property):', data.data.length);
+        ('✅ Produtos carregados (data property):', data.data.length);
         setProdutos(data.data);
       } else {
         console.warn('⚠️ Formato de resposta inesperado:', data);
@@ -65,10 +65,10 @@ export function CarrinhoProvider({ children }) {
         if (data && typeof data === 'object') {
           const possiveisProdutos = data.produtos || data.data || data.items || [];
           if (Array.isArray(possiveisProdutos)) {
-            console.log('✅ Produtos encontrados em propriedade alternativa:', possiveisProdutos.length);
+            ('✅ Produtos encontrados em propriedade alternativa:', possiveisProdutos.length);
             setProdutos(possiveisProdutos);
           } else {
-            console.log('❌ Nenhum array de produtos encontrado');
+            ('❌ Nenhum array de produtos encontrado');
             setProdutos([]);
           }
         } else {
@@ -80,7 +80,7 @@ export function CarrinhoProvider({ children }) {
       console.error('❌ Erro detalhado na requisição:', error);
       
       if (token) {
-        console.log('🔄 Tentando novamente sem token...');
+        ('🔄 Tentando novamente sem token...');
         try {
           const fallbackResponse = await fetch(`${API_URL}/produtos`, {
             method: 'GET',
@@ -91,7 +91,7 @@ export function CarrinhoProvider({ children }) {
 
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
-            console.log('✅ Fallback funcionou:', fallbackData);
+            ('✅ Fallback funcionou:', fallbackData);
             
             if (Array.isArray(fallbackData)) {
               setProdutos(fallbackData);
@@ -122,15 +122,15 @@ export function CarrinhoProvider({ children }) {
   }, [isAuthenticated, token, isHydrated]);
 
   const adicionarAoCarrinho = (produto) => {
-    console.log('🛒 === ADICIONANDO AO CARRINHO ===');
-    console.log('🛒 Produto recebido:', produto);
-    console.log('🛒 Carrinho atual antes:', carrinho);
+    ('🛒 === ADICIONANDO AO CARRINHO ===');
+    ('🛒 Produto recebido:', produto);
+    ('🛒 Carrinho atual antes:', carrinho);
     
     setCarrinho(prevCarrinho => {
-      console.log('🛒 Carrinho anterior (dentro do setState):', prevCarrinho);
+      ('🛒 Carrinho anterior (dentro do setState):', prevCarrinho);
       
       const itemExistente = prevCarrinho.find(item => item.id_produto === produto.id_produto);
-      console.log('🛒 Item já existe?', !!itemExistente);
+      ('🛒 Item já existe?', !!itemExistente);
       
       let novoCarrinho;
       
@@ -140,19 +140,19 @@ export function CarrinhoProvider({ children }) {
             ? { ...item, quantidade: item.quantidade + 1 }
             : item
         );
-        console.log('🛒 Incrementando quantidade do item existente');
+        ('🛒 Incrementando quantidade do item existente');
       } else {
         novoCarrinho = [...prevCarrinho, { ...produto, quantidade: 1 }];
-        console.log('🛒 Adicionando novo item ao carrinho');
+        ('🛒 Adicionando novo item ao carrinho');
       }
       
-      console.log('🛒 Novo carrinho:', novoCarrinho);
+      ('🛒 Novo carrinho:', novoCarrinho);
       return novoCarrinho;
     });
   };
 
   const diminuirQuantidate = (produtoId) => {
-  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+  ('➖ Diminuindo quantidade do produto:', produtoId);
 
     setCarrinho(prevCarrinho => {
       return prevCarrinho
@@ -166,7 +166,7 @@ export function CarrinhoProvider({ children }) {
     });
   };
   const removerDoCarrinho = (produtoId) => {
-  console.log('➖ Diminuindo quantidade do produto:', produtoId);
+  ('➖ Diminuindo quantidade do produto:', produtoId);
 
   setCarrinho(prevCarrinho => {
     return prevCarrinho
@@ -199,7 +199,7 @@ export function CarrinhoProvider({ children }) {
   };
 
   const limparCarrinho = () => {
-    console.log('🗑️ Limpando carrinho');
+    ('🗑️ Limpando carrinho');
     setCarrinho([]);
   };
 

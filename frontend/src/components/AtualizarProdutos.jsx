@@ -60,19 +60,19 @@ export default function AtualizarProdutos() {
 
   useEffect(() => {
     if (isHydrated && !loading) {
-      console.log('🔍 Verificando autenticação:', {
+      ('🔍 Verificando autenticação:', {
         isAuthenticated,
         hasToken: !!token,
         hasUser: !!user
       });
 
       if (!isAuthenticated || !token) {
-        console.log('❌ Usuário não autenticado, redirecionando...');
+        ('❌ Usuário não autenticado, redirecionando...');
         router.push('/login');
         return;
       }
 
-      console.log('✅ Usuário autenticado:', user?.dados?.nome);
+      ('✅ Usuário autenticado:', user?.dados?.nome);
     }
   }, [isHydrated, loading, isAuthenticated, token, user, router]);
 
@@ -117,7 +117,7 @@ export default function AtualizarProdutos() {
     setCarregando(true);
     setMensagem('');
 
-    console.log(`Testando update: \nid:${id}\ncampo: ${campo}\nnovo valor: ${novoValor}`);
+    (`Testando update: \nid:${id}\ncampo: ${campo}\nnovo valor: ${novoValor}`);
 
     try {
       const res = await fetch(`${API_URL}/produtos/${id}/${campo}/${encodeURIComponent(novoValor)}`, {

@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
 
   const login = async (usuario, senha, tipo) => {
     try {
-      console.log('🔐 Fazendo login:', { tipo, usuario });
+      ('🔐 Fazendo login:', { tipo, usuario });
       
       const url = tipo === 'funcionario' 
         ? `${API_URL}/auth/funcionario`
@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (data.success) {
-        console.log('✅ Login bem-sucedido:', data.user.dados.nome);
+        ('✅ Login bem-sucedido:', data.user.dados.nome);
         
         setUser(data.user);
         setToken(data.token);
@@ -73,10 +73,10 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    console.log('🚪 Fazendo logout...');
+    ('🚪 Fazendo logout...');
     setUser(null);
     setToken(null);
-    console.log('Erro porra')
+    ('Erro porra')
     
     // ✅ REMOVER APENAS NO CLIENTE
     if (typeof window !== 'undefined') {
