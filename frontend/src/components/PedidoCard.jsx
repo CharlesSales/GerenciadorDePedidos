@@ -3,11 +3,15 @@ import React, { useRef, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, handleChangepaymentstatus, getStatusColor, formatarData }) {
+  if (!pedido) return null;
   const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
     ? JSON.parse(pedido.pedidos)
     : Array.isArray(pedido.pedidos)
       ? pedido.pedidos
       : [];
+
+  const pagamento = pedido?.pag || 'pendente';
+
 
   const getPaymentColor = (pag) => {
     return pag === 'pago' ? '#d4edda' : '#f8d7da'; // Verde claro / Vermelho claro
@@ -25,6 +29,28 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
   const taxaServico = user?.dados?.restaurante?.taxaServico
   const taxaCouvert = user?.dados?.restaurante?.taxaCouvert
   const [couvertStatus, setCouvertStatus] = useState(null);
+  const dataCompleta = pedido.data_hora
+  const data = dataCompleta.split('T')[0];
+
+  // ✅ EXTRAIR NOME DO FUNCIONÁRIO DE FORMA SEGURA
+  const nomeFuncionario = (() => {
+    if (!pedido.funcionario) return 'Não informado';
+
+    // Se for string, retornar diretamente
+    if (typeof pedido.funcionario === 'string') {
+      return pedido.funcionario;
+    }
+
+    // Se for objeto, extrair nome
+    if (typeof pedido.funcionario === 'object') {
+      return pedido.funcionario.nome ||
+        pedido.funcionario.nome_funcionario ||
+        pedido.funcionario.usuario ||
+        'Funcionário';
+    }
+
+    return 'Não informado';
+  })();
 
   useEffect(() => {
     if (taxaServico === true) {
@@ -343,7 +369,10 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
             Pedido #{numeroPedido}
           </h3>
           <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-            {formatarData(pedido.data_hora)}
+            {data} {formatarData(pedido.data_hora)}
+          </p>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+            Funcionário: {nomeFuncionario}
           </p>
         </div>
 
@@ -367,14 +396,14 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         alignItems: 'center',
         marginBottom: '15px',
         padding: '8px 12px',
-        backgroundColor: getPaymentColor(pedido.pag),
+        backgroundColor: getPaymentColor(pagamento),
         borderRadius: '8px',
-        border: `1px solid ${pedido.pag === 'pago' ? '#c3e6cb' : '#f5c6cb'}`
+        border: `1px solid ${pagamento === 'pago' ? '#c3e6cb' : '#f5c6cb'}`
       }}>
         <span style={{ fontWeight: 'bold', fontSize: '14px' }}>💳 Pagamento:</span>
         <span style={{
           fontWeight: 'bold',
-          color: pedido.pag === 'pago' ? '#155724' : '#721c24',
+          color: pagamento === 'pago' ? '#155724' : '#721c24',
           fontSize: '14px'
         }}>
           {pedido.pag === 'pago' ? '✅ PAGO' : '⏳ PENDENTE'}

@@ -11,8 +11,8 @@ export default function AdminPage() {
   const couvert = user?.dados?.restaurante?.taxaCouvert;
   const id_restaurante = user?.dados?.restaurante?.id_restaurante
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
-
-
+  
+  console.log(user)
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -276,84 +276,168 @@ export default function AdminPage() {
 
       </div>
 
-      {/* ✅ MENU DE OPÇÕES */}
+ {/* ✅ MENU DE OPÇÕES */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        display: 'flex',
+        flexDirection: 'column',
         gap: '20px'
       }}>
-
-        {/* ✅ GESTÃO DE PRODUTOS */}
+        
+        {/* ✅ BOTÕES PRINCIPAIS - CARDÁPIO E PEDIDOS */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/gestaoProdutos')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            📦
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '20px'
+        }}>
+          {/* ✅ CARDÁPIO PÚBLICO - PRINCIPAL */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            border: '2px solid #007bff'
+          }}
+            onClick={() => router.push('/produtos')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.2)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+          >
+            <div style={{ fontSize: '64px', textAlign: 'center', marginBottom: '20px' }}>
+              🍽️
+            </div>
+            <h2 style={{ margin: 0, textAlign: 'center', marginBottom: '12px', fontSize: '24px', color: '#007bff' }}>
+              Cardápio
+            </h2>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '16px' }}>
+              Faça o pedido no caixa
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gestão de Produtos
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar e gerenciar produtos do restaurante
-          </p>
+
+          {/* ✅ PEDIDOS - PRINCIPAL */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            border: '2px solid #28a745'
+          }}
+            onClick={() => router.push('/pedidos_geral')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.2)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+          >
+            <div style={{ fontSize: '64px', textAlign: 'center', marginBottom: '20px' }}>
+              📋
+            </div>
+            <h2 style={{ margin: 0, textAlign: 'center', marginBottom: '12px', fontSize: '24px', color: '#28a745' }}>
+              Gerenciar Pedidos
+            </h2>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '16px' }}>
+              Visualizar e atualizar status dos pedidos em tempo real
+            </p>
+          </div>
         </div>
 
-        {/* ✅ PEDIDOS */}
+        {/* ✅ BOTÕES SECUNDÁRIOS */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/pedidos_geral')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            📋
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '20px'
+        }}>
+          {/* ✅ GESTÃO DE PRODUTOS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => router.push('/gestaoProdutos')}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              📦
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Gestão de Produtos
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Visualizar e gerenciar produtos do restaurante
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gerenciar Pedidos
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar e atualizar status dos pedidos
-          </p>
-        </div>
 
-        {/* ✅ FUNCIONÁRIOS */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/gestaoFuncionarios')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            👥
+          {/* ✅ FUNCIONÁRIOS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => router.push('/gestaoFuncionarios')}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              👥
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Funcionários
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Gerenciar equipe e permissões
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Funcionários
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Gerenciar equipe e permissões
-          </p>
+
+          {/* ✅ GESTÃO DE MESAS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => {
+              if (!id_restaurante) {
+                alert('❌ ID do restaurante não encontrado!');
+                console.error('❌ Dados do usuário:', user);
+                return;
+              }
+              router.push(`/gestaoMesa`);
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              🪑
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Gestão de Mesas
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Visualizar QR codes das mesas
+            </p>
+          </div>
         </div>
+      </div>
 
         {/* ✅ RELATÓRIOS
         <div style={{
@@ -414,29 +498,7 @@ export default function AdminPage() {
           </p>
         </div> */}
 
-        {/* ✅ CARDÁPIO PÚBLICO */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/produtos')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            🍽️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Cardápio
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar como os produtos
-          </p>
-        </div>
+       
 
         {/* ✅ CARDÁPIO PÚBLICO */}
         {/* <div style={{
@@ -475,43 +537,6 @@ export default function AdminPage() {
           </p>
         </div> */}
 
-        {/* ✅ CARDÁPIO PÚBLICO */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => {
-
-
-            if (!id_restaurante) {
-              alert('❌ ID do restaurante não encontrado!');
-              console.error('❌ Dados do usuário:', user);
-              return;
-            }
-
-            // ✅ CORREÇÃO: URL com query parameters corretos
-            router.push(`/gestaoMesa`);
-          }}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            🍽️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Ver mesas
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar QR code das mesas
-          </p>
-        </div>
-
-      </div>
-
       {/* ✅ INFORMAÇÕES DO USUÁRIO */}
       <div style={{
         backgroundColor: 'white',
@@ -542,7 +567,7 @@ export default function AdminPage() {
           {user.dados?.cargo && (
             <div>
               <strong>Cargo:</strong><br />
-              <span style={{ color: '#666' }}>ID: {user.dados.cargo}</span>
+              <span style={{ color: '#666' }}>ID: {user.dados.cargo.nome_cargo}</span>
             </div>
           )}
 

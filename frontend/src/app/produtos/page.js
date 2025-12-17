@@ -44,70 +44,13 @@ export default function Produtos() {
         backgroundColor: '#f8f9fa',
       }}
     >
-      {/* === 25% - FILTROS LATERAIS === */}
-      <div
-        style={{
-          width: '10%',
-          borderRight: '1px solid #ddd',
-          backgroundColor: '#fff',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '15px',
-          overflowY: 'auto',
-        }}
-      >
-       
 
-        {/* Botões de categoria */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '100%',
-            marginTop: '20px',
-          }}
-        >
-          <button
-            onClick={() => setCategoriaSelecionada('')}
-            style={{
-              padding: '8px',
-              borderRadius: '20px',
-              border: '1px solid #ddd',
-              backgroundColor: categoriaSelecionada === '' ? '#ff4d4d' : '#f9f9f9',
-              color: categoriaSelecionada === '' ? '#fff' : '#000',
-              cursor: 'pointer',
-              width: '100%',
-            }}
-          >
-            Todos
-          </button>
-          {categorias.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoriaSelecionada(cat)}
-              style={{
-                padding: '8px',
-                borderRadius: '20px',
-                border: '1px solid #ddd',
-                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
-                color: categoriaSelecionada === cat ? '#fff' : '#000',
-                cursor: 'pointer',
-                width: '100%',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+        
       
       {/* === 50% - PRODUTOS === */}
       <div
         style={{
-          width: '70%',
+          width: '80%',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
@@ -153,6 +96,48 @@ export default function Produtos() {
           >
             🏠︎
           </button>
+        </div>
+
+        {/* Botões de categoria */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            width: '100%',
+            marginTop: '20px',
+          }}
+        >
+          <button
+            onClick={() => setCategoriaSelecionada('')}
+            style={{
+              padding: '8px',
+              borderRadius: '20px',
+              border: '1px solid #ddd',
+              backgroundColor: categoriaSelecionada === '' ? '#ff4d4d' : '#f9f9f9',
+              color: categoriaSelecionada === '' ? '#fff' : '#000',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Todos
+          </button>
+          {categorias.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoriaSelecionada(cat)}
+              style={{
+                padding: '8px',
+                borderRadius: '20px',
+                border: '1px solid #ddd',
+                backgroundColor: categoriaSelecionada === cat ? '#ff4d4d' : '#f9f9f9',
+                color: categoriaSelecionada === cat ? '#fff' : '#000',
+                cursor: 'pointer',
+                width: '100%',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Lista de produtos */}

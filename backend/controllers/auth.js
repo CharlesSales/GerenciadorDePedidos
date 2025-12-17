@@ -7,13 +7,13 @@ import bcrypt from 'bcryptjs'
 export async function loginFuncionario(req, res) {
   try {
     const { usuario, senha } = req.body;
-    
+
     console.log('🔐 LOGIN FUNCIONÁRIO:', { usuario, senha: '***' });
 
     if (!usuario || !senha) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Usuário e senha são obrigatórios' 
+      return res.status(400).json({
+        success: false,
+        error: 'Usuário e senha são obrigatórios'
       });
     }
 
@@ -36,18 +36,18 @@ export async function loginFuncionario(req, res) {
     console.log('👤 Funcionário encontrado:', {
       id: funcionario.id_funcionario,
       nome: funcionario.nome,
-      restaurante: funcionario.restaurante 
+      restaurante: funcionario.restaurante
     });
 
     // Buscar restaurante
     const { data: restaurante, error: restError } = await supabase
-    .from('restaurante')
-    .select('*')
-    .eq('id_restaurante', funcionario.restaurante)
-    .single();
+      .from('restaurante')
+      .select('*')
+      .eq('id_restaurante', funcionario.restaurante)
+      .single();
 
     if (restError) {
-    console.log('⚠️ Restaurante não encontrado para o funcionário');
+      console.log('⚠️ Restaurante não encontrado para o funcionário');
     }
 
     // ✅ BUSCAR CARGO
@@ -62,20 +62,20 @@ export async function loginFuncionario(req, res) {
     }
 
     // ✅ VERIFICAR SE É ADMINISTRADOR
-    const isAdmin = cargoInfo?.nome_cargo?.toLowerCase().includes('administrador') || 
-                   cargoInfo?.id === 1;
+    const isAdmin = cargoInfo?.nome_cargo?.toLowerCase().includes('administrador') ||
+      cargoInfo?.id === 1;
 
     // ✅ DADOS DO USUÁRIO
-      const userData = {
-        id: funcionario.id_funcionario,
-        tipo: 'funcionario',
-        isAdmin: funcionario.cargo === 1, // exemplo
-        dados: {
-            id_funcionario: funcionario.id_funcionario,
-            nome: funcionario.nome,
-            usuario: funcionario.usuario,
-            cargo: funcionario.cargo,
-            restaurante: restaurante || null
+    const userData = {
+      id: funcionario.id_funcionario,
+      tipo: 'funcionario',
+      isAdmin: funcionario.cargo === 1, // exemplo
+      dados: {
+        id_funcionario: funcionario.id_funcionario,
+        nome: funcionario.nome,
+        usuario: funcionario.usuario,
+        cargo: cargoInfo, // ✅ OBJETO COMPLETO
+        restaurante: restaurante || null
       }
     };
 
@@ -83,8 +83,8 @@ export async function loginFuncionario(req, res) {
     console.log('✅ Funcionário logado:', userData.dados.nome, 'Restaurante:', funcionario.restaurante);
 
 
-     const tokenPayload = { 
-      id: funcionario.id_funcionario, 
+    const tokenPayload = {
+      id: funcionario.id_funcionario,
       tipo: 'funcionario',
       isAdmin: isAdmin,
       restaurante: funcionario.restaurante,        // ✅ MANTER PARA COMPATIBILIDADE
@@ -109,9 +109,9 @@ export async function loginFuncionario(req, res) {
 
   } catch (err) {
     console.error('❌ Erro no login:', err);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Erro interno do servidor' 
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
     });
   }
 }
@@ -120,13 +120,13 @@ export async function loginFuncionario(req, res) {
 export async function loginRestaurante(req, res) {
   try {
     const { usuario, senha } = req.body;
-    
+
     console.log('🔐 LOGIN RESTAURANTE:', { usuario, senha: '***' });
-    
+
     if (!usuario || !senha) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Usuário e senha são obrigatórios' 
+      return res.status(400).json({
+        success: false,
+        error: 'Usuário e senha são obrigatórios'
       });
     }
 
@@ -139,9 +139,9 @@ export async function loginRestaurante(req, res) {
 
     if (error || !restaurante) {
       console.log('❌ Restaurante não encontrado');
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Usuário ou senha inválidos' 
+      return res.status(401).json({
+        success: false,
+        error: 'Usuário ou senha inválidos'
       });
     }
     // ✅ Comparar senha usando bcrypt
@@ -168,12 +168,12 @@ export async function loginRestaurante(req, res) {
 
     // ✅ GERAR TOKEN JWT
     const token = jwt.sign(
-      { 
+      {
         id: restaurante.id_restaurante,
         tipo: 'restaurante',
         restaurante: restaurante.id_restaurante
       },
-      process.env.JWT_SECRET 
+      process.env.JWT_SECRET
     );
 
     res.json({
@@ -185,9 +185,9 @@ export async function loginRestaurante(req, res) {
 
   } catch (err) {
     console.error('❌ Erro no login de restaurante:', err);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Erro interno do servidor' 
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
     });
   }
 }
