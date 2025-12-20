@@ -1,39 +1,183 @@
 'use client';
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, handleChangepaymentstatus, getStatusColor, formatarData }) {
+  if (!pedido) return null;
   const itens = typeof pedido.pedidos === "string" && pedido.pedidos.trim()
     ? JSON.parse(pedido.pedidos)
     : Array.isArray(pedido.pedidos)
       ? pedido.pedidos
       : [];
 
-  console.log(`os itens pedidos foram: \n${pedido.pedidos}`)
-  // ✅ FUNÇÃO PARA COR DO STATUS DE PAGAMENTO
+  const pagamento = pedido?.pag || 'pendente';
+
+
   const getPaymentColor = (pag) => {
     return pag === 'pago' ? '#d4edda' : '#f8d7da'; // Verde claro / Vermelho claro
   };
 
   const cardRef = useRef(null);
-  const p = pedido.pedidos
   const total = pedido.total
-  const itensPedido = JSON.parse(p)
+  const itensPedido = JSON.parse(pedido.pedidos)
   const { user } = useAuth()
+  const cnpj = user?.dados?.restaurante?.cnpj
+  const id_restaurante = user?.dados?.restaurante?.id_restaurante
+  const [numeroMesa, setNumeroMesa] = useState('')
+  const [taxa, setTaxa] = useState(0)
+  const [taxaCantor, setTaxaCantor] = useState(0)
+  const taxaServico = user?.dados?.restaurante?.taxaServico
+  const taxaCouvert = user?.dados?.restaurante?.taxaCouvert
+  const [couvertStatus, setCouvertStatus] = useState(null);
+  const dataCompleta = pedido.data_hora
+  const data = dataCompleta.split('T')[0];
 
-  const id_restaurante =
-    user?.dados?.id_restaurante ||
-    user?.dados?.id ||
-    user?.dados?.restaurante?.id_restaurante ||
-    user?.dados?.restaurante?.id ||
-    user?.id_restaurante ||
-    user?.id;
+  // ✅ EXTRAIR NOME DO FUNCIONÁRIO DE FORMA SEGURA
+  const nomeFuncionario = (() => {
+    if (!pedido.funcionario) return 'Não informado';
+
+    // Se for string, retornar diretamente
+    if (typeof pedido.funcionario === 'string') {
+      return pedido.funcionario;
+    }
+
+    // Se for objeto, extrair nome
+    if (typeof pedido.funcionario === 'object') {
+      return pedido.funcionario.nome ||
+        pedido.funcionario.nome_funcionario ||
+        pedido.funcionario.usuario ||
+        'Funcionário';
+    }
+
+    return 'Não informado';
+  })();
+
+  useEffect(() => {
+    if (taxaServico === true) {
+      setTaxa(0.1);
+    } else {
+      setTaxa(0);
+    }
+  }, [taxaServico]);
+
+
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+
+  const buscarStatusCouvert = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // ✅ Usar a rota correta conforme suas rotas
+      const response = await fetch(`${API_URL}/restaurante/restaurantes/couvert/${id_restaurante}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        console.error("❌ Erro ao buscar couvert");
+        // ✅ Se falhar, usar o valor do contexto como fallback
+        setCouvertStatus(couvert);
+        return;
+      }
+
+      const data = await response.json();
+      ("📊 Dados recebidos do backend:", data);
+
+      // ✅ Verificar se data é array ou objeto
+      const taxaCouvert = Array.isArray(data) ? data[0]?.taxaCouvert : data?.taxaCouvert;
+
+      ("🎵 Taxa couvert do backend:", taxaCouvert);
+
+      // Converte CORRETAMENTE qualquer tipo de retorno
+      const statusBoolean = taxaCouvert === true || taxaCouvert === "true" || taxaCouvert === 1 || taxaCouvert === "1";
+
+      ("🎵 Status final:", statusBoolean);
+      setCouvertStatus(statusBoolean);
+
+    } catch (error) {
+      console.error("❌ Erro ao buscar status do couvert:", error);
+      // ✅ Se der erro, usar o valor do contexto
+      setCouvertStatus(couvert);
+    }
+  };
+  useEffect(() => {
+    if (user && id_restaurante) {
+      buscarStatusCouvert();
+    }
+  }, [user, id_restaurante]);
+
+
+  useEffect(() => {
+    if (couvertStatus === true) {
+      setTaxaCantor(0.2);
+    } else {
+      setTaxaCantor(0);
+    }
+  }, [couvertStatus]);
+
+  (`taxa do cantor: ${taxaCantor}\nstatus: ${couvertStatus}`)
+
+
+  const buscarMesa = async (idMesa) => {
+    if (!idMesa) return;
+
+    try {
+      const response = await fetch(`${API_URL}/mesa/buscar/${idMesa}`);
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // ✅ CORREÇÃO: A API retorna um array, então pegar o primeiro elemento
+        if (data && Array.isArray(data) && data.length > 0) {
+          const mesa = data[0]; // Pegar o primeiro elemento do array
+          const numeroMesaEncontrado = mesa.numeroMesa || mesa.numero_mesa || mesa.numero || `Mesa ${idMesa}`;
+
+          setNumeroMesa(numeroMesaEncontrado);
+        } else {
+          setNumeroMesa(`Mesa ${idMesa}`);
+        }
+      } else {
+        setNumeroMesa(`Mesa ${idMesa}`);
+      }
+    } catch (error) {
+      setNumeroMesa(`Mesa ${idMesa}`);
+    }
+  };
+
+  (`taxa do cantor ${taxaCantor}`)
+
+  useEffect(() => {
+    const idMesa = itens.length > 0 && itens[0].id_mesa
+      ? itens[0].id_mesa
+      : pedido.mesa || pedido.id_mesa;
+
+
+    if (idMesa && idMesa !== 'Mesa não informada') {
+      buscarMesa(idMesa);
+    }
+  }, [pedido, itens]);
+
+  useEffect(() => {
+    const idMesa = itens.length > 0 && itens[0].id_mesa
+      ? itens[0].id_mesa
+      : pedido.mesa || pedido.id_mesa;
+
+
+    if (idMesa && idMesa !== 'Mesa não informada') {
+      buscarMesa(idMesa); // ✅ Passando idMesa como parâmetro
+
+    }
+  }, [pedido, itens]);
 
   const handlePrint = () => {
     const novaJanela = window.open("", "", "width=300,height=600");
     novaJanela.document.write(`
-    <!DOCTYPE html>
-    <html>
+        <!DOCTYPE html>
+        <html>
       <head>
         <meta charset="UTF-8">
         <title>Pedido #${numeroPedido}</title>
@@ -44,7 +188,7 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
             padding: 5px;
             line-height: 1.2;
             background: white;
-            width: 80mm; /* ✅ LARGURA PADRÃO EPSON */
+            width: 80mm; 
             font-size: 12px;
           }
           .header {
@@ -146,8 +290,9 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
 
         <div class="cliente-info">
           <div><strong>PEDIDO:</strong> #${numeroPedido}</div>
+          ${user?.dados?.restaurante?.cnpj ? `<div><strong>CNPJ:</strong>${cnpj}</div>` : ''}
           ${pedido.casa ? `<div><strong> ${pedido.casa}</strong></div>` : ''}
-          ${pedido.mesa ? `<div><strong>MESA:</strong> ${pedido.mesa}</div>` : ''}
+          ${pedido.mesa ? `<div><strong>MESA:</strong> ${numeroMesa}</div>` : ''}
         </div>
 
         <div class="itens">
@@ -160,8 +305,15 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
           `).join('')}
         </div>
 
+        <div class="calculo">
+          <div class="itens-title"></div>
+          <div class="itens-subtotal"> SUBTOTAL R$ ${Number(total || 0).toFixed(2)}</div>
+          ${taxaServico ? `<div class="itens-taxa"> SERVICO R$ ${Number(total * taxa).toFixed(2)}<\div>` : ''}
+          ${couvertStatus ? `<div class="itens-taxa"> COUVERT R$ ${Number(total * taxaCantor).toFixed(2)}<\div>` : ''}
+        </div>
+
         <div class="total">
-          TOTAL: R$ ${Number(total || 0).toFixed(2)}
+          TOTAL: R$ ${Number(total + (taxaServico ? total * taxa : 0) + (taxaCouvert ? total * taxaCantor : 0) || 0).toFixed(2)}
         </div>
         <div class="footer">
           ${new Date().toLocaleString('pt-BR')}
@@ -183,39 +335,6 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         novaJanela.close();
       }, 1000);
     }, 500);
-  };
-
-
-  // Exemplo de integração com Epsilon
-  const handleEpsilonPrint = async () => {
-    try {
-      // Configurar conexão com impressora Epsilon
-      const printer = new EpsilonPrinter({
-        interface: 'USB', // ou 'Serial', 'Ethernet'
-        model: 'TM-T20X' // ou modelo específico
-      });
-
-      // Comandos ESC/POS para Epsilon
-      const commands = [
-        '\x1b\x40', // Reset
-        '\x1b\x61\x01', // Centralizar
-        `${user?.dados?.restaurante?.nome_restaurante || 'RESTAURANTE'}\n`,
-        '\x1b\x61\x00', // Alinhar esquerda
-        `PEDIDO #${numeroPedido}\n`,
-        `${formatarData(pedido.data_hora)}\n`,
-        '--------------------------------\n',
-        `CLIENTE: ${pedido.nome_cliente}\n`,
-        // ... outros dados
-        '\x1d\x56\x41', // Cortar papel
-      ];
-
-      await printer.print(commands.join(''));
-
-    } catch (error) {
-      console.error('Erro na impressão Epsilon:', error);
-      // Fallback para impressão padrão
-      handlePrint();
-    }
   };
 
   // ✅ MAPEAR STATUS NUMÉRICO PARA TEXTO
@@ -250,7 +369,10 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
             Pedido #{numeroPedido}
           </h3>
           <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-            {formatarData(pedido.data_hora)}
+            {data} {formatarData(pedido.data_hora)}
+          </p>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+            Funcionário: {nomeFuncionario}
           </p>
         </div>
 
@@ -274,14 +396,14 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         alignItems: 'center',
         marginBottom: '15px',
         padding: '8px 12px',
-        backgroundColor: getPaymentColor(pedido.pag),
+        backgroundColor: getPaymentColor(pagamento),
         borderRadius: '8px',
-        border: `1px solid ${pedido.pag === 'pago' ? '#c3e6cb' : '#f5c6cb'}`
+        border: `1px solid ${pagamento === 'pago' ? '#c3e6cb' : '#f5c6cb'}`
       }}>
         <span style={{ fontWeight: 'bold', fontSize: '14px' }}>💳 Pagamento:</span>
         <span style={{
           fontWeight: 'bold',
-          color: pedido.pag === 'pago' ? '#155724' : '#721c24',
+          color: pagamento === 'pago' ? '#155724' : '#721c24',
           fontSize: '14px'
         }}>
           {pedido.pag === 'pago' ? '✅ PAGO' : '⏳ PENDENTE'}
@@ -293,10 +415,10 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
         <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#333' }}>{pedido.nome_cliente}</p>
         {/* <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Casa: {pedido.casa}</p> */}
         {pedido.casa && (
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>testando: {pedido.casa}</p>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>casa: {pedido.casa}</p>
         )}
         {pedido.mesa && (
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Mesa: {pedido.mesa}</p>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Mesa: {numeroMesa}</p>
         )}
         {pedido.detalhe && (
           <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>Obs: {pedido.detalhe}</p>
@@ -389,24 +511,6 @@ export default function PedidoCard({ pedido, numeroPedido, handleChangeStatus, h
           >
             🖨️
           </button>
-
-          {/* <button
-            onClick={handleEpsilonPrint}
-            style={{
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              padding: '8px 15px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px'
-            }}
-          >
-            Imprimir
-          </button> */}
 
         </div>
       </div>

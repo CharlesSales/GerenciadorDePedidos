@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import ZApiService from "../service/zapiService.js";
 import MensagemPedidoService from "../service/mensagemPedidoService.js";
 import { error } from "console";
+import { json } from "stream/consumers";
 
 
 export async function listarPedidos(req, res) {
@@ -41,7 +42,13 @@ export async function listarPedidos(req, res) {
     // Buscar pedidos apenas do restaurante logado
     const { data: pedidos, error } = await supabase
       .from("pedidos_geral")
-      .select("*")
+      .select(`
+          *,
+          funcionario:funcionario (
+            id_funcionario,
+            nome
+          )
+        `)
       .eq("restaurante", restauranteId)
       .order("data_hora", { ascending: false });
 
@@ -307,30 +314,30 @@ export async function cadastrarPedidosQRcode(req, res) {
       funcionario: 17, // ✅ ID funcionário padrão para pedidos externos
     })
 
-    if (err) {
-      res.status(402).json({
-        error: err.message
-      })
-    }
+  if (err) {
+    res.status(402).json({
+      error: err.message
+    })
+  }
 
-    try {
-      console.log('📡 Emitindo Socket.IO...');
+  try {
+    console.log('📡 Emitindo Socket.IO...');
 
-      const dadosCompletos = {
-        ...pedidoData,
-        restaurante: Number(restauranteid),
-        endereco_completo: enderecoData, // ✅ ENDEREÇO COMPLETO
-        itens_detalhados: itensData,     // ✅ ITENS DETALHADOS
-        restaurante: restauranteid,   
-        tipo: 'delivery' // ✅ IDENTIFICAR TIPO
-      };
+    const dadosCompletos = {
+      ...pedidoData,
+      restaurante: Number(restauranteid),
+      endereco_completo: enderecoData, // ✅ ENDEREÇO COMPLETO
+      itens_detalhados: itensData,     // ✅ ITENS DETALHADOS
+      restaurante: restauranteid,
+      tipo: 'delivery' // ✅ IDENTIFICAR TIPO
+    };
 
-      io.emit("novo_pedido", dadosCompletos);
+    io.emit("novo_pedido", dadosCompletos);
 
-      console.log('✅ Socket.IO emitido com sucesso');
-    } catch (socketError) {
-      console.error("❌ Erro no Socket.IO:", socketError.message);
-    }
+    console.log('✅ Socket.IO emitido com sucesso');
+  } catch (socketError) {
+    console.error("❌ Erro no Socket.IO:", socketError.message);
+  }
 
 
 }
@@ -655,3 +662,33 @@ export const listarStatusPedidos = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar status de pedidos.' });
   }
 };
+
+
+export async function statusPagamento(req, res) {
+  try {
+    const { id_pedido } = req.params;
+
+    if (!id_pedido) {
+      return res.status(400).json({
+        msg: "Não encontramos o id"
+      })
+    }
+
+    const { data, error } = await supabase
+      .from('pedidos_geral')
+      .select('pag')
+      .eq('id_pedido', id_pedido)
+
+    if (error) {
+      return res.status(404).json({
+        msg: `Erro ao buscar status de pagamento do pedido ${id_pedido}`
+      })
+    }
+
+    return res.status(200).json({ data });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message
+    })
+  }
+}

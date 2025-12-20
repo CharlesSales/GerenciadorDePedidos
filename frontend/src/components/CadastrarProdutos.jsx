@@ -83,7 +83,7 @@ export default function CadastrarProduto({ token }) {
     
     if (!nome || !descricao || !preco || !estoque || !categoria || !restaurante) {
       setErrorMsg('Todos os campos são obrigatórios, incluindo a imagem.');
-      console.log(`verificando qual campo esta falhando:\n${nome}\n${descricao}\n${preco}\n${estoque}\n${categoria}\n${restaurante}\n${imagem}`)
+      (`verificando qual campo esta falhando:\n${nome}\n${descricao}\n${preco}\n${estoque}\n${categoria}\n${restaurante}\n${imagem}`)
       return;
     }
     

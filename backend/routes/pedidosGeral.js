@@ -8,7 +8,8 @@ import {
   listarStatusPedidos,
   cadastrarPedidosCliente,
   cadastrarPedidosDelivery,
-  cadastrarPedidosQRcode
+  cadastrarPedidosQRcode,
+  statusPagamento
 } from "../controllers/pedidosGeral.js"
 
 const router = express.Router()
@@ -21,6 +22,7 @@ router.post('/qrcode', cadastrarPedidosQRcode)
 router.put("/:id", editarPedidos)
 router.put('/:id/status', atualizarStatusPedido);
 router.get('/status', listarStatusPedidos);
+router.get('/pagamento/:id_pedido', statusPagamento);
 
 router.get("/restaurante/:id", (req, res) => {
   const { id } = req.params;

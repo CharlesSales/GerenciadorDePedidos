@@ -29,20 +29,20 @@ export function RestauranteProvider({ children }) {
     setError('');
     
     try {
-      console.log('🏪 Carregando dados do restaurante para usuário:', user.tipo);
+      ('🏪 Carregando dados do restaurante para usuário:', user.tipo);
       
       let restauranteId = null;
       
       if (user.tipo === 'funcionario') {
         restauranteId = user.dados?.restaurante || user.dados?.restaurante_id;
-        console.log('👨‍💼 Funcionário - ID do restaurante:', restauranteId);
+        ('👨‍💼 Funcionário - ID do restaurante:', restauranteId);
       } else if (user.tipo === 'restaurante') {
         restauranteId = user.dados?.id_restaurante || user.id;
-        console.log('👑 Dono - ID do restaurante:', restauranteId);
+        ('👑 Dono - ID do restaurante:', restauranteId);
       }
 
       if (!restauranteId) {
-        console.log('❌ ID do restaurante não encontrado');
+        ('❌ ID do restaurante não encontrado');
         setError('ID do restaurante não encontrado');
         return;
       }
@@ -55,18 +55,18 @@ export function RestauranteProvider({ children }) {
         }
       });
 
-      console.log('📡 Status da resposta (restaurante):', response.status);
+      ('📡 Status da resposta (restaurante):', response.status);
 
       if (response.status === 401) {
-        console.log('🚫 Token inválido ao buscar restaurante');
+        ('🚫 Token inválido ao buscar restaurante');
         setError('Sessão expirada');
         return;
       }
 
       if (!response.ok) {
-        console.log('❌ Erro ao buscar restaurante:', response.status);
+        ('❌ Erro ao buscar restaurante:', response.status);
         // ✅ SE NÃO TEM ENDPOINT DE RESTAURANTE, USAR DADOS DO USUÁRIO
-        console.log('ℹ️ Usando dados do usuário como dados do restaurante');
+        ('ℹ️ Usando dados do usuário como dados do restaurante');
         
         if (user.tipo === 'restaurante') {
           // ✅ USAR DADOS DO PRÓPRIO USUÁRIO RESTAURANTE
@@ -75,7 +75,7 @@ export function RestauranteProvider({ children }) {
             nome_restaurante: user.dados?.nome_restaurante || user.dados?.nome,
             ...user.dados
           });
-          console.log('✅ Dados do restaurante carregados do usuário:', user.dados?.nome_restaurante);
+          ('✅ Dados do restaurante carregados do usuário:', user.dados?.nome_restaurante);
         } else if (user.tipo === 'funcionario') {
           // ✅ CRIAR OBJETO BÁSICO PARA FUNCIONÁRIO
           setRestaurante({
@@ -83,20 +83,20 @@ export function RestauranteProvider({ children }) {
             nome_restaurante: user.restaurante_info?.nome || 'Restaurante',
             ...user.restaurante_info
           });
-          console.log('✅ Dados básicos do restaurante carregados para funcionário');
+          ('✅ Dados básicos do restaurante carregados para funcionário');
         }
         return;
       }
 
       const data = await response.json();
       setRestaurante(data);
-      console.log(`🏪 Dados do restaurante carregados via API: ${data.nome_restaurante}`);
+      (`🏪 Dados do restaurante carregados via API: ${data.nome_restaurante}`);
       
     } catch (error) {
       console.error('❌ Erro ao carregar restaurante:', error);
       
       // ✅ FALLBACK - USAR DADOS DO USUÁRIO
-      console.log('ℹ️ Usando fallback - dados do usuário');
+      ('ℹ️ Usando fallback - dados do usuário');
       
       if (user.tipo === 'restaurante') {
         setRestaurante({

@@ -86,7 +86,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
         return;
       }
 
-      console.log("Pedido enviado com sucesso:", data);
+      ("Pedido enviado com sucesso:", data);
       setEnviado(true);
 
     } catch (err) {
@@ -101,7 +101,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
 
       {!enviado && (
         <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-          <label style={{ display: "block", marginBottom: "10px" }}>
+          {/* <label style={{ display: "block", marginBottom: "10px" }}>
             <span>👤 Nome do Cliente:</span>
             <input
               type="text"
@@ -109,7 +109,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               onChange={e => setCliente(e.target.value)}
               style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
             />
-          </label>
+          </label> */}
 
           {/* {funcionarioId && (
             <p style={{ marginBottom: "20px" }}>🧑‍🍳 Funcionário: {user.dados.nome}</p>
@@ -119,7 +119,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
             <p style={{ marginBottom: "20px" }}>🧑‍🍳 Restaurante: {user.dados?.restaurante?.id_restaurante}</p>
           )} */}
 
-          <label style={{ display: "block", marginBottom: "20px" }}>
+          {/* <label style={{ display: "block", marginBottom: "20px" }}>
             <span>🏠 Número da casa:</span>
             <input
               type="text"
@@ -127,7 +127,7 @@ export default function Confirmacao({ pedidoConfirmado, produtos }) {
               onChange={e => setCasa(e.target.value)}
               style={{ width: "100%", padding: "8px", marginTop: "4px", borderRadius: "6px", border: "1px solid #ccc" }}
             />
-          </label>
+          </label> */}
           <label style={{ display: "block", marginBottom: "20px" }}>
             <span>🏠 Número da mesa:</span>
             <input

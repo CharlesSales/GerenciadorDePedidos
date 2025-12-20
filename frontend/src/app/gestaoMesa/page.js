@@ -14,8 +14,8 @@ export default function MesasPage() {
     // ✅ CORREÇÃO: Usar optional chaining
     const restauranteId = user?.dados?.restaurante?.id_restaurante;
 
-    console.log("User completo:", user);
-    console.log("restauranteId:", restauranteId);
+    ("User completo:", user);
+    ("restauranteId:", restauranteId);
 
     useEffect(() => {
         setIsHydrated(true);
@@ -34,7 +34,7 @@ export default function MesasPage() {
 
             setLoading(true);
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
-            console.log(`body api: ${API_URL}/mesa/${restauranteId}`)
+            (`body api: ${API_URL}/mesa/${restauranteId}`)
 
             const response = await fetch(`${API_URL}/mesa/${restauranteId}`, {
                 method: 'GET',
@@ -50,7 +50,7 @@ export default function MesasPage() {
             }
 
             const data = await response.json();
-            console.log("📦 Dados recebidos:", data);
+            ("📦 Dados recebidos:", data);
             setMesas(Array.isArray(data) ? data : (data.data || []));
         } catch (err) {
             console.error('Erro ao carregar mesas:', err);
@@ -60,7 +60,7 @@ export default function MesasPage() {
         }
     };
 
-    console.log(`id da mesa: ${mesas?.id}`)
+    (`id da mesa: ${mesas?.id}`)
 
     // ✅ AGUARDAR USER CARREGAR
     if (!isHydrated || !user) {

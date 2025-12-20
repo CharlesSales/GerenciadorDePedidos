@@ -8,10 +8,10 @@ export const fetchWithAuth = async (url, options = {}) => {
 
   const token = localStorage.getItem('token')
   
-  console.log("🔍 === REQUISIÇÃO COM AUTH ===")
-  console.log("   URL:", `${API_URL}${url}`)
-  console.log("   Token existe:", !!token)
-  console.log("   Token:", token ? token.substring(0, 50) + '...' : 'null')
+  ("🔍 === REQUISIÇÃO COM AUTH ===")
+  ("   URL:", `${API_URL}${url}`)
+  ("   Token existe:", !!token)
+  ("   Token:", token ? token.substring(0, 50) + '...' : 'null')
   
   const config = {
     ...options,
@@ -22,15 +22,15 @@ export const fetchWithAuth = async (url, options = {}) => {
     }
   }
 
-  console.log("📤 Headers enviados:", config.headers)
+  ("📤 Headers enviados:", config.headers)
 
   try {
     const response = await fetch(`${API_URL}${url}`, config)
     
-    console.log("📥 Status da resposta:", response.status)
+    ("📥 Status da resposta:", response.status)
     
     if (response.status === 401) {
-      console.log("❌ Token expirado ou inválido - redirecionando")
+      ("❌ Token expirado ou inválido - redirecionando")
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'

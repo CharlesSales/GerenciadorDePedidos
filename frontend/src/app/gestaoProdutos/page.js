@@ -21,7 +21,7 @@ export default function produtosPage() {
   }, [isHydrated, token, isAuthenticated]);
 
   const handleProdutoDeleted = (produtoId) => {
-    console.log('🗑️ Produto deletado, removendo da lista:', produtoId);
+    ('🗑️ Produto deletado, removendo da lista:', produtoId);
     setProdutos(prev => prev.filter(p => p.id_produto !== produtoId));
   };
   

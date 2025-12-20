@@ -7,31 +7,18 @@ export default function AdminPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
-
-  // 🔍 DEBUG: Verificar estrutura do usuário
-  console.log('👤 Usuário completo:', user);
-  console.log('📊 Dados do usuário:', user?.dados);
-  console.log('🏪 ID do restaurante (v1):', user?.dados?.restaurante?.id_restaurante);
-
-
-  // ✅ MÚLTIPLAS TENTATIVAS PARA PEGAR O ID
-  const id_restaurante =
-    user?.dados?.id_restaurante ||
-    user?.dados?.id ||
-    user?.dados?.restaurante?.id_restaurante ||
-    user?.dados?.restaurante?.id ||
-    user?.id_restaurante ||
-    user?.id;
-
-  console.log('🎯 ID final escolhido:', id_restaurante);
-
-  // ✅ Garantir hidratação
+  const [couvertStatus, setCouvertStatus] = useState(null);
+  const couvert = user?.dados?.restaurante?.taxaCouvert;
+  const id_restaurante = user?.dados?.restaurante?.id_restaurante
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gerenciadordepedidos.onrender.com";
+  
+  console.log(user)
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
   const handleLogout = () => {
-    logout(); // ✅ Função já implementada no AuthContext
+    logout();
     router.push('/login');
   };
 
@@ -41,6 +28,98 @@ export default function AdminPage() {
       router.push('/login');
     }
   }, [isHydrated, loading, user, router]);
+
+
+  useEffect(() => {
+    if (couvert !== undefined) {
+      setCouvertStatus(couvert);
+    }
+  }, [couvert]);
+
+
+  const buscarStatusCouvert = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      // ✅ Usar a rota correta conforme suas rotas
+      const response = await fetch(`${API_URL}/restaurante/restaurantes/couvert/${id_restaurante}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        console.error("❌ Erro ao buscar couvert");
+        // ✅ Se falhar, usar o valor do contexto como fallback
+        setCouvertStatus(couvert);
+        return;
+      }
+
+      const data = await response.json();
+      // ✅ Verificar se data é array ou objeto
+      const taxaCouvert = Array.isArray(data) ? data[0]?.taxaCouvert : data?.taxaCouvert;
+
+
+      // Converte CORRETAMENTE qualquer tipo de retorno
+      const statusBoolean = taxaCouvert === true || taxaCouvert === "true" || taxaCouvert === 1 || taxaCouvert === "1";
+
+      setCouvertStatus(statusBoolean);
+
+    } catch (error) {
+      console.error("❌ Erro ao buscar status do couvert:", error);
+      // ✅ Se der erro, usar o valor do contexto
+      setCouvertStatus(couvert);
+    }
+  };
+  useEffect(() => {
+    if (user && id_restaurante) {
+      buscarStatusCouvert();
+    }
+  }, [user, id_restaurante]);
+
+
+  const handleatualizarStatusCouvert = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return alert("Token não encontrado");
+
+      const novoStatus = !couvertStatus;
+
+      const response = await fetch(`${API_URL}/restaurante`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: novoStatus,
+          id: id_restaurante,
+        }),
+      });
+
+      if (!response.ok) {
+        alert("Erro ao atualizar couvert");
+        return;
+      }
+
+      const result = await response.json();
+
+      // Atualiza o estado local imediatamente
+      setCouvertStatus(novoStatus);
+
+      // ✅ Buscar novamente para confirmar
+      setTimeout(() => {
+        buscarStatusCouvert();
+      }, 500);
+
+    } catch (error) {
+      console.error(error);
+      alert("Erro inesperado");
+    }
+  };
+
 
   // ✅ Loading visual
   if (!isHydrated || loading) {
@@ -139,6 +218,45 @@ export default function AdminPage() {
               Olá, <strong>{user.dados?.nome || user.dados?.nome_restaurante}</strong>!
             </p>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>Couvert</span>
+            <div
+              onClick={handleatualizarStatusCouvert}
+              style={{
+                width: '50px',
+                height: '26px',
+                backgroundColor: couvertStatus ? '#28a745' : '#ccc',
+                borderRadius: '13px',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+                border: '2px solid #fff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  position: 'absolute',
+                  top: '1px',
+                  left: couvertStatus ? '27px' : '3px',
+                  transition: 'left 0.3s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }}
+              />
+            </div>
+            <span style={{
+              fontSize: '12px',
+              color: couvertStatus ? '#28a745' : '#6c757d',
+              fontWeight: 'bold'
+            }}>
+              {couvertStatus ? 'ON' : 'OFF'}
+            </span>
+          </div>
+
           <button
             onClick={handleLogout}
             style={{
@@ -158,84 +276,168 @@ export default function AdminPage() {
 
       </div>
 
-      {/* ✅ MENU DE OPÇÕES */}
+ {/* ✅ MENU DE OPÇÕES */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        display: 'flex',
+        flexDirection: 'column',
         gap: '20px'
       }}>
-
-        {/* ✅ GESTÃO DE PRODUTOS */}
+        
+        {/* ✅ BOTÕES PRINCIPAIS - CARDÁPIO E PEDIDOS */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/gestaoProdutos')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            📦
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '20px'
+        }}>
+          {/* ✅ CARDÁPIO PÚBLICO - PRINCIPAL */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            border: '2px solid #007bff'
+          }}
+            onClick={() => router.push('/produtos')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.2)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+          >
+            <div style={{ fontSize: '64px', textAlign: 'center', marginBottom: '20px' }}>
+              🍽️
+            </div>
+            <h2 style={{ margin: 0, textAlign: 'center', marginBottom: '12px', fontSize: '24px', color: '#007bff' }}>
+              Cardápio
+            </h2>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '16px' }}>
+              Faça o pedido no caixa
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gestão de Produtos
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar e gerenciar produtos do restaurante
-          </p>
+
+          {/* ✅ PEDIDOS - PRINCIPAL */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '40px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            border: '2px solid #28a745'
+          }}
+            onClick={() => router.push('/pedidos_geral')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.2)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+          >
+            <div style={{ fontSize: '64px', textAlign: 'center', marginBottom: '20px' }}>
+              📋
+            </div>
+            <h2 style={{ margin: 0, textAlign: 'center', marginBottom: '12px', fontSize: '24px', color: '#28a745' }}>
+              Gerenciar Pedidos
+            </h2>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '16px' }}>
+              Visualizar e atualizar status dos pedidos em tempo real
+            </p>
+          </div>
         </div>
 
-        {/* ✅ PEDIDOS */}
+        {/* ✅ BOTÕES SECUNDÁRIOS */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/pedidos_geral')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            📋
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '20px'
+        }}>
+          {/* ✅ GESTÃO DE PRODUTOS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => router.push('/gestaoProdutos')}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              📦
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Gestão de Produtos
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Visualizar e gerenciar produtos do restaurante
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Gerenciar Pedidos
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar e atualizar status dos pedidos
-          </p>
-        </div>
 
-        {/* ✅ FUNCIONÁRIOS */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/gestaoFuncionarios')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            👥
+          {/* ✅ FUNCIONÁRIOS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => router.push('/gestaoFuncionarios')}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              👥
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Funcionários
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Gerenciar equipe e permissões
+            </p>
           </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Funcionários
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Gerenciar equipe e permissões
-          </p>
+
+          {/* ✅ GESTÃO DE MESAS */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease'
+          }}
+            onClick={() => {
+              if (!id_restaurante) {
+                alert('❌ ID do restaurante não encontrado!');
+                console.error('❌ Dados do usuário:', user);
+                return;
+              }
+              router.push(`/gestaoMesa`);
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
+              🪑
+            </div>
+            <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
+              Gestão de Mesas
+            </h3>
+            <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
+              Visualizar QR codes das mesas
+            </p>
+          </div>
         </div>
+      </div>
 
         {/* ✅ RELATÓRIOS
         <div style={{
@@ -271,8 +473,8 @@ export default function AdminPage() {
           transition: 'transform 0.2s ease'
         }}
           onClick={() => {
-            console.log('🔗 Navegando para cardápio com ID:', id_restaurante);
-            console.log('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
+            ('🔗 Navegando para cardápio com ID:', id_restaurante);
+            ('🔗 URL completa:', `/cardapioCliente?restaurante=${id_restaurante}`);
 
             if (!id_restaurante) {
               alert('❌ ID do restaurante não encontrado!');
@@ -296,29 +498,7 @@ export default function AdminPage() {
           </p>
         </div> */}
 
-        {/* ✅ CARDÁPIO PÚBLICO */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => router.push('/produtos')}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            🍽️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Cardápio
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar como os produtos
-          </p>
-        </div>
+       
 
         {/* ✅ CARDÁPIO PÚBLICO */}
         {/* <div style={{
@@ -330,9 +510,9 @@ export default function AdminPage() {
           transition: 'transform 0.2s ease'
         }}
           onClick={() => {
-            console.log('🔗 Navegando para cardápio da mesa');
-            console.log('🏪 ID Restaurante:', id_restaurante);
-            console.log('🪑 ID Mesa:', 1);
+            ('🔗 Navegando para cardápio da mesa');
+            ('🏪 ID Restaurante:', id_restaurante);
+            ('🪑 ID Mesa:', 1);
 
             if (!id_restaurante) {
               alert('❌ ID do restaurante não encontrado!');
@@ -356,45 +536,6 @@ export default function AdminPage() {
             Ver produtos como cliente da mesa 1
           </p>
         </div> */}
-
-        {/* ✅ CARDÁPIO PÚBLICO */}
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          padding: '20px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.2s ease'
-        }}
-          onClick={() => {
-            console.log('🔗 Navegando para cardápio da mesa');
-            console.log('🏪 ID Restaurante:', id_restaurante);
-            console.log('🪑 ID Mesa:', 1);
-
-            if (!id_restaurante) {
-              alert('❌ ID do restaurante não encontrado!');
-              console.error('❌ Dados do usuário:', user);
-              return;
-            }
-
-            // ✅ CORREÇÃO: URL com query parameters corretos
-            router.push(`/gestaoMesa`);
-          }}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-        >
-          <div style={{ fontSize: '48px', textAlign: 'center', marginBottom: '16px' }}>
-            🍽️
-          </div>
-          <h3 style={{ margin: 0, textAlign: 'center', marginBottom: '8px' }}>
-            Ver mesas
-          </h3>
-          <p style={{ margin: 0, color: '#666', textAlign: 'center', fontSize: '14px' }}>
-            Visualizar QR code das mesas
-          </p>
-        </div>
-
-      </div>
 
       {/* ✅ INFORMAÇÕES DO USUÁRIO */}
       <div style={{
@@ -426,7 +567,7 @@ export default function AdminPage() {
           {user.dados?.cargo && (
             <div>
               <strong>Cargo:</strong><br />
-              <span style={{ color: '#666' }}>ID: {user.dados.cargo}</span>
+              <span style={{ color: '#666' }}>ID: {user.dados.cargo.nome_cargo}</span>
             </div>
           )}
 

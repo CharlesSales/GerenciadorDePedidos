@@ -42,7 +42,7 @@ export default function ListaFuncionario({
         }
       });
 
-      console.log('Status: ', response.status)
+      ('Status: ', response.status)
 
       if (!response.ok) {
         let errorMessage = 'DEU MERDA!!'
@@ -67,7 +67,7 @@ export default function ListaFuncionario({
       }
 
       const result = await response.json();
-      console.log('✅ Funcionario deletado com sucesso:', result);
+      ('✅ Funcionario deletado com sucesso:', result);
       // ✅ CALLBACK PARA ATUALIZAR LISTA NO COMPONENTE PAI
       if (deletarFuncionario) {
         deletarFuncionario(funcionario.id_funcionario);

@@ -74,10 +74,10 @@ export default function CarrinhoPage() {
 //   const router = useRouter();
 
 //   // ✅ LOGS SEGUROS
-//   console.log('🛒 === PÁGINA DO CARRINHO ===');
-//   console.log('🛒 Carrinho tipo:', typeof carrinho);
-//   console.log('🛒 Carrinho é array:', Array.isArray(carrinho));
-//   console.log('🛒 Carrinho length:', carrinho?.length || 0);
+//   ('🛒 === PÁGINA DO CARRINHO ===');
+//   ('🛒 Carrinho tipo:', typeof carrinho);
+//   ('🛒 Carrinho é array:', Array.isArray(carrinho));
+//   ('🛒 Carrinho length:', carrinho?.length || 0);
 
 //   let total = 0;
 //   try {
@@ -95,7 +95,7 @@ export default function CarrinhoPage() {
 //     return true;
 //   }) : [];
 
-//   console.log('🛒 Itens válidos no carrinho:', carrinhoValido.length);
+//   ('🛒 Itens válidos no carrinho:', carrinhoValido.length);
 
 //   return (
 //     <div style={{
@@ -338,7 +338,7 @@ export default function CarrinhoPage() {
 //                   try {
 //                     router.push('/confirmacao')
 //                   } catch (error) {
-//                     console.log('❌ Erro ao finalizar pedido:', error)
+//                     ('❌ Erro ao finalizar pedido:', error)
 //                   }
 //                 }}
 //                 style={{
