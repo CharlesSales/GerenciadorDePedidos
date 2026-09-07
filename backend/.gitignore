@@ -1,5 +1,5 @@
 # Node modules
-node_modules/
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -27,6 +27,12 @@ Thumbs.db
 # VS Code
 .vscode/
 
+# MD
+PLANO_MELHORIAS.md
+COMO_FUNCIONA.md
+API.md
+
+
 # Docker
 docker-compose.override.yml
 docker-compose.*.yml
@@ -35,11 +41,6 @@ docker-compose.*.yml
 # Next.js
 .next/
 out/
-
-# NPM
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Testes
 coverage/

@@ -1,12 +1,10 @@
-import { supabase } from "../supabaseClient.js"
+import * as categoriaService from '../services/categoriaService.js'
+import { sendError } from '../errors/AppError.js'
 
-// ✅ LISTAR PRODUTOS (COM FILTRO POR RESTAURANTE SE AUTENTICADO)
 export async function listarCategorias(req, res) {
-  const { data, error } = await supabase
-    .from("categoria")
-    .select("*")
-    .order("id", { ascending: true })
-
-  if (error) return res.status(500).json({ error: error.message })
-  res.json(data)
+  try {
+    return res.json(await categoriaService.listar())
+  } catch (error) {
+    return sendError(res, error)
+  }
 }

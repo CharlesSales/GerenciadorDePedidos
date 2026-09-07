@@ -1,5 +1,7 @@
 import express from 'express';
 import { loginFuncionario, loginRestaurante } from '../controllers/auth.js';
+import { validate } from '../middleware/validate.js';
+import { loginSchema } from '../validators/authValidator.js';
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ router.get('/debug', (req, res) => {
   });
 });
 
-router.post('/funcionario', loginFuncionario);
-router.post('/restaurante', loginRestaurante);
+router.post('/funcionario', validate(loginSchema), loginFuncionario);
+router.post('/restaurante', validate(loginSchema), loginRestaurante);
 
 export default router;

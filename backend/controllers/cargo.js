@@ -1,12 +1,10 @@
-import { supabase } from "../supabaseClient.js"
+import * as cargoService from '../services/cargoService.js'
+import { sendError } from '../errors/AppError.js'
 
-// ✅ LISTAR PRODUTOS (COM FILTRO POR RESTAURANTE SE AUTENTICADO)
 export async function listarCargo(req, res) {
-  const { data, error } = await supabase
-    .from("cargo")
-    .select("*")
-    .order("id", { ascending: true })
-
-  if (error) return res.status(500).json({ error: error.message })
-  res.json(data)
+  try {
+    return res.json(await cargoService.listar())
+  } catch (error) {
+    return sendError(res, error)
+  }
 }

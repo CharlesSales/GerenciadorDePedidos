@@ -1,108 +1,88 @@
 import jwt from 'jsonwebtoken'
-import { supabase } from '../supabaseClient.js'
+import { supabase } from '../config/data/supabaseClient.js'
+import { AppError, sendError } from '../errors/AppError.js'
+import { env } from '../config/env.js'
 
-export const authenticateToken = async (req, res, next) => {
-  console.log('🔐 Middleware de autenticação iniciado');
-  console.log('📡 Headers da requisição:', req.headers.authorization ? 'Token presente' : 'Token ausente');
-  
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
+const autenticar = async (req, res, next, opcional = false) => {
+  const authHeader = req.headers.authorization
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : null
 
   if (!token) {
-    console.log('❌ Token não fornecido');
-    return res.status(401).json({ error: 'Token de acesso requerido' })
+    if (opcional) return next()
+    return sendError(res, new AppError('Token de acesso requerido', 401, 'TOKEN_REQUIRED'))
   }
 
   try {
-    // ✅ VERIFICAR SE JWT_SECRET ESTÁ CONFIGURADO
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      console.error('❌ JWT_SECRET não configurado no .env');
-      return res.status(500).json({ error: 'Configuração de autenticação inválida' });
+    const decoded = jwt.verify(token, env.jwtSecret);
+    if (!decoded.id) {
+      return sendError(res, new AppError('Token inválido', 401, 'TOKEN_INVALID'))
     }
 
-    console.log('🔓 Decodificando token...');
-    const decoded = jwt.verify(token, jwtSecret);
-    console.log('✅ Token decodificado:', { 
-      id: decoded.id, 
-      tipo: decoded.tipo, 
-      exp: new Date(decoded.exp * 1000).toLocaleString() 
-    });
-    
-    // ✅ VERIFICAR SE O USUÁRIO AINDA EXISTE
-    console.log('🔍 Verificando usuário no banco de dados...');
-    
+    if (!['funcionario', 'restaurante'].includes(decoded.tipo)) {
+      return sendError(res, new AppError('Tipo de usuário inválido', 401, 'TOKEN_INVALID'))
+    }
+
     const tabela = decoded.tipo === 'funcionario' ? 'funcionario' : 'restaurante';
     const campoId = decoded.tipo === 'funcionario' ? 'id_funcionario' : 'id_restaurante';
-    
-    console.log(`📋 Consultando tabela: ${tabela}, campo: ${campoId}, valor: ${decoded.id}`);
+    const campos = decoded.tipo === 'funcionario'
+      ? 'id_funcionario, nome, usuario, cargo, restaurante'
+      : 'id_restaurante, nome_restaurante, usuario'
     
     const { data: usuario, error } = await supabase
       .from(tabela)
-      .select('*')
+      .select(campos)
       .eq(campoId, decoded.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.error('❌ Erro ao consultar usuário:', error);
-      return res.status(403).json({ error: 'Erro ao verificar usuário' });
+      console.error('Erro ao verificar usuário:', error.message);
+      return sendError(res, new AppError('Erro ao verificar usuário', 500, 'AUTH_USER_LOOKUP_ERROR'))
     }
 
     if (!usuario) {
-      console.log('❌ Usuário não encontrado no banco');
-      return res.status(403).json({ error: 'Usuário não encontrado' });
-    }
-
-    console.log('✅ Usuário encontrado:', {
-      id: usuario[campoId],
-      nome: usuario.nome || usuario.nome_restaurante,
-      tipo: decoded.tipo
-    });
-
-    // ✅ ADICIONAR INFORMAÇÕES EXTRAS PARA FUNCIONÁRIOS
-    if (decoded.tipo === 'funcionario') {
-      console.log('👨‍💼 Funcionário - Restaurante ID:', usuario.restaurante);
+      return sendError(res, new AppError('Usuário não encontrado', 401, 'USER_NOT_FOUND'))
     }
 
     req.user = {
       id: decoded.id,
       tipo: decoded.tipo,
+      isAdmin: decoded.tipo === 'restaurante' || decoded.isAdmin === true,
+      restauranteId: decoded.tipo === 'funcionario'
+        ? usuario.restaurante
+        : usuario.id_restaurante,
       dados: usuario
     }
-    
-    console.log('✅ Autenticação bem-sucedida');
     next()
   } catch (err) {
-    console.error('❌ Erro na autenticação:', err.message);
-    
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expirado' });
+      return sendError(res, new AppError('Token expirado', 401, 'TOKEN_EXPIRED'))
     } else if (err.name === 'JsonWebTokenError') {
-      return res.status(403).json({ error: 'Token malformado' });
+      return sendError(res, new AppError('Token malformado', 401, 'TOKEN_INVALID'))
     } else {
-      return res.status(403).json({ error: 'Token inválido ou expirado' });
+      return sendError(res, new AppError('Token inválido ou expirado', 401, 'TOKEN_INVALID'))
     }
   }
 }
 
+export const authenticateToken = (req, res, next) => autenticar(req, res, next)
+
+export const authenticateTokenOptional = (req, res, next) =>
+  autenticar(req, res, next, true)
+
 // Middleware para verificar se é administrador do restaurante
 export const requireRestauranteAdmin = (req, res, next) => {
-  console.log('🔒 Verificando permissão de admin do restaurante');
-  if (req.user.tipo !== 'restaurante') {
-    console.log('❌ Acesso negado - não é admin do restaurante');
-    return res.status(403).json({ error: 'Acesso negado. Apenas administradores.' })
+  if (!req.user?.isAdmin) {
+    return sendError(res, new AppError('Acesso negado. Apenas administradores.', 403, 'FORBIDDEN'))
   }
-  console.log('✅ Admin do restaurante autorizado');
   next()
 }
 
 // Middleware para verificar se é funcionário ou admin
 export const requireFuncionarioOrAdmin = (req, res, next) => {
-  console.log('🔒 Verificando permissão de funcionário ou admin');
-  if (!['funcionario', 'restaurante'].includes(req.user.tipo)) {
-    console.log('❌ Acesso negado - não é funcionário nem admin');
-    return res.status(403).json({ error: 'Acesso negado.' })
+  if (!['funcionario', 'restaurante'].includes(req.user?.tipo)) {
+    return sendError(res, new AppError('Acesso negado.', 403, 'FORBIDDEN'))
   }
-  console.log('✅ Funcionário ou admin autorizado');
   next()
 }
